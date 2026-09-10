@@ -416,6 +416,23 @@ const Chat = {
     if (BB.settings.smartsuppKey) {
       // Real Smartsupp is configured — activate it.
       Chat.injectSmartsupp(BB.settings.smartsuppKey);
+      // Watchdog: if the Smartsupp widget never appears (bad key, account
+      // issue, or script blocked), show the built-in launcher instead so
+      // the site always has a chat icon. If Smartsupp shows up later, the
+      // built-in launcher steps aside.
+      const seen = () => document.querySelector('iframe[src*="smartsupp"], iframe[id^="smartsupp"], div[id^="smartsupp"]');
+      let waited = 0;
+      const iv = setInterval(() => {
+        if (seen()) {
+          clearInterval(iv);
+          const b = $('.chat-launcher'); if (b) b.style.display = 'none';
+          const w = $('.chat-window'); if (w && w.classList.contains('open')) Chat.toggle(false);
+        } else {
+          waited += 2;
+          if (waited === 10 && !Chat.builtIn) Chat.ensureBuiltIn();
+          if (waited >= 60) clearInterval(iv);
+        }
+      }, 2000);
       return;
     }
     Chat.ensureBuiltIn();

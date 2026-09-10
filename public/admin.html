@@ -67,7 +67,7 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=11"></script>
+  <script src="/assets/js/common.js?v=12"></script>
   <script>
     'use strict';
     let VIEW = 'overview';
@@ -566,6 +566,7 @@
           </div>
           <div class="field"><label>Demo starting balance ($)</label><input class="input num" id="setDemoBal" type="number" value="${s.demoStartBalance}"></div>
           <div class="field"><label>Support email</label><input class="input" id="setSupport" value="${BB.esc(s.supportEmail)}"></div>
+          <div class="field"><label>Site URL (used in email links)</label><input class="input" id="setSiteUrl" value="${BB.esc(s.siteUrl || 'https://blockchainbullhorn.onrender.com')}"></div>
         </div>
         <div class="admin-card"><h3><i class="fas fa-trophy" style="color:var(--gold)"></i> Weekly Demo Contest</h3>
           <div class="checkline mb-1"><input type="checkbox" id="setContestOn" ${s.contest && s.contest.enabled !== false ? 'checked' : ''}> <span>Contest enabled (visible on dashboards)</span></div>
@@ -648,7 +649,7 @@
             smartsuppKey: R('setSmartsupp').value,
             announcements: currentAnns,
             depositAddresses: {}, minDeposit: R('setMinDep').value, minWithdraw: R('setMinWd').value,
-            demoStartBalance: R('setDemoBal').value, supportEmail: R('setSupport').value,
+            demoStartBalance: R('setDemoBal').value, supportEmail: R('setSupport').value, siteUrl: R('setSiteUrl').value,
             contest: { enabled: R('setContestOn').checked, prize: R('setContestPrize').value },
             smtp: { host: R('setSmtpHost').value, port: R('setSmtpPort').value, user: R('setSmtpUser').value, pass: R('setSmtpPass').value, from: R('setSmtpFrom').value },
             email: { transport: R('setEmailTransport').value, sendgridKey: R('setSendgridKey').value, relayUrl: R('setRelayUrl').value, relaySecret: R('setRelaySecret').value }

@@ -1235,6 +1235,7 @@ api['POST /api/admin/settings'] = async (req, res, body, cookies) => {
   if (isFinite(Number(b.minDeposit))) s.minDeposit = Math.max(1, Number(b.minDeposit));
   if (isFinite(Number(b.minWithdraw))) s.minWithdraw = Math.max(1, Number(b.minWithdraw));
   if (typeof b.supportEmail === 'string') s.supportEmail = b.supportEmail.trim().slice(0, 120);
+  if (typeof b.siteUrl === 'string') s.siteUrl = b.siteUrl.trim().slice(0, 200);
   if (b.contest && typeof b.contest === 'object') {
     s.contest = s.contest || { enabled: true, prize: '' };
     s.contest.enabled = !!b.contest.enabled;
