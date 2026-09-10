@@ -15,7 +15,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=14">
+  <link rel="stylesheet" href="/assets/css/main.css?v=15">
   <style>
     .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .bal-card { position: relative; overflow: hidden; }
@@ -298,6 +298,8 @@
           { label: 'Demo Equity', icon: 'fa-flask', value: demo.equity, sub: `${BB.fmtUSD(demo.free)} free · ${BB.fmtUSD(demo.marginUsed)} margin · ${BB.fmtUSD(demo.spot || 0)} coins · ${BB.fmtUSD(demo.inCopy || 0)} copying`, cls: 'var(--sky)' },
           { label: 'Demo Unrealized P/L', icon: 'fa-arrow-trend-up', value: demo.unrealized, sub: 'practice account', cls: demo.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' }
         ];
+        const adj = (live.manualPnl || 0) + (demo.manualPnl || 0);
+        if (Math.abs(adj) > 0.004) cards.push({ label: 'Account Adjustment', icon: 'fa-sliders', value: adj, sub: `live ${BB.fmtUSD(live.manualPnl || 0)} · demo ${BB.fmtUSD(demo.manualPnl || 0)}`, cls: adj >= 0 ? 'var(--gold-deep)' : 'var(--red)' });
         $('#balCards').innerHTML = cards.map(c => `
           <div class="card bal-card">
             <div class="bc-label"><i class="fas ${c.icon}"></i> ${c.label}</div>

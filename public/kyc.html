@@ -15,7 +15,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=14">
+  <link rel="stylesheet" href="/assets/css/main.css?v=15">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -42,7 +42,19 @@
             </select>
           </div>
           <div class="field">
-            <label>1 · Front side of your document</label>
+            <label>1 · Your details (as shown on the document)</label>
+            <div class="form-row">
+              <input class="input" id="kycName" placeholder="Full legal name" autocomplete="name">
+              <input class="input" id="kycIdNo" placeholder="Document / ID number">
+            </div>
+            <div class="form-row" style="margin-top:10px">
+              <input class="input" id="kycAddress" placeholder="Residential address (street & number)" autocomplete="street-address" style="grid-column:1/-1">
+              <input class="input" id="kycCity" placeholder="City / State">
+              <input class="input" id="kycCountry" placeholder="Country" autocomplete="country-name">
+            </div>
+          </div>
+          <div class="field">
+            <label>2 · Front side of your document</label>
             <div class="dropzone" id="dzFront">
               <i class="fas fa-id-card"></i>
               <b>Upload ID front</b>
@@ -52,7 +64,17 @@
             <div id="prevFront"></div>
           </div>
           <div class="field">
-            <label>2 · Selfie holding your document</label>
+            <label>3 · Back side of your document</label>
+            <div class="dropzone" id="dzBack">
+              <i class="fas fa-id-card-clip"></i>
+              <b>Upload ID back</b>
+              <small>Required for licenses and national IDs · passports without a back side may upload the front again</small>
+              <input type="file" id="fBack" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
+            </div>
+            <div id="prevBack"></div>
+          </div>
+          <div class="field">
+            <label>4 · Selfie holding your document <span class="muted" style="font-weight:400">(optional, speeds up review)</span></label>
             <div class="dropzone" id="dzSelfie">
               <i class="fas fa-face-smile"></i>
               <b>Upload selfie with ID</b>
@@ -76,7 +98,7 @@
   <script>
     document.addEventListener('bb:ready', async () => {
       if (!BB.user) { location.href = '/login?next=' + encodeURIComponent('/kyc'); return; }
-      const docs = { front: null, selfie: null };
+      const docs = { front: null, back: null, selfie: null };
       let status = null;
 
       function renderStatus(kyc) {
@@ -140,15 +162,33 @@
         }
       }
       hookDrop('#dzFront', '#fFront', 'front', '#prevFront');
+      hookDrop('#dzBack', '#fBack', 'back', '#prevBack');
       hookDrop('#dzSelfie', '#fSelfie', 'selfie', '#prevSelfie');
+      // prefill details from the signed-in profile
+      BB.api('/api/auth/me', { silent: true }).then(m => {
+        if (m.ok && m.user) {
+          if (m.user.name) $('#kycName').value = m.user.name;
+          if (m.user.country) $('#kycCountry').value = m.user.country;
+        }
+      });
 
       $('#kycSubmit').addEventListener('click', async () => {
-        if (!docs.front || !docs.selfie) return BB.toast('Please upload both the ID front and the selfie.', 'error');
+        if (!$('#kycName').value.trim() || !$('#kycIdNo').value.trim() || !$('#kycAddress').value.trim())
+          return BB.toast('Please fill in your full legal name, ID number and address.', 'error');
+        if (!docs.front || !docs.back) return BB.toast('Please upload BOTH the front and back of your ID document.', 'error');
         const btn = $('#kycSubmit');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting…';
+        const payload = {
+          idType: $('#idType').value,
+          details: {
+            fullName: $('#kycName').value, idNumber: $('#kycIdNo').value, address: $('#kycAddress').value,
+            city: $('#kycCity').value, country: $('#kycCountry').value
+          },
+          docs: [docs.front, docs.back, docs.selfie].filter(Boolean)
+        };
         const r = await BB.api('/api/kyc/submit', {
           method: 'POST',
-          body: { idType: $('#idType').value, docs: [docs.front, docs.selfie] }
+          body: payload
         });
         btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
         if (r.ok) {

@@ -17,7 +17,7 @@
   <meta name="theme-color" content="#ffffff">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=14">
+  <link rel="stylesheet" href="/assets/css/main.css?v=15">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -27,6 +27,10 @@
   <section class="section-tight" style="padding-top:44px">
     <div class="container" style="max-width:660px">
       <div class="text-center mb-3">
+        <a class="auth-brand" href="/" title="Back to homepage" style="margin:0 auto 10px">
+          <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn logo">
+          <span>Blockchain <b>Bullhorn</b></span>
+        </a>
         <span class="eyebrow">Free Account · $10,000 Demo Included</span>
         <h1 style="font-size:clamp(26px,4vw,36px)">Join the Blockchain Bullhorn</h1>
         <p class="muted">Four quick steps — account, profile, experience and verification.</p>
@@ -155,6 +159,17 @@
             </select>
           </div>
           <div class="field">
+            <label>Your details (as shown on the document)</label>
+            <div class="form-row">
+              <input class="input" id="suKycName" placeholder="Full legal name">
+              <input class="input" id="suKycIdNo" placeholder="Document / ID number">
+            </div>
+            <div class="form-row" style="margin-top:10px">
+              <input class="input" id="suKycAddress" placeholder="Residential address (street & number)" style="grid-column:1/-1">
+              <input class="input" id="suKycCity" placeholder="City / State">
+            </div>
+          </div>
+          <div class="field">
             <label>Front of ID document</label>
             <div class="dropzone" id="dzFront">
               <i class="fas fa-cloud-arrow-up"></i>
@@ -165,10 +180,20 @@
             <div id="prevFront"></div>
           </div>
           <div class="field">
-            <label>Selfie with ID (or back of ID)</label>
+            <label>Back of ID document</label>
+            <div class="dropzone" id="dzBack">
+              <i class="fas fa-id-card-clip"></i>
+              <b>Upload ID back</b>
+              <small>Required for licenses and national IDs · passports may upload the front again</small>
+              <input type="file" id="fBack" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
+            </div>
+            <div id="prevBack"></div>
+          </div>
+          <div class="field">
+            <label>Selfie with ID <span class="muted" style="font-weight:400">(optional, speeds up review)</span></label>
             <div class="dropzone" id="dzSelfie">
               <i class="fas fa-face-smile"></i>
-              <b>Upload selfie / ID back</b>
+              <b>Upload selfie with ID</b>
               <small>Hold your ID next to your face</small>
               <input type="file" id="fSelfie" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
             </div>
@@ -209,7 +234,7 @@
     document.addEventListener('bb:ready', () => {
       if (BB.user) { location.href = '/dashboard'; return; }
       let step = 1;
-      const docs = { front: null, selfie: null };
+      const docs = { front: null, back: null, selfie: null };
       const alertEl = $('#wizAlert');
       const showAlert = m => { alertEl.textContent = m; alertEl.classList.add('show'); alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
       const clearAlert = () => alertEl.classList.remove('show');
@@ -257,6 +282,7 @@
         }
       }
       hookDrop('#dzFront', '#fFront', 'front', '#prevFront');
+      hookDrop('#dzBack', '#fBack', 'back', '#prevBack');
       hookDrop('#dzSelfie', '#fSelfie', 'selfie', '#prevSelfie');
 
       function setStep(n) {
@@ -319,9 +345,17 @@
       async function submitAccount() {
         const btn = $('#btnNext');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Creating your account…';
-        const kycDocs = [];
-        if (docs.front) kycDocs.push(docs.front);
-        if (docs.selfie) kycDocs.push(docs.selfie);
+        const kycDetails = {
+          fullName: $('#suKycName').value.trim(), idNumber: $('#suKycIdNo').value.trim(),
+          address: $('#suKycAddress').value.trim(), city: $('#suKycCity').value.trim(), country: $('#suCountry').value
+        };
+        const kycStarted = docs.front || docs.back || docs.selfie || kycDetails.fullName || kycDetails.idNumber || kycDetails.address;
+        if (kycStarted && !(docs.front && docs.back && kycDetails.fullName && kycDetails.idNumber && kycDetails.address)) {
+          showAlert('To submit KYC now, complete it: full legal name, ID number, address, and BOTH the front and back of your ID. (Leave everything empty to skip and verify later from your dashboard.)');
+          btn.disabled = false; btn.innerHTML = '<i class="fas fa-flag-checkered"></i> Create Account';
+          return;
+        }
+        const kycDocs = [docs.front, docs.back, docs.selfie].filter(Boolean);
         const r = await BB.api('/api/auth/signup', {
           method: 'POST',
           body: {
@@ -329,7 +363,7 @@
             password: $('#suPw').value, agree: true, referredBy: $('#suRef').value.trim(),
             dob: $('#suDob').value, country: $('#suCountry').value, phone: $('#suPhone').value.trim(),
             experience: $('#suExp').value, sourceOfFunds: $('#suFunds').value,
-            newsletter: $('#suNews').checked, idType: $('#suIdType').value, kycDocs
+            newsletter: $('#suNews').checked, idType: $('#suIdType').value, kycDocs, kycDetails
           }
         });
         if (r.ok) { clearAlert(); setStep(5); }

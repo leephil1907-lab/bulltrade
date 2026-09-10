@@ -16,6 +16,9 @@ const bots = require('../lib/bots');
   await markets.start();
   const leader = bots._activeBots()[0];
   console.log('bot:', leader.title, '| min $' + leader.minBalance);
+  // clean slate: local engine runs accumulate stale open demo positions for the bot
+  // (maxPos cap would then block the forced decision and fail the smoke)
+  D.db().positions = D.db().positions.filter(p => !(p.userId === leader.userId && p.mode === 'demo' && !p.copyOf));
   // subscriber with a live allocation on this bot
   const user = D.filter('users', u => !u.isBot && u.role !== 'admin' && !u.banned)[0];
   const before = D.wallet(user.id, 'demo').usd;

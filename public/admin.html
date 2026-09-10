@@ -16,7 +16,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=14">
+  <link rel="stylesheet" href="/assets/css/main.css?v=15">
   <link rel="stylesheet" href="/assets/css/admin.css?v=7">
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -253,9 +253,9 @@
         </div>
         <div class="grid grid-2 mb-2" style="gap:12px">
           <div class="card" style="padding:14px"><div class="l muted small font-head">LIVE EQUITY</div><b class="font-head" style="font-size:22px;color:var(--green-bright)">$${r.live.equity.toLocaleString()}</b>
-            <div class="muted small font-head">free $${r.live.free.toLocaleString()} · margin $${r.live.marginUsed.toLocaleString()} · copy $${(r.live.inCopy || 0).toLocaleString()}</div></div>
+            <div class="muted small font-head">free $${r.live.free.toLocaleString()} · margin $${r.live.marginUsed.toLocaleString()} · copy $${(r.live.inCopy || 0).toLocaleString()}${r.live.manualPnl ? ' · adj ' + (r.live.manualPnl >= 0 ? '+' : '') + '$' + r.live.manualPnl.toLocaleString() : ''}</div></div>
           <div class="card" style="padding:14px"><div class="l muted small font-head">DEMO EQUITY</div><b class="font-head" style="font-size:22px;color:var(--sky)">$${r.demo.equity.toLocaleString()}</b>
-            <div class="muted small font-head">free $${r.demo.free.toLocaleString()} · margin $${r.demo.marginUsed.toLocaleString()}</div></div>
+            <div class="muted small font-head">free $${r.demo.free.toLocaleString()} · margin $${r.demo.marginUsed.toLocaleString()}${r.demo.manualPnl ? ' · adj ' + (r.demo.manualPnl >= 0 ? '+' : '') + '$' + r.demo.manualPnl.toLocaleString() : ''}</div></div>
         </div>
         <h4 class="font-head mb-1" style="font-size:15px"><i class="fas fa-sliders" style="color:var(--gold)"></i> Adjust Balance</h4>
         <div class="form-row" style="gap:10px">
@@ -265,8 +265,41 @@
         </div>
         <button class="btn btn-gold btn-sm mt-1" id="adjBtn"><i class="fas fa-check"></i> Apply Adjustment</button>
 
+        <h4 class="font-head mt-3 mb-1" style="font-size:15px"><i class="fas fa-chart-line" style="color:var(--gold)"></i> Adjust P/L (manual profit/loss)</h4>
+        <div class="form-row" style="gap:10px">
+          <select class="input" id="pnlMode" style="flex:1"><option value="live">Live P/L</option><option value="demo">Demo P/L</option></select>
+          <input class="input num" id="pnlAmount" type="number" step="any" placeholder="+/- USD e.g. 250 or -120" style="flex:1.2">
+          <input class="input" id="pnlNote" placeholder="Reason (shown in records)" style="flex:1.4">
+        </div>
+        <button class="btn btn-gold btn-sm mt-1" id="pnlBtn"><i class="fas fa-check"></i> Apply P/L</button>
+
+        <h4 class="font-head mt-3 mb-1" style="font-size:15px"><i class="fas fa-envelope" style="color:var(--gold)"></i> Email this user</h4>
+        <div class="field"><input class="input" id="mailSubject" placeholder="Subject"></div>
+        <div class="field"><textarea class="input" id="mailBody" rows="3" placeholder="Message (sent in the branded email template; user can reply directly to support)"></textarea></div>
+        <button class="btn btn-primary btn-sm" id="mailBtn"><i class="fas fa-paper-plane"></i> Send Email</button>
+
+        <h4 class="font-head mt-3 mb-1" style="font-size:15px"><i class="fas fa-shield-halved" style="color:var(--gold)"></i> Super Admin Controls</h4>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${u.banned
+            ? '<button class="btn btn-green btn-sm" data-act="unban"><i class="fas fa-unlock"></i> Unsuspend</button>'
+            : '<button class="btn btn-outline btn-sm" data-act="ban"><i class="fas fa-ban"></i> Suspend User</button>'}
+          <button class="btn btn-outline btn-sm" data-act="forcelogout"><i class="fas fa-right-from-bracket"></i> Force Logout</button>
+          <button class="btn btn-outline btn-sm" data-act="reset-password"><i class="fas fa-key"></i> Send Password Reset</button>
+          <button class="btn btn-outline btn-sm" data-act="reset-demo"><i class="fas fa-rotate-left"></i> Reset Demo Wallet</button>
+          ${u.role === 'admin'
+            ? '<button class="btn btn-outline btn-sm" data-act="revoke-admin"><i class="fas fa-user-minus"></i> Remove Admin</button>'
+            : '<button class="btn btn-outline btn-sm" data-act="make-admin"><i class="fas fa-user-shield"></i> Make Admin</button>'}
+          <button class="btn btn-danger btn-sm" data-act="delete"><i class="fas fa-trash"></i> Delete User</button>
+        </div>
+        ${u.banned ? '<p class="muted small mt-1" style="color:var(--red)"><i class="fas fa-triangle-exclamation"></i> This account is SUSPENDED — logins are blocked.</p>' : ''}
+
         <h4 class="font-head mt-3 mb-1" style="font-size:15px"><i class="fas fa-id-card" style="color:var(--gold)"></i> KYC — ${kyc ? kyc.status.toUpperCase() : 'NOT SUBMITTED'}</h4>
         ${kyc ? `<p class="muted small">${kyc.idType.replace('_', ' ')} · submitted ${BB.timeAgo(kyc.submittedAt)}${kyc.docs ? ' · ' + kyc.docs.length + ' document(s)' : ''}</p>
+          ${kyc.details ? `<div class="kpi-row mb-1" style="gap:8px">
+            <span class="kpi"><i class="fas fa-user"></i> ${BB.esc(kyc.details.fullName || '—')}</span>
+            <span class="kpi"><i class="fas fa-hashtag"></i> #${BB.esc(kyc.details.idNumber || '—')}</span>
+            <span class="kpi"><i class="fas fa-house"></i> ${BB.esc(kyc.details.address || '—')}${kyc.details.city ? ', ' + BB.esc(kyc.details.city) : ''}${kyc.details.country ? ', ' + BB.esc(kyc.details.country) : ''}</span>
+          </div>` : ''}
           ${kyc.status === 'pending' ? `<div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" id="kycA"><i class="fas fa-check"></i> Approve KYC</button>
           <button class="btn btn-danger btn-sm" id="kycR"><i class="fas fa-xmark"></i> Reject KYC</button></div>` : ''}
           ${kyc.docs && kyc.docs.length ? `<div class="grid grid-2 mt-1" style="gap:10px">${kyc.docs.map(d => `
@@ -294,6 +327,29 @@
         const r2 = await api('/api/admin/balance', { method: 'POST', body: { userId: u.id, mode: R('adjMode', bd).value, amountUsd: amt, note } });
         if (r2.ok) { toast(r2.message, 'success'); bd.remove(); openUser(userId); } else toast(r2.error, 'error');
       });
+      R('pnlBtn', bd).addEventListener('click', async () => {
+        const amt = parseFloat(R('pnlAmount', bd).value);
+        const r2 = await api('/api/admin/pnl', { method: 'POST', body: { userId: u.id, mode: R('pnlMode', bd).value, amount: amt, note: R('pnlNote', bd).value } });
+        if (r2.ok) { toast(r2.message, 'success'); bd.remove(); openUser(userId); } else toast(r2.error, 'error');
+      });
+      R('mailBtn', bd).addEventListener('click', async () => {
+        const r2 = await api('/api/admin/user-email', { method: 'POST', body: { userId: u.id, subject: R('mailSubject', bd).value, message: R('mailBody', bd).value } });
+        if (r2.ok) { toast(r2.message, 'success'); R('mailSubject', bd).value = ''; R('mailBody', bd).value = ''; } else toast(r2.error, 'error');
+      });
+      $$('[data-act]', bd).forEach(b => b.addEventListener('click', async () => {
+        const act = b.dataset.act;
+        if (act === 'delete') {
+          const c1 = confirm(`Delete ${u.email} PERMANENTLY? All their wallets, trades, KYC and records will be removed.`);
+          if (!c1) return;
+          const c2 = prompt(`This cannot be undone. Type the user's email to confirm:`);
+          const r2 = await api('/api/admin/user-action', { method: 'POST', body: { userId: u.id, action: 'delete', confirm: c2 || '' } });
+          if (r2.ok) { toast(r2.message, 'success'); bd.remove(); } else toast(r2.error, 'error');
+          return;
+        }
+        if (act === 'ban' && !confirm(`Suspend ${u.email}? They will be blocked from logging in.`)) return;
+        const r2 = await api('/api/admin/user-action', { method: 'POST', body: { userId: u.id, action: act } });
+        if (r2.ok) { toast(act.replace('-', ' ') + ' ✓', 'success'); bd.remove(); if (act !== 'forcelogout' && act !== 'reset-password') openUser(userId); } else toast(r2.error, 'error');
+      }));
       const kycA = R('kycA', bd), kycR = R('kycR', bd);
       if (kycA) kycA.addEventListener('click', async () => {
         const r2 = await api('/api/admin/kyc', { method: 'POST', body: { userId: u.id, action: 'approve' } });

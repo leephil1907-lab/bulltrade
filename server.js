@@ -115,7 +115,7 @@ api['POST /api/auth/signup'] = async (req, res, body, cookies) => {
   let kycStatus = 'not_submitted';
   if (kycDocs && kycDocs.length) {
     const { submitKyc } = require('./lib/kyc');
-    const r = submitKyc(result.user, body.idType || 'passport', kycDocs);
+    const r = submitKyc(result.user, body.idType || 'passport', kycDocs, body.kycDetails || {});
     kycStatus = r.ok ? 'pending' : 'not_submitted';
   }
   ok(res, { user: Object.assign(Auth.publicUser(result.user), { kycStatus }), token: t },
@@ -184,6 +184,8 @@ api['GET /api/auth/me'] = async (req, res, body, cookies) => {
   if (!user) return ok(res, { user: null });
   const live = trading.equity(user.id, 'live');
   const demo = trading.equity(user.id, 'demo');
+  live.manualPnl = ((D.wallet(user.id, 'live', false) || {}).manualPnl) || 0;
+  demo.manualPnl = ((D.wallet(user.id, 'demo', false) || {}).manualPnl) || 0;
   ok(res, {
     user: Auth.publicUser(user), live, demo,
     gamify: gamify.profile(user),
@@ -596,7 +598,7 @@ api['POST /api/funding/demo-topup'] = async (req, res, body, cookies) => {
 api['POST /api/kyc/submit'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies); if (!user) return;
   const { submitKyc } = require('./lib/kyc');
-  const r = submitKyc(user, body.idType, Array.isArray(body.docs) ? body.docs : []);
+  const r = submitKyc(user, body.idType, Array.isArray(body.docs) ? body.docs : [], body.details || {});
   if (r.error) return fail(res, r.status, r.error);
   gamify.addXP(user.id, 25, 'kyc');
   ok(res, r);
@@ -935,9 +937,11 @@ api['GET /api/admin/user'] = async (req, res, body, cookies, query) => {
     },
     kyc: kyc ? {
       status: kyc.status, reason: kyc.reason, idType: kyc.idType, submittedAt: kyc.submittedAt, reviewedAt: kyc.reviewedAt,
+      details: kyc.details || null,
       docs: (kyc.docs || []).map(d => ({ id: d.id, kind: d.kind, origName: d.origName, mime: d.mime, size: d.size }))
     } : null,
-    live: trading.equity(u.id, 'live'), demo: trading.equity(u.id, 'demo'),
+    live: Object.assign(trading.equity(u.id, 'live'), { manualPnl: ((D.wallet(u.id, 'live', false) || {}).manualPnl) || 0 }),
+    demo: Object.assign(trading.equity(u.id, 'demo'), { manualPnl: ((D.wallet(u.id, 'demo', false) || {}).manualPnl) || 0 }),
     positions: D.filter('positions', p => p.userId === u.id),
     orders: D.filter('orders', o => o.userId === u.id),
     trades: D.filter('trades', t => t.userId === u.id).sort((a, b) => b.at - a.at).slice(0, 50),
@@ -996,10 +1000,85 @@ api['POST /api/admin/user-action'] = async (req, res, body, cookies) => {
     case 'unban': u.banned = false; D.logAudit(admin.id, 'user.unban', u.id, ''); break;
     case 'make-admin': u.role = 'admin'; D.logAudit(admin.id, 'user.makeAdmin', u.id, ''); break;
     case 'revoke-admin': u.role = 'user'; D.logAudit(admin.id, 'user.revokeAdmin', u.id, ''); break;
+    case 'forcelogout': {
+      const before = D.db().sessions.length;
+      D.db().sessions = D.db().sessions.filter(x => x.userId !== u.id);
+      D.logAudit(admin.id, 'user.forceLogout', u.id, `${before - D.db().sessions.length} session(s) cleared`);
+      break;
+    }
+    case 'reset-password': {
+      const t = U.token(20);
+      D.insert('resets', { token: t, userId: u.id, expiresAt: Date.now() + 3600 * 1000, used: false });
+      mailer.sendMail({
+        to: u.email, subject: '🔐 Password reset requested — Blockchain Bullhorn',
+        html: mailer.templates.wrap('🔐 Password Reset',
+          `A password reset was requested for your account by platform support. If this wasn't you, contact support immediately — your password is still unchanged.<br><br>The link below is valid for 1 hour.`,
+          `/reset-password?token=${t}`, 'Choose a New Password')
+      }).catch(() => {});
+      D.logAudit(admin.id, 'user.resetPassword', u.id, 'reset link emailed');
+      break;
+    }
+    case 'reset-demo': {
+      const w = D.wallet(u.id, 'demo', true);
+      const start = Number((D.db().settings || {}).demoStartBalance) || 10000;
+      w.usd = U.round(start); w.manualPnl = 0;
+      D.insert('transactions', { id: U.uid('tx_'), userId: u.id, type: 'adjust', asset: 'USD', amountUsd: 0, status: 'completed', createdAt: Date.now(), updatedAt: Date.now(), note: `Demo wallet reset to $${start} by admin`, adminId: admin.id });
+      D.logAudit(admin.id, 'user.resetDemo', u.id, `demo reset to $${start}`);
+      break;
+    }
+    case 'delete': {
+      if (body.confirm !== u.email) return fail(res, 400, 'Type the user\'s exact email to confirm deletion.');
+      const uid2 = u.id;
+      D.db().users = D.db().users.filter(x => x.id !== uid2);
+      D.db().sessions = D.db().sessions.filter(x => x.userId !== uid2);
+      for (const coll of ['wallets','kyc','positions','orders','trades','transactions','community_apps','alerts','logins','emails','bot_requests','copy_allocations','resets','chats','messages']) {
+        if (D.db()[coll]) D.db()[coll] = D.db()[coll].filter(x => x.userId !== uid2);
+      }
+      D.logAudit(admin.id, 'user.delete', uid2, u.email);
+      D.save();
+      return ok(res, { message: `User ${u.email} and all their records were deleted.` });
+    }
     default: return fail(res, 400, 'Unknown action');
   }
   D.save();
   ok(res, { message: 'Action applied' });
+};
+
+// ---- super admin: manual P/L adjustment ----
+api['POST /api/admin/pnl'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const amount = Number(body.amount);
+  if (!isFinite(amount) || amount === 0) return fail(res, 400, 'Enter a non-zero P/L amount');
+  const mode = body.mode === 'demo' ? 'demo' : 'live';
+  const w = D.wallet(body.userId, mode, false);
+  if (!w) return fail(res, 404, 'Wallet not found');
+  w.manualPnl = U.round((w.manualPnl || 0) + amount);
+  D.insert('transactions', {
+    id: U.uid('tx_'), userId: body.userId, type: 'pnl_adjust', asset: 'USD', amountUsd: U.round(amount),
+    status: 'completed', createdAt: Date.now(), updatedAt: Date.now(),
+    note: body.note || `P/L adjusted by ${admin.email}`, adminId: admin.id
+  });
+  D.save();
+  D.logAudit(admin.id, 'pnl.adjust', body.userId, `${amount > 0 ? '+' : ''}${amount} ${mode} — ${body.note || ''}`);
+  ok(res, { message: `P/L adjusted (${amount > 0 ? '+' : ''}$${U.round(amount)} ${mode}).`, manualPnl: w.manualPnl });
+};
+
+// ---- super admin: email a user directly ----
+api['POST /api/admin/user-email'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const u = D.find('users', x => x.id === body.userId);
+  if (!u) return fail(res, 404, 'User not found');
+  const subject = String(body.subject || '').trim().slice(0, 160);
+  const message = String(body.message || '').trim().slice(0, 4000);
+  if (!subject || !message) return fail(res, 400, 'Subject and message are required');
+  const r = await mailer.sendMail({
+    to: u.email, subject: subject + ' — Blockchain Bullhorn',
+    html: mailer.templates.wrap('📩 Message from Blockchain Bullhorn', message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\n/g, '<br>'))
+  });
+  D.logAudit(admin.id, 'user.email', u.id, subject);
+  if (r.sent) ok(res, { message: 'Email sent to ' + u.email });
+  else if (r.skipped) ok(res, { message: 'Email suppressed (test-domain recipient)' });
+  else return fail(res, 502, 'Send failed: ' + (r.error || 'unknown'));
 };
 
 api['GET /api/admin/transactions'] = async (req, res, body, cookies) => {
