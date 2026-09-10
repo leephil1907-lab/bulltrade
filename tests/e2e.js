@@ -26,6 +26,11 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   for (const p of pages) {
     const res = await fetch(BASE + p);
     ok(`GET ${p} → ${p === '/nonexistent-page-xyz' ? 404 : 200}`, res.status === (p === '/nonexistent-page-xyz' ? 404 : 200), res.status);
+    if (p !== '/nonexistent-page-xyz' && p !== '/relay-setup') {
+      const html = await res.text();
+      ok(`${p} has absolute og:image (link preview)`, /property="og:image" content="https:\/\//.test(html) && /assets\/img\/brand\/og-image\.jpg/.test(html), p);
+      ok(`${p} has favicon + viewport`, /rel="icon"/.test(html) && /name="viewport" content="width=device-width/.test(html), p);
+    }
   }
   // static assets
   for (const a of ['/assets/css/main.css', '/assets/css/fonts.css', '/assets/css/fontawesome.css', '/assets/css/admin.css', '/assets/js/common.js', '/assets/js/chart.js', '/assets/js/countries.js', '/assets/js/qrcode.js', '/assets/img/brand/logo.png', '/assets/img/brand/login-art.jpg', '/assets/img/app-icon.png', '/assets/img/chat-avatar.png', '/assets/img/coins/bitcoin.png', '/assets/img/stocks/AAPL.png', '/assets/fonts/quattrocentosans-400-normal-latin.woff2', '/assets/webfonts/fa-solid-900.woff2', '/favicon.ico', '/manifest.webmanifest', '/robots.txt']) {

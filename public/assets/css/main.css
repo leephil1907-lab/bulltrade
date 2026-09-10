@@ -43,6 +43,7 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+html, body { overflow-x: clip; }
 body {
   font-family: var(--font-body);
   background: var(--bg);
@@ -571,6 +572,16 @@ select.input option { background: #fff; color: var(--ink); }
   .hero-stats { gap: 20px; }
   .chat-window { right: 12px; bottom: 88px; }
   .chat-launcher { right: 12px; bottom: 14px; }
+  /* header wraps to two rows on phones: brand + burger on top, auth buttons below —
+     nothing sits off-screen anymore */
+  .header-inner { flex-wrap: wrap; height: auto; min-height: var(--header-h); padding: 9px 0; gap: 10px 12px; }
+  .brand img { width: 36px; height: 36px; }
+  .brand-name { font-size: 15px; }
+  .brand-name small { display: none; }
+  .nav-toggle { order: 3; margin-left: auto; width: 40px; height: 40px; }
+  .header-actions { order: 4; width: 100%; gap: 8px; }
+  .header-actions .btn { flex: 1; justify-content: center; }
+  .main-nav.mobile-open { position: absolute; top: 100%; max-height: calc(100vh - 170px); }
 }
 
 
