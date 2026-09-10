@@ -507,8 +507,8 @@ api['POST /api/store/purchase'] = async (req, res, body, cookies) => {
   const txid = String(body.txid || '').trim();
   const s = D.db().settings;
   const pw = s.productPaymentAddresses || {};
-  if (!(asset in pw)) return fail(res, 400, 'Products can be purchased with BTC or USDT (ERC-20) only.');
-  if (!String(pw[asset]).trim()) return fail(res, 400, `${asset} product payments are not yet available — please pay with ${asset === 'BTC' ? 'USDT (ERC-20)' : 'BTC'} or contact support.`);
+  if (!(asset in pw)) return fail(res, 400, 'Products can be purchased with USDT (ERC-20) only.');
+  if (!String(pw[asset]).trim()) return fail(res, 400, 'USDT (ERC-20) product payments are temporarily unavailable — please contact support.');
   if (txid.length < 10) return fail(res, 400, 'Please paste your transaction hash (TXID) so we can verify the payment.');
   const existing = D.find('transactions', t => t.userId === user.id && t.type === 'product' && t.productId === prod.id && (t.status === 'pending' || t.status === 'completed'));
   if (existing) return fail(res, 400, existing.status === 'completed'

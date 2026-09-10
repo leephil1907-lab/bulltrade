@@ -544,7 +544,7 @@
           ${Object.keys(s.depositAddresses).map(k => `<div class="field"><label>${k} address</label><input class="input addr-in" data-coin="${k}" value="${BB.esc(s.depositAddresses[k])}"></div>`).join('')}
         </div>
         <div class="admin-card mt-2">
-          <h3><i class="fas fa-cart-shopping" style="color:var(--gold)"></i> Product Payment Wallets <span class="muted small">(products are purchased with BTC &amp; USDT ERC-20 only)</span></h3>
+          <h3><i class="fas fa-cart-shopping" style="color:var(--gold)"></i> Product Payment Wallets <span class="muted small">(product payments are received in USDT ERC-20 only)</span></h3>
           <div class="grid grid-2">
           <div class="field"><label>BTC payment wallet</label><input class="input ppay-in" data-coin="BTC" value="${BB.esc((s.productPaymentAddresses || {}).BTC || '')}" placeholder="bc1…"></div>
           <div class="field"><label>USDT ERC-20 payment wallet</label><input class="input ppay-in" data-coin="USDT-ERC20" value="${BB.esc((s.productPaymentAddresses || {})['USDT-ERC20'] || '')}" placeholder="0x…"></div>

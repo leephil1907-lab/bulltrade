@@ -187,7 +187,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', '/api/store/purchases', null, userCookie);
   ok('store purchases list', r.data.ok && Array.isArray(r.data.purchases));
   r = await req('GET', '/api/store/payment-wallets', null, userCookie);
-  ok('product wallets = dedicated BTC + USDT-ERC20 only', r.data.ok && !!r.data.wallets['USDT-ERC20'] && !r.data.wallets.SOL && !r.data.wallets.ETH, r.data.wallets);
+  ok('product wallets = USDT-ERC20 only', r.data.ok && !!r.data.wallets['USDT-ERC20'] && !r.data.wallets.BTC && !r.data.wallets.SOL && !r.data.wallets.ETH, r.data.wallets);
   r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'USDT-ERC20', txid: 'short' }, userCookie);
   ok('product purchase needs txid', r.status === 400);
   r = await req('POST', '/api/store/purchase', { productId: 'does-not-exist', asset: 'USDT-ERC20', txid: '0xlongenough123456', proof: { mime: 'image/png', name: 'p.png', data: PROOF_PNG } }, userCookie);
@@ -197,7 +197,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'SOL', txid: '0xlongenough123456', proof: { mime: 'image/png', name: 'p.png', data: PROOF_PNG } }, userCookie);
   ok('deposit-only coin rejected for products', r.status === 400);
   r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'BTC', txid: '0xlongenough123456', proof: { mime: 'image/png', name: 'p.png', data: PROOF_PNG } }, userCookie);
-  ok('unconfigured BTC product wallet rejected', r.status === 400);
+  ok('BTC rejected for products (USDT only)', r.status === 400);
   r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'USDT-ERC20', txid: '0xlongenough123456' }, userCookie);
   ok('product purchase requires proof', r.status === 400);
   r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'USDT-ERC20', txid: '0xpurchase1234567890abcdef', proof: { mime: 'image/png', name: 'payment.png', data: PROOF_PNG } }, userCookie);

@@ -22,7 +22,7 @@
       <h1 style="font-size:clamp(30px,5vw,52px)">Private. Bespoke. Strategic.<br>Built Around <span class="gold">YOU.</span></h1>
       <p class="lead" style="margin:0 auto 28px">Work with Calvin Hill privately, one-on-one, through a mentorship experience designed to make you a more structured, disciplined, knowledgeable and independent crypto investor and trader.</p>
       <div class="hero-cta" style="justify-content:center">
-        <a href="/contact" class="btn btn-gold btn-lg"><i class="fas fa-crown"></i> Apply for Elite Mentorship</a>
+        <button class="btn btn-gold btn-lg" data-open-chat type="button"><i class="fas fa-crown"></i> Apply for Elite Mentorship</button>
         <a href="#faq" class="btn btn-ghost btn-lg">Mentorship FAQs</a>
       </div>
       <p class="muted small mt-2">💰 Investment: <b style="color:var(--gold)">$10,000</b> · 🔒 Spaces limited · Not financial advice</p>
@@ -125,6 +125,15 @@
         a.style.display = open ? 'none' : 'block';
         b.querySelector('i').style.transform = open ? '' : 'rotate(180deg)';
       }));
+    });
+  </script>
+  <script>
+    document.addEventListener('bb:ready', () => {
+      const openChat = () => {
+        if (BB.settings.smartsuppKey && typeof window.smartsupp === 'function') window.smartsupp('chat:open');
+        else Chat.toggle(true);
+      };
+      document.querySelectorAll('[data-open-chat]').forEach(el => el.addEventListener('click', openChat));
     });
   </script>
 </body>

@@ -152,7 +152,7 @@
             <h3>Super Simple Crypto (Trading) System</h3>
             <p>Unlock the secrets of profitable crypto trading. A proven, simple system guiding you step by step through strategies, tools and market insights.</p>
             <div class="pc-price">$497 <small>one-time</small></div>
-            <a class="btn btn-primary btn-sm" href="/store"><i class="fas fa-fire"></i> Get Instant Access</a>
+            <button class="btn btn-primary btn-sm" data-open-chat type="button"><i class="fas fa-fire"></i> Get Instant Access</button>
           </div>
         </div>
         <div class="card card-hover product-card reveal reveal-d1">
@@ -350,6 +350,15 @@
         homeCat = b.dataset.cat;
         renderHomeTable();
       }));
+    });
+  </script>
+  <script>
+    document.addEventListener('bb:ready', () => {
+      const openChat = () => {
+        if (BB.settings.smartsuppKey && typeof window.smartsupp === 'function') window.smartsupp('chat:open');
+        else Chat.toggle(true);
+      };
+      document.querySelectorAll('[data-open-chat]').forEach(el => el.addEventListener('click', openChat));
     });
   </script>
 </body>
