@@ -199,6 +199,7 @@ function renderHeader() {
   const links = NAV_LINKS.map(([href, label]) =>
     `<a href="${href}" class="${here === href ? 'active' : ''}">${label}</a>`).join('');
   el.innerHTML = `
+  <div class="announce" id="announce"></div>
   <div class="container-wide header-inner">
     <a class="brand" href="/">
       <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn logo">
@@ -500,6 +501,62 @@ const Chat = {
   }
 };
 
+// ---------- announcement live-feed bar ----------
+function renderAnnouncement() {
+  const bar = $('#announce'); if (!bar) return;
+  const items = (BB.settings.announcements || []).map(x => String(x || '').trim()).filter(Boolean);
+  if (!items.length) { bar.classList.remove('show'); bar.innerHTML = ''; return; }
+  bar.classList.add('show');
+  bar.innerHTML = `<span class="announce-label"><i class="fas fa-bullhorn"></i><span>ANNOUNCEMENT${items.length > 1 ? 'S' : ''}</span></span>` +
+    `<div class="announce-stage" id="announceStage"><div class="announce-item" id="announceItem"></div></div>` +
+    (items.length > 1 ? `<span class="announce-count" id="announceCount">1/${items.length}</span>` : '');
+  const stage = $('#announceStage'), item = $('#announceItem'), count = $('#announceCount');
+  const FX = ['fx-roll', 'fx-fade', 'fx-wipe', 'fx-slide'];
+  let idx = 0, fx = 0, paused = false, timer = null;
+  const holdMs = t => Math.min(14000, Math.max(4200, 3200 + t.length * 55));
+  const run = (fn, ms) => { // pause-aware scheduler (hover pauses the feed)
+    const t0 = Date.now();
+    const tick = () => {
+      if (paused) { timer = setTimeout(tick, 250); return; }
+      const left = ms - (Date.now() - t0);
+      if (left > 0) timer = setTimeout(tick, Math.min(left + 1, 250)); else fn();
+    };
+    timer = setTimeout(tick, Math.min(ms + 1, 250));
+  };
+  const display = () => {
+    const text = items[idx];
+    item.className = 'announce-item';
+    item.textContent = text;
+    if (count) count.textContent = `${idx + 1}/${items.length}`;
+    requestAnimationFrame(() => {
+      const overflow = item.scrollWidth - stage.clientWidth;
+      if (overflow > 24) {
+        // long announcement → scrolls across in full, like a live feed
+        const dur = Math.max(6, (stage.clientWidth + item.scrollWidth) / 55);
+        item.style.setProperty('--fromX', (stage.clientWidth + 12) + 'px');
+        item.style.setProperty('--toX', (-item.scrollWidth - 12) + 'px');
+        item.style.animationDuration = dur + 's';
+        item.classList.add('marquee');
+        run(exit, (dur + 1.2) * 1000);
+      } else {
+        const effect = FX[fx++ % FX.length]; // rotate: roll → fade → wipe → slide
+        item.classList.add(effect, 'in');
+        run(exit, holdMs(text));
+      }
+    });
+  };
+  const exit = () => {
+    const wasMarquee = item.classList.contains('marquee');
+    item.classList.remove('in');
+    if (wasMarquee) { item.classList.remove('marquee'); item.style.animationDuration = ''; item.classList.add('fx-fade'); }
+    item.classList.add('out');
+    run(() => { idx = (idx + 1) % items.length; display(); }, 800);
+  };
+  bar.addEventListener('mouseenter', () => { paused = true; item.style.animationPlayState = 'paused'; });
+  bar.addEventListener('mouseleave', () => { paused = false; item.style.animationPlayState = ''; });
+  display();
+}
+
 // ---------- boot ----------
 async function bootCommon() {
   Motion.init();
@@ -509,6 +566,7 @@ async function bootCommon() {
   if (meR.ok && meR.user) BB.user = meR.user;
   renderHeader();
   renderFooter();
+  renderAnnouncement();
   initReveal();
   initCounters();
   loadTicker();

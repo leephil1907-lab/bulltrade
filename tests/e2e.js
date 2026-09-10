@@ -351,7 +351,16 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('POST', '/api/admin/settings', { settings: { siteName: 'Blockchain Bullhorn' } }, adminCookie);
   ok('settings saved', r.data.ok);
   r = await req('GET', '/api/settings/public');
-  ok('public settings: announcement removed, smartsupp present', !r.data.announcement && typeof r.data.smartsuppKey === 'string');
+  ok('public settings: smartsupp present', typeof r.data.smartsuppKey === 'string' && Array.isArray(r.data.announcements));
+  // announcement live feed
+  r = await req('POST', '/api/admin/settings', { settings: { announcements: ['Welcome to Blockchain Bullhorn!', 'Golden Horn bot is on a winning streak', 'New: instant coin swaps live on the trading page'] } }, adminCookie);
+  ok('3 announcements posted', r.data.ok);
+  r = await req('GET', '/api/settings/public');
+  ok('announcement feed public (3 items cycling)', r.data.announcements.length === 3 && r.data.announcements[0] === 'Welcome to Blockchain Bullhorn!', r.data.announcements);
+  const tradeHtml = await (await fetch(BASE + '/trade')).text();
+  ok('swap button present on trading session', tradeHtml.includes('swapBtn'));
+  const cjs = await (await fetch(BASE + '/assets/js/common.js?v=10')).text();
+  ok('announcement ticker engine served', cjs.includes('renderAnnouncement') && cjs.includes('fx-roll'));
   // admin chat reply
   r = await req('GET', `/api/admin/chat-messages?id=${convId}`, null, adminCookie);
   ok('admin reads chat', r.data.ok && r.data.messages.length >= 2);

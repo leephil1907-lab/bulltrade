@@ -827,6 +827,7 @@ api['GET /api/settings/public'] = async (req, res) => {
   });
   ok(res, {
     smartsuppKey: s.smartsuppKey || '',
+    announcements: Array.isArray(s.announcements) ? s.announcements : [],
     siteName: s.siteName,
     supportEmail: s.supportEmail,
     contest: { enabled: s.contest ? s.contest.enabled !== false : true, prize: (s.contest && s.contest.prize) || '' },
@@ -1190,6 +1191,9 @@ api['POST /api/admin/settings'] = async (req, res, body, cookies) => {
   const admin = requireAdmin(req, res, cookies); if (!admin) return;
   const s = D.db().settings;
   const b = body.settings || {};
+  if (Array.isArray(b.announcements)) {
+    s.announcements = b.announcements.map(x => String(x || '').trim().slice(0, 300)).filter(Boolean).slice(0, 20);
+  }
   if (typeof b.smartsuppKey === 'string') {
     let k = b.smartsuppKey.trim();
     // tolerate the full Smartsupp embed snippet being pasted: extract the key

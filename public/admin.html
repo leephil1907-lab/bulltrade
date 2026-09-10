@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=9">
+  <link rel="stylesheet" href="/assets/css/main.css?v=10">
   <link rel="stylesheet" href="/assets/css/admin.css?v=7">
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -67,7 +67,7 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=7"></script>
+  <script src="/assets/js/common.js?v=10"></script>
   <script>
     'use strict';
     let VIEW = 'overview';
@@ -152,6 +152,7 @@
       };
       R('viewTitle').textContent = titles[v][0];
       R('viewSub').textContent = titles[v][1];
+      let currentAnns = [];
       ({ overview: viewOverview, users: viewUsers, kyc: viewKyc, txs: viewTxs, positions: viewPositions, community: viewCommunity, copy: viewCopy, chats: viewChats, settings: viewSettings, audit: viewAudit })[v]();
     }
 
@@ -534,7 +535,17 @@
       const r = await api('/api/admin/settings');
       if (!r.ok) return;
       const s = r.settings;
+      currentAnns = Array.isArray(s.announcements) ? s.announcements.slice() : [];
       root.innerHTML = `<div class="grid grid-2">
+        <div class="admin-card"><h3><i class="fas fa-bullhorn" style="color:var(--gold)"></i> Announcement Bar — Live Feed</h3>
+          <p class="muted small mb-2">Announcements cycle site-wide in the top bar, one after another, with rolling / fade / wipe transitions — long ones scroll across in full like a live feed. The bar hides itself when the list is empty.</p>
+          <div class="field"><label>New announcement (max 300 characters)</label>
+            <div style="display:flex;gap:8px">
+              <input class="input" id="setAnnNew" maxlength="300" placeholder="e.g. 🔥 Golden Horn just closed a +4.2% gold swing">
+              <button class="btn btn-green" id="setAnnAdd" style="white-space:nowrap"><i class="fas fa-plus"></i> Post</button>
+            </div></div>
+          <div id="setAnnList" class="mt-2"></div>
+        </div>
         <div class="admin-card"><h3><i class="fas fa-comment-dots" style="color:var(--gold)"></i> Live Chat (Smartsupp)</h3>
           <p class="muted small mb-2">Paste your Smartsupp KEY to activate the official Smartsupp chat on the website (it replaces the built-in widget). Leave empty to use the built-in Blockchain Bullhorn chat with the logo avatar.</p>
           <div class="field"><label>Smartsupp key</label><input class="input" id="setSmartsupp" value="${BB.esc(s.smartsuppKey)}" placeholder="e.g. a1b2c3d4e5f6…"></div>
@@ -588,11 +599,32 @@
       </div>
       <button class="btn btn-gold btn-lg" id="saveSettings"><i class="fas fa-floppy-disk"></i> Save All Settings</button>`;
       R('auditLink').addEventListener('click', e => { e.preventDefault(); switchView('audit'); });
+      // announcement live-feed management
+      const renderAnns = () => {
+        R('setAnnList').innerHTML = currentAnns.length ? currentAnns.map((t, i) => `
+          <div class="flex-between" style="padding:8px 10px;border:1px dashed var(--line);border-radius:8px;margin-bottom:6px;gap:8px">
+            <span class="small" style="flex:1"><b class="font-head" style="color:var(--gold)">${i + 1}.</b> ${BB.esc(t)}</span>
+            <button class="btn btn-danger btn-sm" data-annrm="${i}" title="Remove"><i class="fas fa-trash"></i></button>
+          </div>`).join('') : '<div class="empty-state" style="padding:14px"><i class="fas fa-bullhorn"></i>No announcements — the bar is hidden.</div>';
+        $$('[data-annrm]').forEach(b => b.addEventListener('click', async () => {
+          currentAnns.splice(parseInt(b.dataset.annrm, 10), 1);
+          const r2 = await api('/api/admin/settings', { method: 'POST', body: { settings: { announcements: currentAnns } } });
+          if (r2.ok) { toast('Announcement removed', 'success'); renderAnns(); } else toast(r2.error, 'error');
+        }));
+      };
+      R('setAnnAdd').addEventListener('click', async () => {
+        const v = R('setAnnNew').value.trim();
+        if (!v) return toast('Type an announcement first', 'error');
+        currentAnns.push(v); R('setAnnNew').value = '';
+        const r2 = await api('/api/admin/settings', { method: 'POST', body: { settings: { announcements: currentAnns } } });
+        if (r2.ok) { toast('Announcement posted — now live in the site bar', 'success'); renderAnns(); } else toast(r2.error, 'error');
+      });
+      renderAnns();
       R('saveSettings').addEventListener('click', async () => {
         const body = {
           settings: {
             smartsuppKey: R('setSmartsupp').value,
-            announcement: { enabled: R('setAnnOn').checked, text: R('setAnnText').value },
+            announcements: currentAnns,
             depositAddresses: {}, minDeposit: R('setMinDep').value, minWithdraw: R('setMinWd').value,
             demoStartBalance: R('setDemoBal').value, supportEmail: R('setSupport').value,
             contest: { enabled: R('setContestOn').checked, prize: R('setContestPrize').value },

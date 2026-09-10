@@ -65,6 +65,54 @@ h1, h2, h3, h4, h5, h6, .font-head { font-family: var(--font-head); line-height:
 .container { width: min(1200px, 92%); margin: 0 auto; }
 .container-wide { width: min(1380px, 96%); margin: 0 auto; }
 
+/* ============ Announcement bar (live feed) ============ */
+.announce {
+  display: none; align-items: stretch; position: relative; z-index: 60; overflow: hidden;
+  background: linear-gradient(90deg, #f6ecd8 0%, var(--bg-soft) 28%, #f1e2c6 55%, var(--bg-soft) 82%, #f6ecd8 100%);
+  border-bottom: 2px solid var(--gold);
+  font-family: var(--font-head);
+}
+.announce.show { display: flex; }
+.announce-label {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 7px; padding: 0 14px;
+  background: linear-gradient(135deg, var(--gold-deep), var(--gold) 55%, #e7c69d);
+  color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: 1.4px; white-space: nowrap;
+}
+.announce-label i { font-size: 11px; }
+.announce-stage { position: relative; flex: 1 1 auto; height: 34px; overflow: hidden; }
+.announce-item {
+  position: absolute; inset: 0; display: flex; align-items: center;
+  white-space: nowrap; color: var(--ink); font-size: 13.5px; font-weight: 600;
+  will-change: transform, opacity, clip-path;
+}
+.announce-count {
+  flex: 0 0 auto; display: flex; align-items: center; padding: 0 12px;
+  font-size: 11px; font-weight: 700; color: var(--ink-soft);
+  border-left: 1px dashed var(--gold); white-space: nowrap;
+}
+.announce-item.marquee { animation: annMarquee linear both; }
+@keyframes annMarquee { from { transform: translateX(var(--fromX, 100%)); } to { transform: translateX(var(--toX, -100%)); } }
+.announce-item.fx-roll.in { animation: annRollIn .65s cubic-bezier(.2,.8,.25,1) both; }
+.announce-item.fx-roll.out { animation: annRollOut .65s ease-in both; }
+@keyframes annRollIn { from { transform: translateY(110%); } to { transform: translateY(0); } }
+@keyframes annRollOut { from { transform: translateY(0); } to { transform: translateY(-110%); } }
+.announce-item.fx-fade.in { animation: annFadeIn .6s ease both; }
+.announce-item.fx-fade.out { animation: annFadeOut .6s ease both; }
+@keyframes annFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes annFadeOut { from { opacity: 1; } to { opacity: 0; } }
+.announce-item.fx-wipe.in { animation: annWipeIn .8s cubic-bezier(.3,.7,.3,1) both; }
+.announce-item.fx-wipe.out { animation: annWipeOut .8s cubic-bezier(.6,0,.8,.4) both; }
+@keyframes annWipeIn { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes annWipeOut { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 0 100%); } }
+.announce-item.fx-slide.in { animation: annSlideIn .6s cubic-bezier(.2,.8,.25,1) both; }
+.announce-item.fx-slide.out { animation: annSlideOut .6s ease-in both; }
+@keyframes annSlideIn { from { opacity: 0; transform: translateX(46px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes annSlideOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-46px); } }
+@media (max-width: 640px) {
+  .announce-label span, .announce-count { display: none; }
+  .announce-label { padding: 0 10px; }
+}
+
 /* ============ Header (white, like reference site) ============ */
 .site-header {
   position: sticky; top: 0; z-index: 50;
@@ -605,3 +653,7 @@ html { scroll-behavior: smooth; }
   border-radius: 20px; padding: 5px 13px; margin-bottom: 10px; }
 .own-pill.owned { background: rgba(27,169,75,.12); color: var(--green-deep); }
 .own-pill.pending { background: rgba(211,168,119,.2); color: #8a6a3b; }
+
+/* ============ Portfolio share bars (dashboard) ============ */
+.pf-bar { height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 4px; min-width: 70px; }
+.pf-bar span { display: block; height: 100%; border-radius: 3px; }
