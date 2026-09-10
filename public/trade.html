@@ -239,13 +239,15 @@
         AAPL: 'NASDAQ:AAPL', MSFT: 'NASDAQ:MSFT', GOOGL: 'NASDAQ:GOOGL', AMZN: 'NASDAQ:AMZN', NVDA: 'NASDAQ:NVDA',
         TSLA: 'NASDAQ:TSLA', META: 'NASDAQ:META', NFLX: 'NASDAQ:NFLX', AMD: 'NASDAQ:AMD', INTC: 'NASDAQ:INTC',
         ORCL: 'NYSE:ORCL', CRM: 'NYSE:CRM', JPM: 'NYSE:JPM', V: 'NYSE:V', MA: 'NYSE:MA', KO: 'NYSE:KO',
-        PEP: 'NASDAQ:PEP', DIS: 'NYSE:DIS', NKE: 'NYSE:NKE', BA: 'NYSE:BA', XOM: 'NYSE:XOM', CVX: 'NYSE:CVX',
+        PEP: 'NYSE:PEP', DIS: 'NYSE:DIS', NKE: 'NYSE:NKE', BA: 'NYSE:BA', XOM: 'NYSE:XOM', CVX: 'NYSE:CVX',
         JNJ: 'NYSE:JNJ', PG: 'NYSE:PG', WMT: 'NYSE:WMT', COST: 'NASDAQ:COST',
         XAU: 'TVC:GOLD', XAG: 'TVC:SILVER', XPT: 'TVC:PLATINUM', XPD: 'TVC:PALLADIUM', HG: 'COMEX:HG1!',
         WTI: 'TVC:USOIL', BRENT: 'TVC:UKOIL', NG: 'NYMEX:NG1!',
         SPX: 'SP:SPX', NDX: 'NASDAQ:NDX', DJI: 'DJ:DJI', RUT: 'TVC:RUT'
       };
+      let tvCurrent = null;
       function loadTV(a) {
+        tvCurrent = a;
         const sym = TV_MAP[a.symbol] || 'BINANCE:BTCUSDT';
         $('#tvSymLabel').textContent = sym.split(':')[1] + ' · ' + a.symbol;
         const box = $('#tvWidget');
@@ -259,10 +261,16 @@
           "support_host": "https://www.tradingview.com"
         });
         const script = document.createElement('script');
-        script.src = 'https://s.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
         script.async = true;
         script.innerHTML = cfg;
-        script.onerror = () => { const f = $('#tvFallback'); if (f) f.innerHTML = 'TradingView could not load (offline or blocked).<br><small style="color:#6f5f4e">Use the built-in chart above — same live data.</small>'; };
+        const fail = () => {
+          const f = $('#tvFallback');
+          if (f) f.innerHTML = 'TradingView could not load (offline or blocked).<br><small style="color:#6f5f4e">Use the built-in chart above — same live data.</small><br><button class="btn btn-outline btn-sm mt-1" id="tvRetry" style="margin:10px auto 0"><i class="fas fa-rotate"></i> Retry TradingView</button>';
+          const rb = $('#tvRetry');
+          if (rb) rb.addEventListener('click', () => loadTV(tvCurrent));
+        };
+        script.onerror = fail;
         const holder = document.createElement('div');
         holder.className = 'tradingview-widget-container';
         holder.style.height = '100%';
@@ -272,7 +280,7 @@
         holder.appendChild(inner);
         holder.appendChild(script);
         box.appendChild(holder);
-        setTimeout(() => { const f = $('#tvFallback'); if (f && !holder.querySelector('iframe')) f.innerHTML = 'TradingView could not load (offline or blocked).<br><small style="color:#6f5f4e">Use the built-in chart above — same live data.</small>'; else if (f) f.remove(); }, 6000);
+        setTimeout(() => { if (!holder.querySelector('iframe')) fail(); else { const f = $('#tvFallback'); if (f) f.remove(); } }, 6000);
       }
 
       // ---------- CoinGecko-style live feed ----------
@@ -330,7 +338,22 @@
       async function loadChart() {
         if (!asset) return;
         const r = await BB.api(`/api/markets/candles?asset=${encodeURIComponent(asset.id)}&range=${tf}`, { silent: true });
-        if (r.candles) chart.setData(r.candles);
+        if (r.candles && r.candles.length) {
+          chart.setData(r.candles);
+          const err = $('#chartErr'); if (err) err.remove();
+        } else {
+          chart.setData([]);
+          const box = $('.chart-box');
+          if (box && !$('#chartErr')) {
+            const d = document.createElement('div');
+            d.id = 'chartErr';
+            d.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;align-items:center;justify-content:center;background:rgba(255,255,255,.88);z-index:3;text-align:center;padding:20px';
+            d.innerHTML = `<b class="font-head" style="font-size:15px"><i class="fas fa-chart-line" style="color:var(--gold)"></i> Chart data unavailable right now</b><small class="muted">${BB.esc(r.error || 'Market data temporarily unavailable — retrying is usually instant.')}</small><button class="btn btn-outline btn-sm" id="chartRetry"><i class="fas fa-rotate"></i> Retry</button>`;
+            box.appendChild(d);
+            $('#chartRetry').addEventListener('click', () => { d.remove(); loadChart(); });
+            setTimeout(() => { if (document.body.contains(d)) { d.remove(); loadChart(); } }, 8000); // one auto-retry
+          }
+        }
       }
 
       // ---------- prices live ----------

@@ -40,6 +40,14 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('markets snapshot ok', mk.data.ok && Array.isArray(mk.data.assets));
   const withPrice = mk.data.assets.filter(a => a.price != null);
   ok(`prices loaded (${withPrice.length}/62 assets)`, withPrice.length >= 55, withPrice.length);
+  // chart candles — crypto, stock and commodity (multi-source fallback chain)
+  let cd;
+  cd = await req('GET', '/api/markets/candles?asset=cg-bitcoin&range=1W');
+  ok('candles: BTC 1W', cd.data.ok && cd.data.candles && cd.data.candles.length >= 5, cd.data.candles && cd.data.candles.length);
+  cd = await req('GET', '/api/markets/candles?asset=yh-AAPL&range=1W');
+  ok('candles: AAPL 1W', cd.data.ok && cd.data.candles && cd.data.candles.length >= 5, cd.data.candles && cd.data.candles.length);
+  cd = await req('GET', '/api/markets/candles?asset=yh-XAU&range=1M');
+  ok('candles: Gold 1M', cd.data.ok && cd.data.candles && cd.data.candles.length >= 5, cd.data.candles && cd.data.candles.length);
   const btc = mk.data.assets.find(a => a.symbol === 'BTC');
   ok('BTC price sane', btc && btc.price > 1000, btc && btc.price);
   const aapl = mk.data.assets.find(a => a.symbol === 'AAPL');
@@ -359,6 +367,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('announcement feed public (3 items cycling)', r.data.announcements.length === 3 && r.data.announcements[0] === 'Welcome to Blockchain Bullhorn!', r.data.announcements);
   const tradeHtml = await (await fetch(BASE + '/trade')).text();
   ok('swap button present on trading session', tradeHtml.includes('swapBtn'));
+  ok('TradingView embed uses live s3 host', tradeHtml.includes('s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js') && !tradeHtml.includes('src=\'https://s.tradingview.com'));
   const cjs = await (await fetch(BASE + '/assets/js/common.js?v=11')).text();
   ok('announcement ticker engine served', cjs.includes('renderAnnouncement') && cjs.includes('fx-roll'));
   ok('live-chat open helper served', cjs.includes('openChat()') && cjs.includes("closest('[data-open-chat]')"));
