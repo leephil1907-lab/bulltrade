@@ -1276,7 +1276,9 @@ api['POST /api/admin/test-email'] = async (req, res, body, cookies) => {
   const to = String(body.to || admin.email).trim();
   const r = await mailer.sendMail({ to, subject: 'Blockchain Bullhorn — test email',
     html: mailer.templates.wrap('✉️ Test Email', 'Great news — your SMTP settings work! Transactional emails (KYC updates, deposits, withdrawals, security alerts) will now reach your traders\' inboxes.') });
-  if (r.skipped) return fail(res, 400, 'SMTP is not configured. Fill in the SMTP settings below first.');
+  if (r.skipped) return fail(res, 400, /test-domain/i.test(r.reason || '') || /Test-domain/.test(r.error || '')
+    ? 'Not sent: ' + to + ' is a reserved test-domain address (no real inbox). Try a real address.'
+    : 'No transport is configured. Set up Email Delivery (relay, SendGrid or SMTP) in Settings first.');
   if (!r.sent) return fail(res, 502, 'Send failed: ' + (r.error || 'unknown error'));
   ok(res, { message: 'Test email sent to ' + to });
 };
