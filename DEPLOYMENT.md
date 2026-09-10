@@ -130,7 +130,7 @@ they send through SMTP the moment credentials are configured. No code changes ne
    App Password (Google Account → Security → 2-Step Verification → App passwords).
 2. Log into the site as admin → **Admin → Settings → SMTP** and fill in:
    - Brevo: host `smtp-relay.brevo.com`, port `587`, user = your Brevo login email, pass = Brevo SMTP key, from = `blockchainbullhornfaqs@gmail.com`
-   - Gmail: host `smtp.gmail.com`, port `587`, user = your Gmail, pass = the App Password (not your normal password), from = the same Gmail
+   - Gmail: host `smtp.gmail.com`, port `465`, user = your Gmail, pass = the App Password (not your normal password), from = the same Gmail — port 465 (implicit TLS) is required; 587/STARTTLS is blocked on some networks
 3. Click **Send Test Email** to verify. Done — key approvals, purchase confirmations and resets
    now arrive in real inboxes (they also stay logged under Admin → Emails).
 
