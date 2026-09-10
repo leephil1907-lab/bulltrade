@@ -543,6 +543,12 @@
         <div class="admin-card"><h3><i class="fas fa-coins" style="color:var(--gold)"></i> Crypto Deposit Addresses</h3>
           ${Object.keys(s.depositAddresses).map(k => `<div class="field"><label>${k} address</label><input class="input addr-in" data-coin="${k}" value="${BB.esc(s.depositAddresses[k])}"></div>`).join('')}
         </div>
+        <div class="admin-card mt-2">
+          <h3><i class="fas fa-cart-shopping" style="color:var(--gold)"></i> Product Payment Wallets <span class="muted small">(products are purchased with BTC &amp; USDT ERC-20 only)</span></h3>
+          <div class="grid grid-2">
+          <div class="field"><label>BTC payment wallet</label><input class="input ppay-in" data-coin="BTC" value="${BB.esc((s.productPaymentAddresses || {}).BTC || '')}" placeholder="bc1…"></div>
+          <div class="field"><label>USDT ERC-20 payment wallet</label><input class="input ppay-in" data-coin="USDT-ERC20" value="${BB.esc((s.productPaymentAddresses || {})['USDT-ERC20'] || '')}" placeholder="0x…"></div>
+        </div>
         <div class="admin-card"><h3><i class="fas fa-sliders" style="color:var(--gold)"></i> Limits</h3>
           <div class="form-row">
             <div class="field"><label>Min deposit ($)</label><input class="input num" id="setMinDep" type="number" value="${s.minDeposit}"></div>
@@ -595,6 +601,8 @@
           }
         };
         $$('.addr-in').forEach(i => body.settings.depositAddresses[i.dataset.coin] = i.value);
+      body.settings.productPaymentAddresses = {};
+      $$('.ppay-in').forEach(i => body.settings.productPaymentAddresses[i.dataset.coin] = i.value);
         const r2 = await api('/api/admin/settings', { method: 'POST', body });
         if (r2.ok) toast(r2.message, 'success'); else toast(r2.error, 'error');
       });

@@ -506,8 +506,9 @@ api['POST /api/store/purchase'] = async (req, res, body, cookies) => {
   const asset = String(body.asset || '');
   const txid = String(body.txid || '').trim();
   const s = D.db().settings;
-  if (!(asset in s.depositAddresses)) return fail(res, 400, 'Choose a valid payment asset.');
-  if (!String(s.depositAddresses[asset]).trim()) return fail(res, 400, `${asset} payments are not yet available — please choose another coin.`);
+  const pw = s.productPaymentAddresses || {};
+  if (!(asset in pw)) return fail(res, 400, 'Products can be purchased with BTC or USDT (ERC-20) only.');
+  if (!String(pw[asset]).trim()) return fail(res, 400, `${asset} product payments are not yet available — please pay with ${asset === 'BTC' ? 'USDT (ERC-20)' : 'BTC'} or contact support.`);
   if (txid.length < 10) return fail(res, 400, 'Please paste your transaction hash (TXID) so we can verify the payment.');
   const existing = D.find('transactions', t => t.userId === user.id && t.type === 'product' && t.productId === prod.id && (t.status === 'pending' || t.status === 'completed'));
   if (existing) return fail(res, 400, existing.status === 'completed'
@@ -533,6 +534,14 @@ api['POST /api/store/purchase'] = async (req, res, body, cookies) => {
     asset, amountUsd: prod.price, txid, status: 'pending', createdAt: Date.now(), updatedAt: Date.now(), proof
   });
   ok(res, { message: `Payment submitted for "${prod.name}". Our team will verify it and unlock your product — you will be notified.` });
+};
+
+api['GET /api/store/payment-wallets'] = (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const pw = D.db().settings.productPaymentAddresses || {};
+  const wallets = {};
+  for (const k of Object.keys(pw)) if (String(pw[k]).trim()) wallets[k] = pw[k];
+  ok(res, { wallets });
 };
 
 api['GET /api/store/purchases'] = (req, res, body, cookies) => {
@@ -1107,6 +1116,11 @@ api['POST /api/admin/settings'] = async (req, res, body, cookies) => {
   if (b.depositAddresses && typeof b.depositAddresses === 'object') {
     for (const k of Object.keys(s.depositAddresses)) {
       if (typeof b.depositAddresses[k] === 'string') s.depositAddresses[k] = b.depositAddresses[k].trim().slice(0, 120);
+    }
+  }
+  if (b.productPaymentAddresses && typeof b.productPaymentAddresses === 'object') {
+    for (const k of Object.keys(s.productPaymentAddresses)) {
+      if (typeof b.productPaymentAddresses[k] === 'string') s.productPaymentAddresses[k] = b.productPaymentAddresses[k].trim().slice(0, 120);
     }
   }
   if (isFinite(Number(b.demoStartBalance))) s.demoStartBalance = Math.max(100, Math.min(1000000, Number(b.demoStartBalance)));

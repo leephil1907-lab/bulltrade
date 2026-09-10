@@ -105,7 +105,9 @@ sync simply becomes an extra safety net.
 
 The repo ships with empty deposit wallet addresses on purpose (they are
 runtime data, not code). On a fresh deployment either let the backup restore
-them or paste them in **Admin → Settings → Crypto Deposit Addresses**. Also:
+them or paste them in **Admin → Settings → Crypto Deposit Addresses** — and set
+the **Product Payment Wallets** (BTC + USDT ERC-20) used for product purchases.
+Also:
 change the admin password, configure SMTP (test email), paste the Smartsupp
 key, and set the contest prize.
 

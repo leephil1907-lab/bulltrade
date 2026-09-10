@@ -186,17 +186,23 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   console.log('== STORE (crypto product checkout) ==');
   r = await req('GET', '/api/store/purchases', null, userCookie);
   ok('store purchases list', r.data.ok && Array.isArray(r.data.purchases));
-  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'BTC', txid: 'short' }, userCookie);
+  r = await req('GET', '/api/store/payment-wallets', null, userCookie);
+  ok('product wallets = dedicated BTC + USDT-ERC20 only', r.data.ok && !!r.data.wallets['USDT-ERC20'] && !r.data.wallets.SOL && !r.data.wallets.ETH, r.data.wallets);
+  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'USDT-ERC20', txid: 'short' }, userCookie);
   ok('product purchase needs txid', r.status === 400);
-  r = await req('POST', '/api/store/purchase', { productId: 'does-not-exist', asset: 'BTC', txid: '0xlongenough123456', proof: { mime: 'image/png', name: 'p.png', data: PROOF_PNG } }, userCookie);
+  r = await req('POST', '/api/store/purchase', { productId: 'does-not-exist', asset: 'USDT-ERC20', txid: '0xlongenough123456', proof: { mime: 'image/png', name: 'p.png', data: PROOF_PNG } }, userCookie);
   ok('unknown product rejected', r.status === 400);
   r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'FAKECOIN', txid: '0xlongenough123456', proof: { mime: 'image/png', name: 'p.png', data: PROOF_PNG } }, userCookie);
   ok('invalid payment coin rejected', r.status === 400);
-  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'BTC', txid: '0xlongenough123456' }, userCookie);
+  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'SOL', txid: '0xlongenough123456', proof: { mime: 'image/png', name: 'p.png', data: PROOF_PNG } }, userCookie);
+  ok('deposit-only coin rejected for products', r.status === 400);
+  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'BTC', txid: '0xlongenough123456', proof: { mime: 'image/png', name: 'p.png', data: PROOF_PNG } }, userCookie);
+  ok('unconfigured BTC product wallet rejected', r.status === 400);
+  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'USDT-ERC20', txid: '0xlongenough123456' }, userCookie);
   ok('product purchase requires proof', r.status === 400);
-  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'BTC', txid: '0xpurchase1234567890abcdef', proof: { mime: 'image/png', name: 'payment.png', data: PROOF_PNG } }, userCookie);
+  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'USDT-ERC20', txid: '0xpurchase1234567890abcdef', proof: { mime: 'image/png', name: 'payment.png', data: PROOF_PNG } }, userCookie);
   ok('product purchase submitted → pending', r.data.ok, r.data);
-  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'BTC', txid: '0xpurchase1234567890abcdef', proof: { mime: 'image/png', name: 'payment.png', data: PROOF_PNG } }, userCookie);
+  r = await req('POST', '/api/store/purchase', { productId: 'cheat', asset: 'USDT-ERC20', txid: '0xpurchase1234567890abcdef', proof: { mime: 'image/png', name: 'payment.png', data: PROOF_PNG } }, userCookie);
   ok('duplicate purchase blocked', r.status === 400);
 
   console.log('== KYC ==');
@@ -233,7 +239,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   // -- product purchase admin verification (from STORE section above) --
   r = await req('GET', '/api/admin/transactions', null, adminCookie);
   const ptx = r.data.transactions.find(t => t.type === 'product' && t.status === 'pending');
-  ok('product payment visible to admin w/ proof + product name', !!ptx && ptx.productId === 'cheat' && !!ptx.proof && ptx.productName.includes('Cheat Guide'));
+  ok('product payment visible to admin w/ proof + product name', !!ptx && ptx.productId === 'cheat' && !!ptx.proof && ptx.productName.includes('Cheat Guide') && ptx.asset === 'USDT-ERC20');
   r = await req('GET', '/api/admin/proof?id=' + ptx.id, null, adminCookie);
   ok('admin can open product payment proof', r.status === 200);
   r = await req('POST', '/api/admin/tx', { txId: ptx.id, action: 'approve' }, adminCookie);

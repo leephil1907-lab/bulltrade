@@ -48,9 +48,8 @@
             <div class="pc-price">$497 <small>one-time</small></div>
             <div id="own-ssc"></div>
             <button class="btn btn-primary btn-buy" data-buy="ssc"><i class="fas fa-coins"></i> Buy with Crypto — $497</button>
-            <div class="mt-1" style="display:flex;gap:16px;flex-wrap:wrap;align-items:center">
+            <div class="mt-1">
               <button class="btn-chat-ask" data-chat><i class="fas fa-comment-dots"></i> Enquire on live chat</button>
-              <a class="btn-chat-ask" href="https://www.blockchainbullhorn.com/offers/x6mKA7sV" target="_blank" rel="noopener">Official offer page ↗</a>
             </div>
           </div>
         </div>
@@ -184,14 +183,15 @@
       if (purchases.some(p => p.productId === productId && p.status === 'pending')) return BB.toast('Your payment for this product is already being verified.');
       if (purchases.some(p => p.productId === productId && p.status === 'completed')) return BB.toast('You already own this product.');
       if (!addresses) {
-        const r = await BB.api('/api/funding/summary');
+        const r = await BB.api('/api/store/payment-wallets');
         if (!r.ok) return BB.toast('Could not load payment wallets — please try again.', 'error');
-        addresses = r.addresses;
+        addresses = r.wallets;
+        if (!addresses || !Object.keys(addresses).length) return BB.toast('Crypto payments are being configured — please enquire on live chat.', 'error');
       }
       const coins = Object.keys(addresses).filter(k => String(addresses[k] || '').trim());
       const bd = BB.modal(`Checkout — ${prod.name}`, `
         <div class="flex-between mb-1"><b style="font-family:var(--font-head)">Amount due: $${prod.price}</b><span class="muted small">one-time payment</span></div>
-        <p class="muted small" style="margin:0 0 4px"><i class="fas fa-coins"></i> Choose the cryptocurrency you will pay with:</p>
+        <p class="muted small" style="margin:0 0 4px"><i class="fas fa-coins"></i> Pay with <b>BTC</b> or <b>USDT (ERC-20)</b> — choose one:</p>
         <div class="coin-grid" id="coinGrid">
           ${coins.map(k => `<button class="coin-pick" data-coin="${k}">
             <img src="/assets/img/coins/${COIN_META[k] ? COIN_META[k].img : 'tether.png'}" alt="${k}">
