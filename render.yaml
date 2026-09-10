@@ -1,0 +1,25 @@
+# Render.com blueprint — deploy Blockchain Bullhorn with a persistent disk.
+# 1. Push this repo to GitHub (done).
+# 2. Render dashboard → New → Blueprint → select this repo.
+# 3. Fill in the secret env vars when prompted (ADMIN_EMAIL, ADMIN_PASSWORD, JWT_SECRET).
+# Note: persistent disks require a paid instance (Starter plan).
+services:
+  - type: web
+    name: blockchain-bullhorn
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    autoDeploy: true
+    disk:
+      name: bb-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: NODE_ENV
+        value: production

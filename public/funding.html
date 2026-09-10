@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css">
-  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <link rel="stylesheet" href="/assets/css/main.css?v=7">
   <style>
     .fund-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; align-items: start; }
     .method { display: flex; align-items: center; gap: 12px; border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 15px; cursor: pointer; transition: all .15s; margin-bottom: 10px; }
@@ -24,12 +24,13 @@
     .qr-panel small { color: #7a5f43; font-family: var(--font-head); font-size: 10px; display: block; margin-top: 6px; word-break: break-all; }
     @media (max-width: 720px) { .dep-grid { grid-template-columns: 1fr; } .fund-layout { grid-template-columns: 1fr; } }
   </style>
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
   <header class="site-header" id="site-header"></header>
   <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
 
-  <section class="section-tight">
+  <section class="section-tight reveal">
     <div class="container-wide">
       <div class="page-hero" style="padding-bottom:20px">
         <div class="crumbs"><a href="/">Home</a> · <a href="/dashboard">Dashboard</a> · Funding</div>
@@ -55,7 +56,7 @@
           <div id="paneDeposit">
             <div class="alert alert-info" style="display:block"><i class="fas fa-circle-info"></i> Deposits are verified manually by our admin team — your live wallet is credited once the transaction is confirmed on-chain. Minimum <b>$50</b> value.</div>
             <h4 class="font-head mb-1" style="font-size:15px">1 · Choose your deposit coin</h4>
-            <div id="methods"></div>
+            <div id="methods"><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div></div>
             <div class="dep-grid mt-2">
               <div>
                 <h4 class="font-head mb-1" style="font-size:15px">2 · Send to the deposit address</h4>
@@ -92,7 +93,7 @@
             <div class="alert alert-error" id="wdKycLock" style="display:none"><i class="fas fa-lock"></i> Withdrawals require <a href="/kyc">KYC verification</a> — submit your ID for manual review to unlock.</div>
             <div id="wdForm">
               <h4 class="font-head mb-1" style="font-size:15px">1 · Select withdrawal coin</h4>
-              <div id="wdMethods"></div>
+              <div id="wdMethods"><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div></div>
               <h4 class="font-head mb-1 mt-2" style="font-size:15px">2 · Enter amount &amp; destination wallet</h4>
               <div class="field">
                 <label>Amount (USD value)</label>
@@ -130,7 +131,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/common.js?v=7"></script>
   <script src="/assets/js/qrcode.js"></script>
   <script>
     document.addEventListener('bb:ready', async () => {

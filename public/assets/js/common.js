@@ -102,6 +102,29 @@ window.BB = {
     </svg>`;
   },
 
+  // loading-skeleton builders
+  skelRows(n = 6, cols = 5) {
+    let h = '';
+    for (let i = 0; i < n; i++) {
+      h += '<tr>' + Array.from({ length: cols }, (_, c) =>
+        `<td><span class="skeleton" style="width:${45 + ((i * 17 + c * 29) % 50)}%"></span></td>`).join('') + '</tr>';
+    }
+    return h;
+  },
+  skelQuotes(n = 4) {
+    let h = '';
+    for (let i = 0; i < n; i++) h += `<div style="display:flex;gap:10px;align-items:center;padding:9px 0">
+      <span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span>
+      <span style="flex:1"><span class="skeleton" style="width:68%;height:12px"></span>
+      <span class="skeleton" style="width:44%;height:10px;margin-top:6px"></span></span>
+      <span class="skeleton" style="width:56px;height:14px"></span></div>`;
+    return h;
+  },
+  skelCards(n = 3, h = 96) {
+    return Array.from({ length: n }, () =>
+      `<div class="card"><span class="skeleton" style="width:100%;height:${h}px"></span></div>`).join('');
+  },
+
   assetIcon(a, size = 30) {
     if (a.logo) return `<img class="a-logo" src="${a.logo}" alt="${BB.esc(a.symbol)}" loading="lazy" style="width:${size}px;height:${size}px">`;
     const icons = {
@@ -110,6 +133,56 @@ window.BB = {
       'idx-spx': '📊', 'idx-ndx': '📈', 'idx-dji': '🏛️', 'idx-rut': '📉'
     };
     return `<div class="a-icon" style="width:${size}px;height:${size}px">${icons[a.icon] || '💠'}</div>`;
+  }
+};
+
+// ---------- page transitions & progress bar ----------
+const Motion = {
+  bar: null, reduced: false,
+  init() {
+    this.reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (this.reduced) return;
+    this.bar = document.createElement('div');
+    this.bar.id = 'bbBar';
+    document.body.appendChild(this.bar);
+    this.start();
+    if (document.readyState === 'complete') this.end();
+    else addEventListener('load', () => this.end());
+    // smooth exit on internal navigation
+    document.addEventListener('click', e => {
+      const a = e.target.closest ? e.target.closest('a[href]') : null;
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if ((a.target && a.target !== '_self') || a.hasAttribute('download') || a.dataset.instant !== undefined) return;
+      const href = a.getAttribute('href') || '';
+      if (!href || href.charAt(0) === '#' || /^(mailto:|tel:|javascript:|blob:|data:)/i.test(href)) return;
+      let url; try { url = new URL(a.href, location.href); } catch (err) { return; }
+      if (url.origin !== location.origin) return;
+      if (url.pathname === location.pathname && url.search === location.search && url.hash) return;
+      e.preventDefault();
+      this.start();
+      document.body.classList.add('page-exit');
+      setTimeout(() => { location.href = a.href; }, 140);
+    });
+    // bfcache restore (browser Back button)
+    addEventListener('pageshow', ev => {
+      if (ev.persisted) {
+        document.body.classList.remove('page-exit');
+        this.end();
+      }
+    });
+  },
+  start() {
+    if (!this.bar) return;
+    this.bar.classList.remove('done');
+    this.bar.classList.add('on');
+    this.bar.style.width = '14%';
+    requestAnimationFrame(() => { if (this.bar) this.bar.style.width = '72%'; });
+  },
+  end() {
+    if (!this.bar) return;
+    this.bar.style.width = '100%';
+    this.bar.classList.add('done');
+    setTimeout(() => { if (!this.bar) return; this.bar.classList.remove('on', 'done'); this.bar.style.width = '0'; }, 400);
   }
 };
 
@@ -436,6 +509,7 @@ const Chat = {
 
 // ---------- boot ----------
 async function bootCommon() {
+  Motion.init();
   const settingsR = await BB.api('/api/settings/public', { silent: true });
   if (settingsR.ok) BB.settings = Object.assign(BB.settings, settingsR);
   const meR = await BB.api('/api/auth/me', { silent: true });

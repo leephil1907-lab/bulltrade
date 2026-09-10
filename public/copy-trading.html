@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css">
-  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <link rel="stylesheet" href="/assets/css/main.css?v=7">
   <style>
     .leader-card { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 18px; align-items: center; }
     .leader-id { display: flex; gap: 14px; align-items: center; }
@@ -19,6 +19,7 @@
     .alloc-card { border: 1px solid var(--line-soft); border-radius: 12px; background: #fff; padding: 16px 18px; margin-bottom: 12px; box-shadow: var(--shadow-soft); }
     @media (max-width: 900px) { .leader-card { grid-template-columns: 1fr; } }
   </style>
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
   <header class="site-header" id="site-header"></header>
@@ -32,7 +33,7 @@
     </div>
   </section>
 
-  <section class="section-tight">
+  <section class="section-tight reveal">
     <div class="container">
       <div class="grid grid-3 mb-3">
         <div class="card"><div class="feat-icon"><i class="fas fa-scale-balanced"></i></div><h3>Proportional Mirroring</h3><p>Your allocation is sized against the leader's book — a $500 allocation mirrors at 1/20th the scale of a $10,000 leader account, trade for trade.</p></div>
@@ -71,7 +72,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/common.js?v=7"></script>
   <script>
     let leaders = [], minCopy = 50;
 

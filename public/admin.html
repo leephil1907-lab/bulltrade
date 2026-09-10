@@ -8,8 +8,9 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css">
-  <link rel="stylesheet" href="/assets/css/main.css?v=6">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=6">
+  <link rel="stylesheet" href="/assets/css/main.css?v=7">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=7">
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body class="admin-body">
 
@@ -66,7 +67,7 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/common.js?v=7"></script>
   <script>
     'use strict';
     let VIEW = 'overview';
@@ -573,7 +574,12 @@
         </div>
       </div>
       <div class="admin-card"><h3><i class="fas fa-outbox" style="color:var(--gold)"></i> Email Outbox (latest 20)</h3>
-        <div class="table-wrap" style="box-shadow:none"><table class="dt" style="min-width:0"><thead><tr><th>When</th><th>To</th><th>Subject</th><th>Status</th></tr></thead><tbody id="emailOutbox"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody></table></div>
+        <div class="table-wrap" style="box-shadow:none"><table class="dt" style="min-width:0"><thead><tr><th>When</th><th>To</th><th>Subject</th><th>Status</th></tr></thead><tbody id="emailOutbox">
+        <tr><td><span class="skeleton" style="width:45%"></span></td><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:53%"></span></td><td><span class="skeleton" style="width:82%"></span></td></tr>
+        <tr><td><span class="skeleton" style="width:62%"></span></td><td><span class="skeleton" style="width:91%"></span></td><td><span class="skeleton" style="width:70%"></span></td><td><span class="skeleton" style="width:49%"></span></td></tr>
+        <tr><td><span class="skeleton" style="width:79%"></span></td><td><span class="skeleton" style="width:58%"></span></td><td><span class="skeleton" style="width:87%"></span></td><td><span class="skeleton" style="width:66%"></span></td></tr>
+        <tr><td><span class="skeleton" style="width:46%"></span></td><td><span class="skeleton" style="width:75%"></span></td><td><span class="skeleton" style="width:54%"></span></td><td><span class="skeleton" style="width:83%"></span></td></tr>
+      </tbody></table></div>
       </div>
       <button class="btn btn-gold btn-lg" id="saveSettings"><i class="fas fa-floppy-disk"></i> Save All Settings</button>`;
       R('auditLink').addEventListener('click', e => { e.preventDefault(); switchView('audit'); });

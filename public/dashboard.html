@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css">
-  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <link rel="stylesheet" href="/assets/css/main.css?v=7">
   <style>
     .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .bal-card { position: relative; overflow: hidden; }
@@ -33,12 +33,13 @@
     @media (max-width: 1080px) { .dash-grid { grid-template-columns: 1fr 1fr; } .qa-row { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 640px) { .dash-grid { grid-template-columns: 1fr; } .qa-row { grid-template-columns: 1fr 1fr; } }
   </style>
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
   <header class="site-header" id="site-header"></header>
   <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
 
-  <section class="section-tight">
+  <section class="section-tight reveal">
     <div class="container-wide">
       <div class="flex-between mb-2">
         <div>
@@ -179,7 +180,7 @@
       <!-- trade history -->
       <div class="card mt-2">
         <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-clock-rotate-left" style="color:var(--gold)"></i> Trade History</b></div>
-        <div id="historyBox"></div>
+        <div id="historyBox"><span class="skeleton" style="width:100%;height:120px"></span></div>
       </div>
 
       <!-- security -->
@@ -198,7 +199,12 @@
           </div>
           <div class="table-wrap" style="box-shadow:none"><table class="dt" style="min-width:0">
             <thead><tr><th>When</th><th>Device</th><th>IP</th></tr></thead>
-            <tbody id="loginRows"></tbody>
+            <tbody id="loginRows">
+            <tr><td><span class="skeleton" style="width:50%"></span></td><td><span class="skeleton" style="width:81%"></span></td><td><span class="skeleton" style="width:67%"></span></td></tr>
+            <tr><td><span class="skeleton" style="width:73%"></span></td><td><span class="skeleton" style="width:59%"></span></td><td><span class="skeleton" style="width:90%"></span></td></tr>
+            <tr><td><span class="skeleton" style="width:51%"></span></td><td><span class="skeleton" style="width:82%"></span></td><td><span class="skeleton" style="width:68%"></span></td></tr>
+            <tr><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:60%"></span></td><td><span class="skeleton" style="width:91%"></span></td></tr>
+          </tbody>
           </table></div>
         </div>
       </div>
@@ -206,7 +212,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/common.js?v=7"></script>
   <script src="/assets/js/qrcode.js"></script>
   <script>
     document.addEventListener('bb:ready', async () => {

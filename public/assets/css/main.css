@@ -534,3 +534,70 @@ select.input option { background: #fff; color: var(--ink); }
   .chat-window { right: 12px; bottom: 88px; }
   .chat-launcher { right: 12px; bottom: 14px; }
 }
+
+
+/* ============================================================
+   MOTION & PAGE TRANSITIONS (v7)
+   - .reveal elements fade/rise in when scrolled into view
+     (hidden state only applies when JS is enabled, so content
+     is never lost without JavaScript)
+   - body page-in animation + page-exit fade on navigation
+   - top progress bar (#bbBar) during navigation
+   - richer skeletons, nav underline, focus rings
+   - fully disabled for prefers-reduced-motion users
+   ============================================================ */
+.skeleton { display: inline-block; vertical-align: middle; }
+
+/* ---- scroll reveal ---- */
+html.js .reveal { opacity: 0; transform: translateY(18px);
+  transition: opacity .6s ease, transform .6s cubic-bezier(.2, .75, .3, 1);
+  transition-delay: var(--rd, 0s); }
+html.js .reveal.visible { opacity: 1; transform: none; }
+.reveal-d1 { --rd: .07s; } .reveal-d2 { --rd: .14s; }
+.reveal-d3 { --rd: .21s; } .reveal-d4 { --rd: .28s; }
+
+/* ---- page transitions ---- */
+html.js body { animation: pageIn .42s ease both; }
+@keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+html.js body.page-exit { animation: none; opacity: 0; transition: opacity .15s ease; }
+
+#bbBar { position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 9999;
+  background: linear-gradient(90deg, var(--green), #2E91FC); border-radius: 0 2px 2px 0;
+  opacity: 0; transition: width .3s ease, opacity .25s ease; pointer-events: none; }
+#bbBar.on { opacity: 1; }
+#bbBar.done { width: 100% !important; opacity: 0; }
+
+/* ---- hero / page-hero entrance stagger ---- */
+html.js .hero-under .container > *, html.js .page-hero > * { animation: riseIn .6s cubic-bezier(.2, .75, .3, 1) both; }
+html.js .hero-under .container > *:nth-child(2), html.js .page-hero > *:nth-child(2) { animation-delay: .09s; }
+html.js .hero-under .container > *:nth-child(3), html.js .page-hero > *:nth-child(3) { animation-delay: .18s; }
+html.js .hero-under .container > *:nth-child(4), html.js .page-hero > *:nth-child(4) { animation-delay: .27s; }
+@keyframes riseIn { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+
+/* ---- nav underline ---- */
+.main-nav a { position: relative; }
+.main-nav a::after { content: ''; position: absolute; left: 10%; right: 10%; bottom: 1px; height: 2px;
+  background: var(--green); border-radius: 2px; transform: scaleX(0); transform-origin: left center;
+  transition: transform .28s cubic-bezier(.2, .75, .3, 1); }
+.main-nav a:hover::after, .main-nav a.active::after { transform: scaleX(1); }
+
+/* ---- micro-interactions ---- */
+.btn:active { transform: scale(.97); }
+.btn-primary:hover { box-shadow: 0 8px 22px rgba(27, 169, 75, .35); }
+.user-chip .avatar { transition: transform .18s ease; }
+.user-chip .avatar:hover { transform: scale(1.08); }
+.mini-quote { transition: transform .18s ease, background .18s ease; }
+.mini-quote:hover { transform: translateX(3px); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
+
+/* ---- misc ---- */
+html { scroll-behavior: smooth; }
+
+/* ---- reduced motion: everything instant, nothing hidden ---- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; }
+  html.js .reveal { opacity: 1 !important; transform: none !important; }
+}

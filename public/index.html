@@ -14,8 +14,9 @@
   <meta name="theme-color" content="#ffffff">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css">
-  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <link rel="stylesheet" href="/assets/css/main.css?v=7">
   <style>@media (max-width: 980px){ #offerGrid { grid-template-columns: 1fr !important; } }</style>
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
   <header class="site-header" id="site-header"></header>
@@ -90,7 +91,14 @@
       <div class="table-wrap">
         <table class="dt">
           <thead><tr><th>Asset</th><th>Price</th><th>24h</th><th>Trend (7d / intraday)</th><th>Market Cap</th><th></th></tr></thead>
-          <tbody id="homeMarketRows"></tbody>
+          <tbody id="homeMarketRows">
+          <tr><td><span class="skeleton" style="width:45%"></span></td><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:53%"></span></td><td><span class="skeleton" style="width:82%"></span></td><td><span class="skeleton" style="width:61%"></span></td></tr>
+          <tr><td><span class="skeleton" style="width:62%"></span></td><td><span class="skeleton" style="width:91%"></span></td><td><span class="skeleton" style="width:70%"></span></td><td><span class="skeleton" style="width:49%"></span></td><td><span class="skeleton" style="width:78%"></span></td></tr>
+          <tr><td><span class="skeleton" style="width:79%"></span></td><td><span class="skeleton" style="width:58%"></span></td><td><span class="skeleton" style="width:87%"></span></td><td><span class="skeleton" style="width:66%"></span></td><td><span class="skeleton" style="width:45%"></span></td></tr>
+          <tr><td><span class="skeleton" style="width:46%"></span></td><td><span class="skeleton" style="width:75%"></span></td><td><span class="skeleton" style="width:54%"></span></td><td><span class="skeleton" style="width:83%"></span></td><td><span class="skeleton" style="width:62%"></span></td></tr>
+          <tr><td><span class="skeleton" style="width:63%"></span></td><td><span class="skeleton" style="width:92%"></span></td><td><span class="skeleton" style="width:71%"></span></td><td><span class="skeleton" style="width:50%"></span></td><td><span class="skeleton" style="width:79%"></span></td></tr>
+          <tr><td><span class="skeleton" style="width:80%"></span></td><td><span class="skeleton" style="width:59%"></span></td><td><span class="skeleton" style="width:88%"></span></td><td><span class="skeleton" style="width:67%"></span></td><td><span class="skeleton" style="width:46%"></span></td></tr>
+        </tbody>
         </table>
       </div>
     </div>
@@ -290,7 +298,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/common.js?v=7"></script>
   <script>
     // hero live quotes + home market table
     const HERO_IDS = ['cg-bitcoin', 'cg-ethereum', 'cg-solana', 'cg-pax-gold'];

@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css">
-  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <link rel="stylesheet" href="/assets/css/main.css?v=7">
   <style>
     .trade-layout { display: grid; grid-template-columns: 250px 1fr 320px; gap: 16px; align-items: start; }
     .asset-list { max-height: 560px; overflow-y: auto; }
@@ -45,12 +45,13 @@
     .kyc-lock { text-align: center; padding: 34px 18px; }
     @media (max-width: 1200px) { .trade-layout { grid-template-columns: 1fr; } .asset-list { max-height: 260px; } .chart-box { height: 340px; } }
   </style>
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
   <header class="site-header" id="site-header"></header>
   <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
 
-  <section class="section-tight">
+  <section class="section-tight reveal">
     <div class="container-wide">
       <!-- top bar -->
       <div class="flex-between mb-2">
@@ -183,7 +184,7 @@
           <button class="tab-btn" data-bt="orders">Open Orders (<span id="cntOrd">0</span>)</button>
           <button class="tab-btn" data-bt="history">Trade History</button>
         </div>
-        <div id="bookPositions" class="pos-grid"></div>
+        <div id="bookPositions" class="pos-grid"><div class="card"><span class="skeleton" style="width:100%;height:92px"></span></div><div class="card"><span class="skeleton" style="width:100%;height:92px"></span></div><div class="card"><span class="skeleton" style="width:100%;height:92px"></span></div></div>
         <div id="bookOrders" style="display:none"></div>
         <div id="bookHistory" style="display:none"></div>
       </div>
@@ -191,8 +192,8 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=6"></script>
-  <script src="/assets/js/chart.js?v=6"></script>
+  <script src="/assets/js/common.js?v=7"></script>
+  <script src="/assets/js/chart.js?v=7"></script>
   <script>
     document.addEventListener('bb:ready', async () => {
       if (!BB.user) {
