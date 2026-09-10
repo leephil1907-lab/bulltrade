@@ -117,3 +117,35 @@ repo would fight). Never make the backup repo public — it contains user data.
 ## Health check
 
 `GET /` returns `200` — point your host's health check / uptime pinger at it.
+
+---
+
+## Finishing Touches (recommended after first deploy)
+
+### 1. Make emails actually send (SMTP)
+All transactional emails (connection keys, purchase approvals, password resets) are already coded —
+they send through SMTP the moment credentials are configured. No code changes needed:
+
+1. Create a FREE Brevo account (brevo.com, 300 emails/day free) — or use a Gmail account with an
+   App Password (Google Account → Security → 2-Step Verification → App passwords).
+2. Log into the site as admin → **Admin → Settings → SMTP** and fill in:
+   - Brevo: host `smtp-relay.brevo.com`, port `587`, user = your Brevo login email, pass = Brevo SMTP key, from = `blockchainbullhornfaqs@gmail.com`
+   - Gmail: host `smtp.gmail.com`, port `587`, user = your Gmail, pass = the App Password (not your normal password), from = the same Gmail
+3. Click **Send Test Email** to verify. Done — key approvals, purchase confirmations and resets
+   now arrive in real inboxes (they also stay logged under Admin → Emails).
+
+### 2. Eliminate cold starts (~1 min delay after idle)
+Render's free tier sleeps the service after ~15 min without traffic. Fix with a free uptime pinger:
+1. Create a free account at UptimeRobot (uptimerobot.com) or cron-job.org.
+2. Add an HTTP monitor for `https://blockchainbullhorn.onrender.com/` every **10 minutes**.
+3. That's it — the site stays warm 24/7 and loads instantly for every visitor.
+
+### 3. Custom domain (optional, works on Render free tier)
+1. In the Render dashboard open the service → **Settings → Custom Domains** → add e.g. `app.yourdomain.com`.
+2. Render shows the DNS records to create at your domain registrar (a CNAME to the Render target).
+3. Wait for DNS propagation; Render issues free TLS automatically.
+Remember to also update any hardcoded links if you switch the primary domain.
+
+### 4. Watch the bots work
+The Trading Bots page has a **Live Bot Activity** feed (recent opens/closes with P/L, refreshed
+every 20s), and Admin → Trading Bots shows key requests, allocations and per-bot stats.

@@ -817,6 +817,24 @@ api['POST /api/bots/activate'] = async (req, res, body, cookies) => {
   ok(res, r);
 };
 
+api['GET /api/bots/activity'] = async (req, res) => {
+  const leaders = D.filter('copy_leaders', l => l.bot);
+  const byUser = new Map(leaders.map(l => [l.userId, l]));
+  const activity = D.filter('trades', t => byUser.has(t.userId) && !t.copyOf)
+    .slice(-40).reverse()
+    .map(t => {
+      const l = byUser.get(t.userId);
+      const u = D.find('users', x => x.id === t.userId);
+      return {
+        botName: u ? u.name.replace(' Bot', '') : 'Bot', botTitle: l.title,
+        emoji: l.emoji || '\u{1F916}', avatar: l.avatar || '',
+        symbol: t.symbol, name: t.name, side: t.side, action: t.action, mode: t.mode,
+        price: t.price, notional: t.notional, pnl: t.pnl || 0, reason: t.reason || '', at: t.at
+      };
+    });
+  ok(res, { activity });
+};
+
 
 // ---- public settings ----
 api['GET /api/settings/public'] = async (req, res) => {

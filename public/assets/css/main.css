@@ -707,3 +707,9 @@ html { scroll-behavior: smooth; }
 .coin-stats small { display: block; font-family: var(--font-head); font-size: 10px; letter-spacing: 1px; color: var(--ink-dim); font-weight: 700; text-transform: uppercase; }
 .coin-stats b { font-size: 15px; font-family: var(--font-head); }
 .coin-chart { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
+
+/* ============ Bot activity feed ============ */
+.bot-act { display: flex; align-items: center; gap: 11px; padding: 10px 2px; border-bottom: 1px dashed var(--line); }
+.bot-act:last-child { border-bottom: none; }
+.ba-emoji { width: 32px; height: 32px; border-radius: 9px; background: var(--bg-soft); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 17px; flex: 0 0 auto; }
+.ba-txt { flex: 1; font-size: 13.5px; line-height: 1.55; }

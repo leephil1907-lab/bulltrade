@@ -160,6 +160,8 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   const bot = r.data.leaders[0]; // sorted ascending by minBalance
   ok('bot has stats + risk + min balance', bot.stats.demo.trades > 0 && !!bot.risk && bot.minBalance === 2500, { risk: bot.risk, min: bot.minBalance });
   ok('bots sorted by min balance', bot.minBalance <= r.data.leaders[r.data.leaders.length - 1].minBalance);
+  r = await req('GET', '/api/bots/activity');
+  ok('bot activity feed live', r.data.ok && r.data.activity.length >= 10 && r.data.activity[0].symbol && r.data.activity[0].botName, r.data.activity.length);
   r = await req('POST', '/api/bots/request-key', { botId: bot.id });
   ok('key request requires login', r.status === 401);
   r = await req('POST', '/api/bots/request-key', { botId: bot.id }, userCookie);
@@ -339,9 +341,9 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('POST', '/api/copy/start', { leaderId: bot.id, mode: 'demo', amount: 100 }, userCookie);
   ok('second allocation for same bot blocked', r.status === 409);
   r = await req('GET', '/api/copy/my', null, userCookie);
-  ok('my bots shows 1 allocation', r.data.ok && r.data.allocations.length === 1 && r.data.allocations[0].total >= 450 && r.data.allocations[0].total <= 500, r.data.allocations[0] && r.data.allocations[0].total);
+  ok('my bots shows 1 allocation', r.data.ok && r.data.allocations.length === 1 && r.data.allocations[0].total >= 450 && r.data.allocations[0].total <= 540, r.data.allocations[0] && r.data.allocations[0].total); // upper bound loose: live bot mirrors can add P/L mid-test
   r = await req('POST', '/api/copy/stop', { allocationId: allocId }, userCookie);
-  ok('bot stopped, funds returned', r.data.ok && r.data.returned >= 450 && r.data.returned <= 500, r.data);
+  ok('bot stopped, funds returned', r.data.ok && r.data.returned >= 450 && r.data.returned <= 540, r.data);
   // balance adjust
   r = await req('POST', '/api/admin/balance', { userId, mode: 'live', amountUsd: 250, note: 'promo credit' }, adminCookie);
   ok('balance adjusted +250', r.data.ok && r.data.newBalance > 100, r.data);
