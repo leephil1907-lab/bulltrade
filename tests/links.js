@@ -6,7 +6,7 @@
 'use strict';
 
 const BASE = process.env.BASE_URL || 'http://localhost:3000';
-const PAGES = ['/', '/markets', '/trade', '/copy-trading', '/community', '/dashboard',
+const PAGES = ['/', '/markets', '/trade', '/trading-bots', '/community', '/dashboard',
   '/funding', '/login', '/signup', '/forgot-password', '/reset-password', '/kyc',
   '/store', '/mentorship', '/cmf-engine', '/faq', '/contact', '/avoid-scams',
   '/legal', '/admin', '/nonexistent-page-404-check'];

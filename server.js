@@ -18,6 +18,7 @@ const gamify = require('./lib/gamify');
 const markets = require('./lib/markets');
 const trading = require('./lib/trading');
 const Backup = require('./lib/backup');
+const bots = require('./lib/bots');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
@@ -63,16 +64,16 @@ const ROUTES = {
   '/kyc': 'kyc.html', '/community': 'community.html', '/store': 'store.html',
   '/mentorship': 'mentorship.html', '/cmf-engine': 'cmf-engine.html', '/faq': 'faq.html',
   '/contact': 'contact.html', '/avoid-scams': 'avoid-scams.html', '/legal': 'legal.html',
-  '/copy-trading': 'copy-trading.html',
+  '/trading-bots': 'trading-bots.html',
   '/admin': 'admin.html', '/admin/': 'admin.html'
 };
 
 // ---------------- API handlers ----------------
 const api = {};
 
-function requireUser(req, res, cookies) {
+function requireUser(req, res, cookies, optional) {
   const user = Auth.userFromRequest(req, cookies);
-  if (!user) { fail(res, 401, 'Please log in to continue.'); return null; }
+  if (!user) { if (!optional) fail(res, 401, 'Please log in to continue.'); return null; }
   return user;
 }
 function requireAdmin(req, res, cookies) {
@@ -698,16 +699,26 @@ api['POST /api/community/apply'] = async (req, res, body, cookies) => {
 };
 
 // ---- copy trading ----
-api['GET /api/copy/leaders'] = async (req, res) => {
+api['GET /api/copy/leaders'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies, true);
   const leaders = D.filter('copy_leaders', l => l.status !== 'pending').map(l => {
     const u = D.find('users', x => x.id === l.userId);
     return {
       id: l.id, userId: l.userId, status: l.status, title: l.title, style: l.style, description: l.description,
       name: u ? u.name : 'Unknown', avatarColor: u ? (u.avatarColor || '#d3a877') : '#d3a877',
+      emoji: l.emoji || '\u{1F916}', bot: !!l.bot, minBalance: l.minBalance || 0, risk: l.risk || '',
       joinedAt: u ? u.joinedAt : 0, stats: trading.leaderStats(l)
     };
-  }).sort((a, b) => (b.stats.demo.roi || 0) - (a.stats.demo.roi || 0));
-  ok(res, { leaders, minCopy: trading.MIN_COPY });
+  }).sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
+  const out = { leaders, minCopy: trading.MIN_COPY };
+  if (user) {
+    out.liveEquity = trading.equity(user.id, 'live').equity;
+    out.myRequests = D.filter('bot_requests', r => r.userId === user.id && r.leaderId).map(r => ({
+      leaderId: r.leaderId, status: r.status, key: r.status === 'approved' ? r.key : '', requestedAt: r.requestedAt
+    }));
+    out.myActive = D.filter('copy_allocations', a => a.userId === user.id && a.active).map(a => ({ leaderId: a.leaderId, mode: a.mode }));
+  }
+  ok(res, out);
 };
 
 api['GET /api/copy/my'] = async (req, res, body, cookies) => {
@@ -733,6 +744,14 @@ api['GET /api/copy/my'] = async (req, res, body, cookies) => {
 
 api['POST /api/copy/start'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies); if (!user) return;
+  // bots are gated behind admin-approved connection keys + minimum live portfolio balance
+  const leader = D.find('copy_leaders', l => l.id === body.leaderId);
+  if (leader && leader.bot) {
+    const approved = D.find('bot_requests', q => q.userId === user.id && q.leaderId === leader.id && q.status === 'approved');
+    if (!approved) return fail(res, 403, 'This bot requires an admin-issued connection key. Request one from the Trading Bots page.');
+    const liveEq = trading.equity(user.id, 'live').equity;
+    if (liveEq < leader.minBalance) return fail(res, 400, `This bot requires a minimum live portfolio balance of $${leader.minBalance.toLocaleString()}. Your live portfolio is currently $${liveEq.toLocaleString()}.`);
+  }
   const r = trading.startCopy(user, body.leaderId, body.mode, body.amount);
   if (r.error) return fail(res, r.status, r.error);
   ok(res, r);
@@ -745,22 +764,41 @@ api['POST /api/copy/stop'] = async (req, res, body, cookies) => {
   ok(res, r);
 };
 
-api['POST /api/copy/apply-leader'] = async (req, res, body, cookies) => {
+api['POST /api/bots/request-key'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies); if (!user) return;
-  const existing = D.find('copy_leaders', l => l.userId === user.id);
-  if (existing && (existing.status === 'active' || existing.status === 'pending')) return fail(res, 409, existing.status === 'active' ? 'You are already an active leader.' : 'Your leader application is already under review.');
-  const title = String(body.title || '').trim().slice(0, 80);
-  const desc = String(body.description || '').trim().slice(0, 400);
-  if (title.length < 4) return fail(res, 400, 'Give your strategy a name (min. 4 characters).');
-  if (desc.length < 20) return fail(res, 400, 'Describe your strategy in at least 20 characters so copiers know what to expect.');
-  const rec = {
-    id: U.uid('cl_'), userId: user.id, status: 'pending', title, style: String(body.style || 'Technical').slice(0, 40),
-    description: desc, approvedAt: 0
-  };
-  if (existing) { Object.assign(existing, rec, { id: existing.id }); D.save(); }
-  else D.insert('copy_leaders', rec);
-  ok(res, { message: 'Leader application submitted — our team reviews every strategy manually before it goes public.' });
+  const leader = D.find('copy_leaders', l => l.id === String(body.botId || '') && l.bot && l.status === 'active');
+  if (!leader) return fail(res, 404, 'Trading bot not found.');
+  const liveEq = trading.equity(user.id, 'live').equity;
+  if (liveEq < leader.minBalance) {
+    return fail(res, 400, `This bot requires a minimum live portfolio balance of $${leader.minBalance.toLocaleString()}. Your live portfolio is currently $${liveEq.toLocaleString()}.`);
+  }
+  const existing = D.find('bot_requests', r => r.userId === user.id && r.leaderId === leader.id && (r.status === 'pending' || r.status === 'approved'));
+  if (existing) return fail(res, 409, existing.status === 'pending'
+    ? 'Your connection key request for this bot is already under review.'
+    : 'You already have a connection key for this bot — activate it below.');
+  D.insert('bot_requests', {
+    id: U.uid('br_'), userId: user.id, leaderId: leader.id, status: 'pending', key: '',
+    requestedAt: Date.now(), reviewedAt: 0
+  });
+  ok(res, { message: 'Connection key requested. Our team reviews every request manually — you will be notified once your key is issued.' });
 };
+
+api['POST /api/bots/activate'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const leader = D.find('copy_leaders', l => l.id === String(body.botId || '') && l.bot && l.status === 'active');
+  if (!leader) return fail(res, 404, 'Trading bot not found.');
+  const req_ = D.find('bot_requests', r => r.userId === user.id && r.leaderId === leader.id && r.status === 'approved');
+  if (!req_ || !req_.key) return fail(res, 400, 'No approved connection key for this bot. Request a key first — it is issued after admin approval.');
+  if (String(body.key || '').trim().toUpperCase() !== req_.key.toUpperCase()) return fail(res, 400, 'Invalid connection key. Check the key issued to you and try again.');
+  const liveEq = trading.equity(user.id, 'live').equity;
+  if (liveEq < leader.minBalance) {
+    return fail(res, 400, `This bot requires a minimum live portfolio balance of $${leader.minBalance.toLocaleString()}. Your live portfolio is currently $${liveEq.toLocaleString()}.`);
+  }
+  const r = trading.startCopy(user, leader.id, body.mode, body.amount);
+  if (r.error) return fail(res, r.status, r.error);
+  ok(res, r);
+};
+
 
 // ---- public settings ----
 api['GET /api/settings/public'] = async (req, res) => {
@@ -771,7 +809,6 @@ api['GET /api/settings/public'] = async (req, res) => {
   });
   ok(res, {
     smartsuppKey: s.smartsuppKey || '',
-    announcement: s.announcement || { enabled: false, text: '' },
     siteName: s.siteName,
     supportEmail: s.supportEmail,
     contest: { enabled: s.contest ? s.contest.enabled !== false : true, prize: (s.contest && s.contest.prize) || '' },
@@ -810,7 +847,7 @@ api['GET /api/admin/overview'] = async (req, res, body, cookies) => {
       unreadChats: db.chats.reduce((s, c) => s + c.unreadAdmin, 0),
       totalTrades: db.trades.length,
       communityPending: db.community_apps.filter(a => a.status === 'pending').length,
-      leaderPending: db.copy_leaders.filter(l => l.status === 'pending').length,
+      leaderPending: db.bot_requests.filter(r => r.status === 'pending').length, // bot connection-key requests
       copyAllocations: db.copy_allocations.filter(a => a.active).length
     },
     recentUsers,
@@ -1074,7 +1111,16 @@ api['GET /api/admin/copy'] = async (req, res, body, cookies) => {
       userName: u ? u.name : 'deleted', userEmail: u ? u.email : '', leaderName: lu ? lu.name : 'unknown'
     };
   });
-  ok(res, { leaders, allocations });
+  const requests = D.db().bot_requests.slice().sort((a, b) => b.requestedAt - a.requestedAt).map(r => {
+    const u = D.find('users', x => x.id === r.userId);
+    const l = D.find('copy_leaders', x => x.id === r.leaderId);
+    return {
+      id: r.id, status: r.status, key: r.key, requestedAt: r.requestedAt, reviewedAt: r.reviewedAt,
+      userName: u ? u.name : 'deleted', userEmail: u ? u.email : '',
+      botName: l ? l.title : 'unknown bot', botMin: l ? l.minBalance : 0
+    };
+  });
+  ok(res, { leaders, allocations, requests });
 };
 
 api['POST /api/admin/copy-leader'] = async (req, res, body, cookies) => {
@@ -1093,6 +1139,30 @@ api['POST /api/admin/copy-leader'] = async (req, res, body, cookies) => {
   ok(res, { message: 'Leader updated' });
 };
 
+api['POST /api/admin/bot-key'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const r = D.find('bot_requests', x => x.id === body.requestId);
+  if (!r || r.status !== 'pending') return fail(res, 404, 'Pending key request not found');
+  const l = D.find('copy_leaders', x => x.id === r.leaderId);
+  const u = D.find('users', x => x.id === r.userId);
+  if (body.action === 'approve') {
+    r.status = 'approved';
+    r.key = 'BB-' + Math.random().toString(36).slice(2, 6).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    r.reviewedAt = Date.now();
+    D.save();
+    D.logAudit(admin.id, 'botkey.approve', r.userId, (l ? l.title : '') + ' key ' + r.key);
+    if (u && l) mailer.sendMail({ to: u.email, subject: `\u{1F511} Connection key approved — ${l.title}`, html: mailer.templates.botKeyApproved(u, l.title, r.key) }).catch(() => {});
+    ok(res, { message: 'Key issued and emailed to the user', key: r.key });
+  } else if (body.action === 'reject') {
+    r.status = 'rejected';
+    r.reviewedAt = Date.now();
+    D.save();
+    D.logAudit(admin.id, 'botkey.reject', r.userId, l ? l.title : '');
+    if (u) mailer.sendMail({ to: u.email, subject: 'Connection key request declined — Blockchain Bullhorn', html: mailer.templates.botKeyRejected(u, l ? l.title : 'the bot') }).catch(() => {});
+    ok(res, { message: 'Key request rejected' });
+  } else fail(res, 400, 'Unknown action');
+};
+
 api['GET /api/admin/settings'] = async (req, res, body, cookies) => {
   const admin = requireAdmin(req, res, cookies); if (!admin) return;
   ok(res, { settings: D.db().settings });
@@ -1108,10 +1178,6 @@ api['POST /api/admin/settings'] = async (req, res, body, cookies) => {
     if (m) k = m[1];
     if (!/^[a-zA-Z0-9]{0,100}$/.test(k)) k = ''; // keys are alphanumeric only
     s.smartsuppKey = k;
-  }
-  if (b.announcement && typeof b.announcement === 'object') {
-    s.announcement.enabled = !!b.announcement.enabled;
-    s.announcement.text = String(b.announcement.text || '').slice(0, 300);
   }
   if (b.depositAddresses && typeof b.depositAddresses === 'object') {
     for (const k of Object.keys(s.depositAddresses)) {
@@ -1240,6 +1306,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ---- pages ----
+    if (pathname === '/copy-trading') { // legacy URL → Trading Bots
+      res.writeHead(302, { Location: '/trading-bots' });
+      return res.end();
+    }
     const pageName = ROUTES[pathname];
     if (pageName) return serveFile(res, page(pageName));
     if (pathname.endsWith('.html')) {
@@ -1258,6 +1328,7 @@ const server = http.createServer(async (req, res) => {
   await D.init();
   Backup.start();
   markets.start().catch(() => {});
+  bots.start();
   server.listen(PORT, HOST, () => {
     console.log(`Blockchain Bullhorn server running at http://localhost:${PORT} (bound ${HOST})`);
     console.log(`Admin panel: http://localhost:${PORT}/admin`);

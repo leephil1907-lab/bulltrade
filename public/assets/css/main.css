@@ -28,8 +28,8 @@
   --ink-dim: #97836f;
   --line: rgba(63, 20, 12, 0.14);
   --line-soft: rgba(63, 20, 12, 0.08);
-  --bg: #fdfbf7;
-  --bg-soft: #f6f1e8;
+  --bg: #f7efdd;
+  --bg-soft: #eee1c6;
   --card: #ffffff;
   --card-solid: #ffffff;
   --radius: 10px;
@@ -64,16 +64,6 @@ h1, h2, h3, h4, h5, h6, .font-head { font-family: var(--font-head); line-height:
 
 .container { width: min(1200px, 92%); margin: 0 auto; }
 .container-wide { width: min(1380px, 96%); margin: 0 auto; }
-
-/* ============ Announcement bar ============ */
-.announce {
-  display: none;
-  background: linear-gradient(90deg, var(--blue), #0359f0);
-  color: #fff; font-family: var(--font-head);
-  font-size: 13.5px; text-align: center; padding: 8px 44px; position: relative; z-index: 60;
-}
-.announce.show { display: block; }
-.announce a { color: #ffe9c4; text-decoration: underline; }
 
 /* ============ Header (white, like reference site) ============ */
 .site-header {

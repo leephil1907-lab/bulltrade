@@ -10,7 +10,7 @@ const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
 
 window.BB = {
   user: null,
-  settings: { smartsuppKey: '', announcement: { enabled: false, text: '' }, chatOnline: true },
+  settings: { smartsuppKey: '', chatOnline: true },
 
   fmtPrice(p) {
     if (p == null) return '—';
@@ -188,7 +188,7 @@ const Motion = {
 
 // ---------- header / footer ----------
 const NAV_LINKS = [
-  ['/markets', 'Markets'], ['/trade', 'Trading'], ['/copy-trading', 'Copy Trading'],
+  ['/markets', 'Markets'], ['/trade', 'Trading'], ['/trading-bots', 'Trading Bots'],
   ['/community', 'Community'], ['/store', 'Products'], ['/mentorship', 'Mentorship'],
   ['/faq', 'FAQ'], ['/contact', 'Contact']
 ];
@@ -199,7 +199,6 @@ function renderHeader() {
   const links = NAV_LINKS.map(([href, label]) =>
     `<a href="${href}" class="${here === href ? 'active' : ''}">${label}</a>`).join('');
   el.innerHTML = `
-  <div class="announce" id="announce"></div>
   <div class="container-wide header-inner">
     <a class="brand" href="/">
       <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn logo">
@@ -230,7 +229,7 @@ function renderHeaderActions() {
           </div>
           <a href="/dashboard"><i class="fas fa-gauge-high"></i> Dashboard</a>
           <a href="/funding"><i class="fas fa-wallet"></i> Funding</a>
-          <a href="/copy-trading"><i class="fas fa-users-rectangle"></i> Copy Trading</a>
+          <a href="/trading-bots"><i class="fas fa-robot"></i> Trading Bots</a>
           <a href="/kyc"><i class="fas fa-id-card"></i> KYC Verification</a>
           <a href="/trade"><i class="fas fa-chart-line"></i> Trade Now</a>
           <button id="logoutBtn"><i class="fas fa-arrow-right-from-bracket"></i> Log Out</button>
@@ -270,7 +269,7 @@ function renderFooter() {
         <h5>Platform</h5>
         <div class="footer-links">
           <a href="/markets">Live Markets</a><a href="/trade">Trading Terminal</a>
-          <a href="/copy-trading">Copy Trading</a>
+          <a href="/trading-bots">Trading Bots</a>
           <a href="/dashboard">Dashboard</a><a href="/funding">Funding</a>
           <a href="/community">Community <i class="fas fa-lock" style="font-size:9px;color:var(--gold)"></i></a>
           <a href="/signup">Create Account</a>
@@ -340,12 +339,6 @@ async function loadTicker() {
 }
 
 // ---------- announcement ----------
-function renderAnnouncement() {
-  const el = $('#announce'); if (!el) return;
-  const a = BB.settings.announcement;
-  if (a && a.enabled && a.text) { el.innerHTML = a.text; el.classList.add('show'); }
-}
-
 // ---------- reveal on scroll ----------
 function initReveal() {
   const io = new IntersectionObserver(entries => {
@@ -516,7 +509,6 @@ async function bootCommon() {
   if (meR.ok && meR.user) BB.user = meR.user;
   renderHeader();
   renderFooter();
-  renderAnnouncement();
   initReveal();
   initCounters();
   loadTicker();

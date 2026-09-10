@@ -22,7 +22,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
 
 (async () => {
   console.log('== PAGES ==');
-  const pages = ['/', '/markets', '/trade', '/copy-trading', '/community', '/dashboard', '/funding', '/login', '/signup', '/forgot-password', '/reset-password', '/kyc', '/store', '/mentorship', '/cmf-engine', '/faq', '/contact', '/avoid-scams', '/legal?p=gdpr', '/admin', '/nonexistent-page-xyz'];
+  const pages = ['/', '/markets', '/trade', '/trading-bots', '/community', '/dashboard', '/funding', '/login', '/signup', '/forgot-password', '/reset-password', '/kyc', '/store', '/mentorship', '/cmf-engine', '/faq', '/contact', '/avoid-scams', '/legal?p=gdpr', '/admin', '/nonexistent-page-xyz'];
   for (const p of pages) {
     const res = await fetch(BASE + p);
     ok(`GET ${p} → ${p === '/nonexistent-page-xyz' ? 404 : 200}`, res.status === (p === '/nonexistent-page-xyz' ? 404 : 200), res.status);
@@ -146,24 +146,20 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', '/api/community/status', null, userCookie);
   ok('status pending', r.data.status === 'pending');
 
-  console.log('== COPY TRADING ==');
+  console.log('== TRADING BOTS ==');
   r = await req('GET', '/api/copy/leaders');
-  ok('leaders listed', r.data.ok && r.data.leaders.length >= 4, r.data.leaders && r.data.leaders.length);
-  const leader = r.data.leaders[0];
-  ok('leader has stats', leader.stats && leader.stats.demo.trades > 0 && typeof leader.stats.copiers === 'number', leader.stats);
-  r = await req('POST', '/api/copy/start', { leaderId: leader.id, mode: 'demo', amount: 500 }, userCookie);
-  ok('copy started (demo $500)', r.data.ok, r.data);
-  const allocId = r.data.allocation && r.data.allocation.id;
-  r = await req('POST', '/api/copy/start', { leaderId: leader.id, mode: 'demo', amount: 100 }, userCookie);
-  ok('duplicate copy blocked', r.status === 409);
-  // leader trades → mirror check
-  // (we act as the leader by logging in as that seeded user is not possible; instead verify structures)
-  r = await req('GET', '/api/copy/my', null, userCookie);
-  ok('my allocations shows 1', r.data.ok && r.data.allocations.length === 1 && r.data.allocations[0].total >= 490 && r.data.allocations[0].total <= 500, r.data.allocations[0]);
-  r = await req('POST', '/api/copy/apply-leader', { title: 'My Test Strategy', style: 'Technical', description: 'A systematic test strategy with strict risk management.' }, userCookie);
-  ok('leader application submitted', r.data.ok);
-  r = await req('POST', '/api/copy/stop', { allocationId: allocId }, userCookie);
-  ok('copy stopped, ~$500 returned', r.data.ok && r.data.returned >= 490 && r.data.returned <= 500, r.data);
+  ok('bots listed publicly', r.data.ok && r.data.leaders.length >= 4 && r.data.leaders.every(l => l.bot && l.minBalance > 0), r.data.leaders.length);
+  const bot = r.data.leaders[0]; // sorted ascending by minBalance
+  ok('bot has stats + risk + min balance', bot.stats.demo.trades > 0 && !!bot.risk && bot.minBalance === 500, { risk: bot.risk, min: bot.minBalance });
+  ok('bots sorted by min balance', bot.minBalance <= r.data.leaders[r.data.leaders.length - 1].minBalance);
+  r = await req('POST', '/api/bots/request-key', { botId: bot.id });
+  ok('key request requires login', r.status === 401);
+  r = await req('POST', '/api/bots/request-key', { botId: bot.id }, userCookie);
+  ok('key request blocked below min balance', r.status === 400 && /minimum/.test(r.data.error || ''), r.data.error);
+  r = await req('POST', '/api/bots/activate', { botId: bot.id, key: 'BB-WRNG', mode: 'demo', amount: 500 }, userCookie);
+  ok('activation blocked without approved key', r.status === 400);
+  const redir = await fetch(BASE + '/copy-trading', { redirect: 'manual' });
+  ok('legacy /copy-trading redirects', redir.status === 302 && redir.headers.get('location') === '/trading-bots', redir.status);
 
   console.log('== FUNDING ==');
   r = await req('GET', '/api/funding/summary', null, userCookie);
@@ -295,12 +291,32 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('community approved', r.data.ok);
   r = await req('GET', '/api/community/status', null, userCookie);
   ok('user sees community approved', r.data.status === 'approved');
-  // copy leader approve
+  // trading bot connection-key flow (admin approval required)
+  r = await req('POST', '/api/admin/balance', { userId, mode: 'live', amountUsd: 1000, note: 'bot min balance' }, adminCookie);
+  ok('live balance credited for bot test', r.data.ok);
+  r = await req('POST', '/api/bots/request-key', { botId: bot.id }, userCookie);
+  ok('connection key requested', r.data.ok, r.data);
+  r = await req('POST', '/api/bots/request-key', { botId: bot.id }, userCookie);
+  ok('duplicate key request blocked', r.status === 409);
   r = await req('GET', '/api/admin/copy', null, adminCookie);
-  const pendLeader = r.data.leaders.find(l => l.status === 'pending');
-  ok('pending leader application found', !!pendLeader);
-  r = await req('POST', '/api/admin/copy-leader', { leaderId: pendLeader.id, action: 'approve' }, adminCookie);
-  ok('leader approved', r.data.ok);
+  const pendReq = (r.data.requests || []).find(x => x.status === 'pending');
+  ok('pending key request visible in admin', !!pendReq && pendReq.botMin === 500, pendReq);
+  r = await req('POST', '/api/admin/bot-key', { requestId: pendReq.id, action: 'approve' }, adminCookie);
+  ok('connection key issued', r.data.ok && /^BB-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(r.data.key || ''), r.data.key);
+  const connKey = r.data.key;
+  r = await req('POST', '/api/bots/activate', { botId: bot.id, key: 'BB-WRONG', mode: 'demo', amount: 500 }, userCookie);
+  ok('wrong connection key rejected', r.status === 400);
+  r = await req('GET', '/api/copy/leaders', null, userCookie);
+  ok('leaders endpoint exposes my approved key', r.data.myRequests && r.data.myRequests.some(q => q.leaderId === bot.id && q.key === connKey));
+  r = await req('POST', '/api/bots/activate', { botId: bot.id, key: connKey, mode: 'demo', amount: 500 }, userCookie);
+  ok('bot activated (demo $500)', r.data.ok, r.data);
+  const allocId = r.data.allocation && r.data.allocation.id;
+  r = await req('POST', '/api/copy/start', { leaderId: bot.id, mode: 'demo', amount: 100 }, userCookie);
+  ok('second allocation for same bot blocked', r.status === 409);
+  r = await req('GET', '/api/copy/my', null, userCookie);
+  ok('my bots shows 1 allocation', r.data.ok && r.data.allocations.length === 1 && r.data.allocations[0].total >= 450 && r.data.allocations[0].total <= 500, r.data.allocations[0] && r.data.allocations[0].total);
+  r = await req('POST', '/api/copy/stop', { allocationId: allocId }, userCookie);
+  ok('bot stopped, funds returned', r.data.ok && r.data.returned >= 450 && r.data.returned <= 500, r.data);
   // balance adjust
   r = await req('POST', '/api/admin/balance', { userId, mode: 'live', amountUsd: 250, note: 'promo credit' }, adminCookie);
   ok('balance adjusted +250', r.data.ok && r.data.newBalance > 100, r.data);
@@ -315,10 +331,10 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', '/api/admin/audit', null, adminCookie);
   ok('audit log records actions', r.data.ok && r.data.audit.length >= 5, r.data.audit.length);
   // settings
-  r = await req('POST', '/api/admin/settings', { settings: { announcement: { enabled: true, text: '🔥 Copy Trading is live!' } } }, adminCookie);
+  r = await req('POST', '/api/admin/settings', { settings: { siteName: 'Blockchain Bullhorn' } }, adminCookie);
   ok('settings saved', r.data.ok);
   r = await req('GET', '/api/settings/public');
-  ok('public settings show announcement', r.data.announcement && r.data.announcement.enabled === true);
+  ok('public settings: announcement removed, smartsupp present', !r.data.announcement && typeof r.data.smartsuppKey === 'string');
   // admin chat reply
   r = await req('GET', `/api/admin/chat-messages?id=${convId}`, null, adminCookie);
   ok('admin reads chat', r.data.ok && r.data.messages.length >= 2);

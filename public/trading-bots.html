@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trading Bots — Blockchain Bullhorn</title>
+  <meta name="description" content="Automated trading bots that place and manage trades on your Blockchain Bullhorn account. Each bot requires a connection key and a minimum portfolio balance.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
+  <link rel="stylesheet" href="/assets/css/main.css?v=9">
+  <script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <section class="page-hero">
+    <div class="container">
+      <div class="crumbs"><a href="/">Home</a> · Trading Bots</div>
+      <h1>Trading Bots 🤖</h1>
+      <p class="lead">Automated strategies that place and manage trades on your account — momentum scouting, commodity swings, compounding and aggressive momentum. Every bot requires an admin-issued <b>connection key</b> and a <b>minimum live portfolio balance</b> before it starts working for you.</p>
+    </div>
+  </section>
+
+  <section class="section-tight reveal">
+    <div class="container">
+      <div class="grid grid-3">
+        <div class="card"><div class="feat-icon"><i class="fas fa-key"></i></div><h3>Connection Key Required</h3><p>Every bot is gated behind a connection key. Request yours below — our team reviews each request manually and issues your personal key by email.</p></div>
+        <div class="card"><div class="feat-icon"><i class="fas fa-scale-balanced"></i></div><h3>Portfolio Requirement</h3><p>Each bot requires a specific minimum live portfolio balance. Start with Bull Scout at $500 and unlock the bigger engines as your portfolio grows.</p></div>
+        <div class="card"><div class="feat-icon"><i class="fas fa-hand"></i></div><h3>You Stay in Control</h3><p>Bots mirror into your allocation proportionally with their own take-profit and stop-loss discipline. Stop a bot anytime — positions close and funds return to your wallet.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-tight reveal">
+    <div class="container">
+      <div id="myBots" style="display:none" class="mb-3">
+        <div class="flex-between mb-2"><h2 style="font-size:22px"><i class="fas fa-robot" style="color:var(--gold)"></i> My Active Bots</h2></div>
+        <div id="allocList"></div>
+      </div>
+
+      <div class="flex-between mb-2">
+        <h2 style="font-size:22px"><i class="fas fa-trophy" style="color:var(--gold)"></i> Meet the Bots</h2>
+        <span class="muted small">Stats computed live from each bot's actual platform trades</span>
+      </div>
+      <div id="botList">
+        <div class="card"><span class="skeleton" style="width:100%;height:120px"></span></div>
+        <div class="card mt-2"><span class="skeleton" style="width:100%;height:120px"></span></div>
+      </div>
+
+      <div class="card mt-3" style="background:var(--red-dim);border-color:rgba(255,82,104,.25)">
+        <h3><i class="fas fa-triangle-exclamation" style="color:var(--red)"></i> Risk notice</h3>
+        <p class="muted mt-1" style="font-size:13.5px">Trading bots are automated strategy tools — not financial advice and not a guarantee of profit. Bot performance shown is from platform demo trading; live results vary with market conditions. You can stop any bot at any time. Never allocate funds you cannot afford to have at risk.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=9"></script>
+  <script>
+    let bots = [], minCopy = 50, ctx = null;
+
+    document.addEventListener('bb:ready', () => { refresh(); setInterval(refresh, 20000); });
+
+    async function refresh() {
+      const r = await BB.api('/api/copy/leaders', { silent: true });
+      if (!r.leaders) return;
+      bots = r.leaders; minCopy = r.minCopy || 50;
+      ctx = r.liveEquity != null ? { liveEquity: r.liveEquity, myRequests: r.myRequests || [], myActive: r.myActive || [] } : null;
+      renderBots();
+      if (BB.user) renderMy();
+    }
+
+    function botState(b) {
+      const active = ctx && ctx.myActive.find(a => a.leaderId === b.id);
+      if (active) return { key: 'active', alloc: active };
+      if (!BB.user) return { key: 'anon' };
+      const req = ctx && ctx.myRequests.find(q => q.leaderId === b.id);
+      if (req && req.status === 'approved') return { key: 'activate', req };
+      if (req && req.status === 'pending') return { key: 'pending' };
+      if (ctx && ctx.liveEquity < b.minBalance) return { key: 'locked' };
+      return { key: 'request' };
+    }
+
+    function renderBots() {
+      $('#botList').innerHTML = bots.map(b => {
+        const s = b.stats, d = s.demo;
+        const st = botState(b);
+        let btn = '';
+        if (st.key === 'active') btn = `<span class="badge badge-green" style="margin-bottom:8px">🛠️ MANAGING YOUR ALLOCATION</span><br><button class="btn btn-danger btn-sm mt-1" data-stopbot="${b.id}"><i class="fas fa-stop"></i> Stop Bot</button>`;
+        else if (st.key === 'activate') btn = `<button class="btn btn-gold btn-sm mt-1" data-activate="${b.id}"><i class="fas fa-bolt"></i> Activate Bot</button><div class="muted small mt-1"><i class="fas fa-key"></i> Key issued — ready to activate</div>`;
+        else if (st.key === 'pending') btn = `<button class="btn btn-outline btn-sm mt-1" disabled><i class="fas fa-hourglass-half"></i> Key Under Review…</button>`;
+        else if (st.key === 'locked') btn = `<button class="btn btn-outline btn-sm mt-1" disabled><i class="fas fa-lock"></i> Requires $${b.minBalance.toLocaleString()} portfolio</button><div class="muted small mt-1">Your live portfolio: <b>$${(ctx ? ctx.liveEquity : 0).toLocaleString()}</b></div>`;
+        else if (st.key === 'anon') btn = `<a class="btn btn-primary btn-sm mt-1" href="/login?next=/trading-bots"><i class="fas fa-right-to-bracket"></i> Log In to Activate</a>`;
+        else btn = `<button class="btn btn-primary btn-sm mt-1" data-request="${b.id}"><i class="fas fa-key"></i> Request Connection Key</button>`;
+        const riskBadge = b.risk === 'Low' ? 'badge-green' : b.risk === 'High' ? 'badge-red' : 'badge-gold';
+        return `<div class="card card-hover leader-card mb-2 reveal visible">
+          <div class="leader-id">
+            <div class="avatar-lg" style="background:${b.avatarColor};font-size:26px;display:flex;align-items:center;justify-content:center">${b.emoji || '🤖'}</div>
+            <div>
+              <div class="flex-between" style="justify-content:flex-start;gap:8px">
+                <b class="font-head" style="font-size:16px">${BB.esc(b.name)}</b>
+                <span class="pill badge ${riskBadge}">${BB.esc(b.risk || 'BOT')}</span>
+              </div>
+              <div class="muted small" style="margin:3px 0 6px">${BB.esc(b.title)} · <span style="color:var(--gold)">${BB.esc(b.style)}</span></div>
+              <p class="muted" style="font-size:12.5px;line-height:1.5">${BB.esc(b.description)}</p>
+              <div class="mt-1"><span class="pill badge badge-blue" style="font-size:12px"><i class="fas fa-wallet"></i> Min portfolio balance: $${b.minBalance.toLocaleString()}</span></div>
+            </div>
+          </div>
+          <div class="leader-stats">
+            <div class="lstat"><small>Demo ROI</small><b class="${(d.roi || 0) >= 0 ? 'up' : 'down'}">${d.roi != null ? (d.roi >= 0 ? '+' : '') + d.roi.toFixed(1) + '%' : '—'}</b></div>
+            <div class="lstat"><small>Win rate</small><b>${d.winRate != null ? d.winRate.toFixed(1) + '%' : '—'}</b></div>
+            <div class="lstat"><small>Trades</small><b>${d.trades}</b></div>
+            <div class="lstat"><small>Running for</small><b>${s.copiers} user(s)</b></div>
+          </div>
+          <div style="text-align:center">
+            ${BB.sparkline(d.series, 120, 36)}
+            <div style="margin-top:8px">${btn.replace('<br>', '</div><div style="margin-top:8px">')}</div>
+          </div>
+        </div>`;
+      }).join('') || '<div class="card empty-state">No bots available yet — check back soon.</div>';
+
+      $$('[data-request]').forEach(el => el.addEventListener('click', () => requestKey(el.dataset.request)));
+      $$('[data-activate]').forEach(el => el.addEventListener('click', () => activateModal(el.dataset.activate)));
+      $$('[data-stopbot]').forEach(el => el.addEventListener('click', async () => {
+        const st = botState(bots.find(b => b.id === el.dataset.stopbot) || {});
+        const allocId = st.alloc && st.alloc.allocId;
+        if (!allocId) return refresh();
+        if (!confirm('Stop this bot? Mirrored positions close at market and your funds return to your wallet.')) return;
+        const r = await BB.api('/api/copy/stop', { method: 'POST', body: { allocationId: allocId } });
+        if (r.ok) { BB.toast(r.message, 'success'); refresh(); } else BB.toast(r.error, 'error');
+      }));
+    }
+
+    async function requestKey(botId) {
+      if (!BB.user) return location.href = '/login?next=' + encodeURIComponent('/trading-bots');
+      const b = bots.find(x => x.id === botId); if (!b) return;
+      const bd = BB.modal(`Request Connection Key — ${BB.esc(b.name)}`, `
+        <div class="alert alert-info" style="display:block"><i class="fas fa-circle-info"></i> Our team reviews every key request manually. Once approved, your personal connection key is emailed to you and appears here — ready to activate the bot.</div>
+        <div class="flex-between mb-2" style="gap:10px">
+          <div><b class="font-head">${BB.esc(b.title)}</b>
+          <div class="muted small">Risk: ${BB.esc(b.risk)} · Min portfolio balance: <b>$${b.minBalance.toLocaleString()}</b></div></div>
+        </div>
+        <button class="btn btn-primary btn-block btn-lg" id="reqKeyBtn"><i class="fas fa-paper-plane"></i> Request My Key</button>`);
+      $('#reqKeyBtn', bd).addEventListener('click', async () => {
+        const btn = $('#reqKeyBtn', bd); btn.disabled = true;
+        const r = await BB.api('/api/bots/request-key', { method: 'POST', body: { botId } });
+        btn.disabled = false;
+        if (r.ok) { bd.remove(); BB.toast(r.message, 'success'); refresh(); }
+        else BB.toast(r.error, 'error');
+      });
+    }
+
+    function activateModal(botId) {
+      if (!BB.user) return location.href = '/login?next=' + encodeURIComponent('/trading-bots');
+      const b = bots.find(x => x.id === botId); if (!b) return;
+      const st = botState(b);
+      const myKey = st.req ? st.req.key : '';
+      const bd = BB.modal(`Activate ${BB.esc(b.name)}`, `
+        <div class="alert alert-info" style="display:block"><i class="fas fa-circle-info"></i> The bot will place and manage trades inside your allocation, proportionally to its own book, with its own TP/SL discipline. Stop anytime to return your funds.</div>
+        <div class="field"><label>Connection key</label>
+          <input class="input" id="botKey" value="${BB.esc(myKey)}" placeholder="BB-XXXX-XXXX" style="font-family:monospace;letter-spacing:1px">
+          <div class="hint">The key issued to you by our team after approval.</div></div>
+        <div class="field"><label>Bot manages</label>
+          <select class="input" id="botMode">
+            <option value="demo">DEMO wallet — practice risk-free</option>
+            <option value="live">LIVE wallet — requires KYC</option>
+          </select></div>
+        <div class="field"><label>Allocation (USD) — min $${minCopy}</label>
+          <input class="input num" id="botAmount" type="number" min="${minCopy}" step="any" value="${minCopy}">
+          <div class="hint" id="botBal">—</div></div>
+        <button class="btn btn-gold btn-block btn-lg" id="botGoBtn"><i class="fas fa-bolt"></i> Activate Bot</button>`);
+      $('#botBal', bd).textContent = 'Loading balances…';
+      BB.api('/api/auth/me', { silent: true }).then(r => {
+        if (r.ok) $('#botBal', bd).innerHTML = `Demo free: <b>$${(r.demo.free || 0).toLocaleString()}</b> · Live free: <b>$${(r.live.free || 0).toLocaleString()}</b>`;
+      });
+      $('#botGoBtn', bd).addEventListener('click', async () => {
+        const btn = $('#botGoBtn', bd); btn.disabled = true;
+        const r = await BB.api('/api/bots/activate', {
+          method: 'POST',
+          body: { botId, key: $('#botKey', bd).value.trim(), mode: $('#botMode', bd).value, amount: parseFloat($('#botAmount', bd).value) }
+        });
+        btn.disabled = false;
+        if (r.ok) { bd.remove(); BB.toast(r.message, 'success'); refresh(); }
+        else BB.toast(r.error, 'error');
+      });
+    }
+
+    async function renderMy() {
+      const r = await BB.api('/api/copy/my', { silent: true });
+      if (!r.ok || !r.allocations) return;
+      const box = $('#myBots');
+      if (!r.allocations.length) { box.style.display = 'none'; return; }
+      box.style.display = 'block';
+      $('#allocList').innerHTML = r.allocations.map(a => `
+        <div class="alloc-card">
+          <div class="flex-between mb-1">
+            <div>
+              <b class="font-head" style="font-size:15px"><i class="fas fa-robot" style="color:var(--gold)"></i> ${BB.esc(a.leaderName)}</b> <span class="badge ${a.mode === 'live' ? 'badge-green' : 'badge-blue'}">${a.mode.toUpperCase()}</span>
+              <div class="muted small">${BB.esc(a.leaderTitle)} · managing since ${new Date(a.startedAt).toLocaleDateString()}</div>
+            </div>
+            <div style="text-align:right">
+              <b class="font-head" style="font-size:19px" class="num">$${a.total.toLocaleString(undefined, { maximumFractionDigits: 2 })}</b>
+              <div class="small ${a.pnl >= 0 ? 'up' : 'down'}" style="font-weight:700;font-family:var(--font-head)">${a.pnl >= 0 ? '+' : ''}$${a.pnl.toFixed(2)} (${((a.pnl / a.allocated) * 100).toFixed(1)}%)</div>
+            </div>
+          </div>
+          ${a.mirrors.length ? `<div class="table-wrap"><table class="dt" style="min-width:0"><thead><tr><th>Asset</th><th>Side</th><th>Entry</th><th>Mark</th><th>Size</th><th>P/L</th></tr></thead><tbody>
+            ${a.mirrors.map(m => `<tr><td><b class="font-head">${BB.esc(m.symbol)}</b></td>
+              <td class="${m.side === 'buy' ? 'up' : 'down'}">${m.side === 'buy' ? 'LONG' : 'SHORT'}</td>
+              <td class="num">$${BB.fmtPrice(m.entry)}</td><td class="num">$${BB.fmtPrice(m.currentPrice)}</td>
+              <td class="num">$${(m.qty * m.entry).toFixed(0)}</td>
+              <td class="num ${m.pnl >= 0 ? 'up' : 'down'}" style="font-weight:700">${m.pnl >= 0 ? '+' : ''}$${m.pnl.toFixed(2)}</td></tr>`).join('')}
+          </tbody></table></div>` : '<p class="muted small" style="padding:6px 0"><i class="fas fa-circle-info"></i> No open bot trades right now — the bot is scanning for its next setup.</p>'}
+          <div class="flex-between mt-1">
+            <span class="muted small">Allocated $${a.allocated.toLocaleString()} · cash $${a.cash.toFixed(2)} · in positions $${a.openValue.toFixed(2)}</span>
+            <button class="btn btn-danger btn-sm" data-stop="${a.id}"><i class="fas fa-stop"></i> Stop Bot</button>
+          </div>
+        </div>`).join('');
+      $$('[data-stop]').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm('Stop this bot? Mirrored positions close at market and funds return to your wallet.')) return;
+        const r2 = await BB.api('/api/copy/stop', { method: 'POST', body: { allocationId: b.dataset.stop } });
+        if (r2.ok) { BB.toast(r2.message, 'success'); refresh(); } else BB.toast(r2.error, 'error');
+      }));
+    }
+  </script>
+</body>
+</html>

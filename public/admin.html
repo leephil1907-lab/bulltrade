@@ -8,7 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=8">
+  <link rel="stylesheet" href="/assets/css/main.css?v=9">
   <link rel="stylesheet" href="/assets/css/admin.css?v=7">
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -46,7 +46,7 @@
         <a data-view="txs"><i class="fas fa-money-bill-transfer"></i> Transactions <span class="cnt" id="cntTx" style="display:none"></span></a>
         <a data-view="positions"><i class="fas fa-layer-group"></i> Positions &amp; Trades</a>
         <a data-view="community"><i class="fas fa-people-group"></i> Community Apps <span class="cnt" id="cntCommunity" style="display:none"></span></a>
-        <a data-view="copy"><i class="fas fa-users-rectangle"></i> Copy Trading <span class="cnt" id="cntCopy" style="display:none"></span></a>
+        <a data-view="copy"><i class="fas fa-robot"></i> Trading Bots <span class="cnt" id="cntCopy" style="display:none"></span></a>
         <a data-view="chats"><i class="fas fa-comments"></i> Live Chat <span class="cnt" id="cntChats" style="display:none"></span></a>
         <a data-view="settings"><i class="fas fa-gear"></i> Settings</a>
         <a data-view="audit"><i class="fas fa-clipboard-list"></i> Audit Log</a>
@@ -145,7 +145,7 @@
         txs: ['Transactions', 'Approve or reject deposits and withdrawals'],
         positions: ['Positions & Trades', 'All open positions and the trade log'],
         community: ['Community Applications', 'Approve or reject membership requests'],
-        copy: ['Copy Trading', 'Leader applications, active leaders and allocations'],
+        copy: ['Trading Bots', 'Connection key requests, active bots and allocations'],
         chats: ['Live Chat', 'Reply to website visitors in real time'],
         settings: ['Settings', 'Smartsupp, announcements, deposit addresses and limits'],
         audit: ['Audit Log', 'Every admin action, recorded']
@@ -167,8 +167,8 @@
         ['fa-id-card', 'KYC Pending', s.kycPending], ['fa-money-bill-transfer', 'Tx Pending', s.depositsPending + s.withdrawalsPending],
         ['fa-layer-group', 'Open Positions', s.openPositions], ['fa-right-left', 'Total Trades', s.totalTrades],
         ['fa-chart-line', 'Volume ($)', s.totalVolume.toLocaleString()], ['fa-wallet', 'Live Equity ($)', s.liveEquity.toLocaleString()],
-        ['fa-people-group', 'Community Pending', s.communityPending], ['fa-users-rectangle', 'Copy Leaders Pending', s.leaderPending],
-        ['fa-link', 'Active Copies', s.copyAllocations], ['fa-comments', 'Unread Chats', s.unreadChats]
+        ['fa-people-group', 'Community Pending', s.communityPending], ['fa-key', 'Bot Key Requests', s.leaderPending],
+        ['fa-robot', 'Active Bot Allocations', s.copyAllocations], ['fa-comments', 'Unread Chats', s.unreadChats]
       ];
       root.innerHTML = `
         <div class="stat-grid">${cards.map(([i, l, v]) => `<div class="stat-c"><div class="l"><i class="fas ${i}" style="color:var(--gold)"></i> ${l}</div><div class="v">${v}</div></div>`).join('')}</div>
@@ -433,49 +433,52 @@
 
     async function viewCopy() {
       const root = R('viewRoot');
-      root.innerHTML = '<div class="admin-card">Loading copy trading…</div>';
+      root.innerHTML = '<div class="admin-card">Loading trading bots…</div>';
       const r = await api('/api/admin/copy');
       if (!r.ok) return;
-      const pending = r.leaders.filter(l => l.status === 'pending');
-      const others = r.leaders.filter(l => l.status !== 'pending');
+      const pending = (r.requests || []).filter(x => x.status === 'pending');
+      const reviewed = (r.requests || []).filter(x => x.status !== 'pending');
       root.innerHTML = `
-        <div class="admin-card"><h3><i class="fas fa-hourglass-half" style="color:var(--gold)"></i> Leader Applications (${pending.length})</h3>
-          ${pending.length ? pending.map(l => `
-            <div class="card mb-2" style="padding:18px">
-              <div class="flex-between mb-1"><div><b class="font-head">${BB.esc(l.userName)}</b> <span class="muted small">${BB.esc(l.userEmail)}</span></div>
-              <span class="pill badge badge-gold">${l.style}</span></div>
-              <p class="small" style="color:var(--ink-soft)"><b class="font-head">${BB.esc(l.title)}</b><br>${BB.esc(l.description)}</p>
-              <div style="display:flex;gap:8px">
-                <button class="btn btn-green btn-sm" data-clok="${l.id}"><i class="fas fa-check"></i> Approve Leader</button>
-                <button class="btn btn-danger btn-sm" data-clno="${l.id}"><i class="fas fa-xmark"></i> Reject</button>
-              </div>
-            </div>`).join('') : '<div class="empty-state"><i class="fas fa-check"></i>No pending applications.</div>'}
+        <div class="admin-card"><h3><i class="fas fa-key" style="color:var(--gold)"></i> Connection Key Requests (${pending.length})</h3>
+          ${pending.length ? `<div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Bot</th><th>Min balance</th><th>Requested</th><th>Actions</th></tr></thead><tbody>
+          ${pending.map(x => `<tr><td><b class="font-head">${BB.esc(x.userName)}</b><br><small class="muted">${BB.esc(x.userEmail)}</small></td>
+            <td class="small">${BB.esc(x.botName)}</td>
+            <td class="num">$${x.botMin.toLocaleString()}</td>
+            <td class="muted small">${BB.timeAgo(x.requestedAt)}</td>
+            <td style="white-space:nowrap"><button class="btn btn-green btn-sm" data-bkok="${x.id}"><i class="fas fa-check"></i> Approve &amp; Issue Key</button>
+            <button class="btn btn-danger btn-sm" data-bkno="${x.id}"><i class="fas fa-xmark"></i> Reject</button></td></tr>`).join('')}
+          </tbody></table></div>` : '<div class="empty-state"><i class="fas fa-check"></i>No pending key requests.</div>'}
+          ${reviewed.length ? `<h4 class="font-head mt-2" style="color:var(--ink-soft)">Issued / rejected keys</h4>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Bot</th><th>Status</th><th>Key</th><th>Reviewed</th></tr></thead><tbody>
+          ${reviewed.slice(0, 15).map(x => `<tr><td><small>${BB.esc(x.userEmail)}</small></td><td class="small">${BB.esc(x.botName)}</td>
+            <td><span class="pill badge ${x.status === 'approved' ? 'badge-green' : 'badge-red'}">${x.status}</span></td>
+            <td><code>${BB.esc(x.key || '—')}</code></td>
+            <td class="muted small">${BB.timeAgo(x.reviewedAt)}</td></tr>`).join('')}
+          </tbody></table></div>` : ''}
         </div>
-        <div class="admin-card"><h3><i class="fas fa-users-rectangle" style="color:var(--gold)"></i> Leaders (${others.length})</h3>
-          <div class="table-wrap"><table class="dt"><thead><tr><th>Leader</th><th>Strategy</th><th>Status</th><th>Copiers</th><th>Trades</th><th>Win rate</th><th>Realized</th><th>Actions</th></tr></thead><tbody>
-          ${others.map(l => `<tr><td><b class="font-head">${BB.esc(l.userName)}</b><br><small class="muted">${BB.esc(l.userEmail)}</small></td>
+        <div class="admin-card"><h3><i class="fas fa-robot" style="color:var(--gold)"></i> Active Bots (${r.leaders.length})</h3>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>Bot</th><th>Strategy</th><th>Risk</th><th>Min balance</th><th>Allocations</th><th>Trades</th><th>Win rate</th><th>Realized</th></tr></thead><tbody>
+          ${r.leaders.map(l => `<tr><td><b class="font-head">${BB.esc(l.userName)}</b></td>
             <td class="small">${BB.esc(l.title)}</td>
-            <td><span class="pill badge ${l.status === 'active' ? 'badge-green' : 'badge-gray'}">${l.status}</span></td>
+            <td><span class="pill badge ${l.risk === 'Low' ? 'badge-green' : l.risk === 'High' ? 'badge-red' : 'badge-gold'}">${BB.esc(l.risk || '—')}</span></td>
+            <td class="num">$${(l.minBalance || 0).toLocaleString()}</td>
             <td class="num">${l.stats.copiers}</td><td class="num">${l.stats.demo.trades}</td>
             <td class="num">${l.stats.demo.winRate != null ? l.stats.demo.winRate + '%' : '—'}</td>
-            <td class="num ${l.stats.demo.realized >= 0 ? 'up' : 'down'}">$${l.stats.demo.realized.toLocaleString()}</td>
-            <td style="white-space:nowrap">${l.status === 'active' ? `<button class="btn btn-outline btn-sm" data-cls="${l.id}">Suspend</button>` : `<button class="btn btn-green btn-sm" data-cla="${l.id}">Activate</button>`}</td></tr>`).join('')}
+            <td class="num ${l.stats.demo.realized >= 0 ? 'up' : 'down'}">$${l.stats.demo.realized.toLocaleString()}</td></tr>`).join('')}
           </tbody></table></div></div>
         <div class="admin-card"><h3><i class="fas fa-link" style="color:var(--gold)"></i> Active Allocations (${r.allocations.length})</h3>
-          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Leader</th><th>Mode</th><th>Allocated</th><th>Current cash</th><th>Started</th></tr></thead><tbody>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Bot</th><th>Mode</th><th>Allocated</th><th>Current cash</th><th>Started</th></tr></thead><tbody>
           ${r.allocations.map(a => `<tr><td><small>${BB.esc(a.userEmail)}</small></td><td><small>${BB.esc(a.leaderName)}</small></td>
             <td><span class="pill badge ${a.mode === 'live' ? 'badge-green' : 'badge-blue'}">${a.mode}</span></td>
             <td class="num">$${a.allocated.toLocaleString()}</td><td class="num">$${a.equity.toLocaleString()}</td>
             <td class="muted small">${BB.timeAgo(a.startedAt)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">No active allocations.</td></tr>'}
           </tbody></table></div></div>`;
-      const act = async (leaderId, action) => {
-        const r2 = await api('/api/admin/copy-leader', { method: 'POST', body: { leaderId, action } });
-        if (r2.ok) { toast(r2.message, 'success'); viewCopy(); refreshCounts(); } else toast(r2.error, 'error');
+      const act = async (requestId, action) => {
+        const r2 = await api('/api/admin/bot-key', { method: 'POST', body: { requestId, action } });
+        if (r2.ok) { toast(action === 'approve' ? `Key issued: ${r2.key}` : r2.message, 'success'); viewCopy(); refreshCounts(); } else toast(r2.error, 'error');
       };
-      $$('[data-clok]').forEach(b => b.addEventListener('click', () => act(b.dataset.clok, 'approve')));
-      $$('[data-clno]').forEach(b => b.addEventListener('click', () => act(b.dataset.clno, 'reject')));
-      $$('[data-cls]').forEach(b => b.addEventListener('click', () => act(b.dataset.cls, 'suspend')));
-      $$('[data-cla]').forEach(b => b.addEventListener('click', () => act(b.dataset.cla, 'activate')));
+      $$('[data-bkok]').forEach(b => b.addEventListener('click', () => act(b.dataset.bkok, 'approve')));
+      $$('[data-bkno]').forEach(b => b.addEventListener('click', () => act(b.dataset.bkno, 'reject')));
     }
 
     async function viewChats() {
@@ -535,10 +538,6 @@
         <div class="admin-card"><h3><i class="fas fa-comment-dots" style="color:var(--gold)"></i> Live Chat (Smartsupp)</h3>
           <p class="muted small mb-2">Paste your Smartsupp KEY to activate the official Smartsupp chat on the website (it replaces the built-in widget). Leave empty to use the built-in Blockchain Bullhorn chat with the logo avatar.</p>
           <div class="field"><label>Smartsupp key</label><input class="input" id="setSmartsupp" value="${BB.esc(s.smartsuppKey)}" placeholder="e.g. a1b2c3d4e5f6…"></div>
-          <div class="field"><label>Announcement bar</label>
-            <div class="checkline mb-1"><input type="checkbox" id="setAnnOn" ${s.announcement.enabled ? 'checked' : ''}> <span>Enabled</span></div>
-            <input class="input" id="setAnnText" value="${BB.esc(s.announcement.text)}" placeholder="e.g. 🔥 New: Copy Trading is live!">
-          </div>
         </div>
         <div class="admin-card"><h3><i class="fas fa-coins" style="color:var(--gold)"></i> Crypto Deposit Addresses</h3>
           ${Object.keys(s.depositAddresses).map(k => `<div class="field"><label>${k} address</label><input class="input addr-in" data-coin="${k}" value="${BB.esc(s.depositAddresses[k])}"></div>`).join('')}

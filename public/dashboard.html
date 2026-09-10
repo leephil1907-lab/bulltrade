@@ -7,7 +7,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=8">
+  <link rel="stylesheet" href="/assets/css/main.css?v=9">
   <style>
     .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .bal-card { position: relative; overflow: hidden; }
@@ -69,7 +69,7 @@
         <a class="qa" href="/funding"><i class="fas fa-arrow-down"></i> Deposit Crypto</a>
         <a class="qa" href="/funding"><i class="fas fa-arrow-up"></i> Withdraw</a>
         <a class="qa" href="/kyc"><i class="fas fa-id-card"></i> Verify Identity</a>
-        <a class="qa" href="/copy-trading"><i class="fas fa-users-rectangle"></i> Copy Trading</a>
+        <a class="qa" href="/trading-bots"><i class="fas fa-robot"></i> Trading Bots</a>
         <a class="qa" href="/community"><i class="fas fa-graduation-cap"></i> Academy</a>
         <a class="qa" href="/markets"><i class="fas fa-chart-column"></i> Markets</a>
       </div>
@@ -167,7 +167,7 @@
       <div class="grid grid-2">
         <!-- copy allocations -->
         <div class="card">
-          <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-users-rectangle" style="color:var(--gold)"></i> Copy Trading</b><a href="/copy-trading" class="btn btn-outline btn-sm">Browse Leaders</a></div>
+          <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-robot" style="color:var(--gold)"></i> Trading Bots</b><a href="/trading-bots" class="btn btn-outline btn-sm">Browse Bots</a></div>
           <div id="dashCopy"><span class="skeleton" style="width:100%;height:60px"></span></div>
         </div>
         <!-- recent activity -->
@@ -453,7 +453,7 @@
         const r = await BB.api('/api/copy/my', { silent: true });
         if (!r.ok) return;
         if (!r.allocations.length) {
-          $('#dashCopy').innerHTML = `<div class="empty-state" style="padding:26px 12px"><i class="fas fa-users-rectangle"></i>Not copying anyone yet.<br><a href="/copy-trading" class="btn btn-gold btn-sm mt-1">Browse Leaders</a></div>`;
+          $('#dashCopy').innerHTML = `<div class="empty-state" style="padding:26px 12px"><i class="fas fa-robot"></i>No bots activated yet.<br><a href="/trading-bots" class="btn btn-gold btn-sm mt-1">Browse Trading Bots</a></div>`;
           return;
         }
         $('#dashCopy').innerHTML = r.allocations.map(a => `
@@ -462,7 +462,7 @@
               <div class="muted small">${BB.esc(a.leaderTitle)} · ${a.mirrors.length} open mirror(s)</div></div>
             <div style="text-align:right"><b class="num font-head">${BB.fmtUSD(a.total)}</b>
               <div class="small ${a.pnl >= 0 ? 'up' : 'down'}" style="font-weight:700;font-family:var(--font-head)">${a.pnl >= 0 ? '+' : ''}${BB.fmtUSD(a.pnl)}</div></div>
-          </div>`).join('') + '<a href="/copy-trading" class="btn btn-outline btn-sm btn-block mt-1">Manage Copies</a>';
+          </div>`).join('') + '<a href="/trading-bots" class="btn btn-outline btn-sm btn-block mt-1">Manage Bots</a>';
       }
 
       async function renderTx() {
