@@ -1,5 +1,6 @@
-# Dependencies
+# Dependencies (the vendored web-push tree under vendor/ is intentionally committed)
 node_modules/
+!vendor/node_modules/
 
 # Runtime data — NEVER commit (contains DB, JWT secret, KYC uploads, deposit proofs)
 data/
