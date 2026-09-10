@@ -138,6 +138,7 @@
       let data = null, selAsset = 'USDT', selWdAsset = 'USDT';
       const METHODS = [
         { key: 'USDT', name: 'Tether USD', net: 'TRC-20 (Tron network)', img: '/assets/img/coins/tether.png', min: 10 },
+        { key: 'USDT-ERC20', name: 'Tether USD', net: 'ERC-20 (Ethereum network)', img: '/assets/img/coins/tether.png', min: 20 },
         { key: 'BTC', name: 'Bitcoin', net: 'Bitcoin network', img: '/assets/img/coins/bitcoin.png', min: 0.001 },
         { key: 'ETH', name: 'Ethereum', net: 'ERC-20 (Ethereum network)', img: '/assets/img/coins/ethereum.png', min: 0.005 },
         { key: 'SOL', name: 'Solana', net: 'Solana network', img: '/assets/img/coins/solana.png', min: 0.01 },
@@ -145,7 +146,8 @@
         { key: 'XRP', name: 'XRP', net: 'XRP Ledger', img: '/assets/img/coins/ripple.png', min: 5 },
         { key: 'LTC', name: 'Litecoin', net: 'Litecoin network', img: '/assets/img/coins/litecoin.png', min: 0.05 },
         { key: 'DOGE', name: 'Dogecoin', net: 'Dogecoin network', img: '/assets/img/coins/dogecoin.png', min: 20 },
-        { key: 'TRX', name: 'Tron', net: 'Tron network', img: '/assets/img/coins/tron.png', min: 50 }
+        { key: 'TRX', name: 'Tron', net: 'Tron network', img: '/assets/img/coins/tron.png', min: 50 },
+        { key: 'ZEC', name: 'Zcash', net: 'Zcash network', img: '/assets/img/coins/zcash.png', min: 0.05 }
       ];
 
       function drawQR(text) {
@@ -239,6 +241,7 @@
 
       const DEP_INFO = {
         USDT: { network: 'TRON (TRC-20)', min: 10, mins: '2–5 minutes', conf: '19 network confirmations', note: 'USDT on TRC-20 only. Do NOT send via ERC-20, BEP-20 or any other network.' },
+        'USDT-ERC20': { network: 'Ethereum (ERC-20)', min: 20, mins: '2–15 minutes', conf: '12 block confirmations', note: 'USDT on the Ethereum network (ERC-20) only. Do NOT send via TRC-20, BEP-20 or any other network.' },
         BTC:  { network: 'Bitcoin (BTC)', min: 50, mins: '10–60 minutes', conf: '2 block confirmations', note: 'Bitcoin native network only. Do not send BCH or other forks.' },
         ETH:  { network: 'Ethereum (ERC-20)', min: 20, mins: '2–15 minutes', conf: '12 block confirmations', note: 'ETH on ERC-20 only. Do NOT send via Arbitrum, Base or other L2 networks.' },
         SOL:  { network: 'Solana (SOL)', min: 10, mins: '1–5 minutes', conf: '32 confirmations (finalized)', note: 'SOL on the Solana network only. Do not send SPL tokens to this address.' },
@@ -246,7 +249,8 @@
         XRP:  { network: 'XRP Ledger', min: 10, mins: '2–5 minutes', conf: 'ledger confirmations', note: 'XRP on the XRP Ledger only. Contact support before your first XRP deposit if a destination tag is required.' },
         LTC:  { network: 'Litecoin (LTC)', min: 10, mins: '2–10 minutes', conf: '6 block confirmations', note: 'Litecoin native network only. Do not send via MWEB.' },
         DOGE: { network: 'Dogecoin (DOGE)', min: 10, mins: '5–15 minutes', conf: '12 block confirmations', note: 'DOGE on the Dogecoin network only.' },
-        TRX:  { network: 'Tron (TRX)', min: 10, mins: '1–5 minutes', conf: '19 network confirmations', note: 'TRX native (TRC-10) on the Tron network only. Do not send TRC-20 tokens unless stated.' }
+        TRX:  { network: 'Tron (TRX)', min: 10, mins: '1–5 minutes', conf: '19 network confirmations', note: 'TRX native (TRC-10) on the Tron network only. Do not send TRC-20 tokens unless stated.' },
+        ZEC:  { network: 'Zcash (ZEC)', min: 10, mins: '5–30 minutes', conf: '6 block confirmations', note: 'Zcash transparent (t-) addresses only. Shielded or memo deposits cannot be credited.' }
       };
       function updateAddr() {
         const addr = data ? (data.addresses[selAsset] || '') : '';
