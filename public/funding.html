@@ -230,7 +230,7 @@
         // tx list
         $('#txList').innerHTML = r.transactions.length ? r.transactions.map(t => `
           <div class="mini-quote" style="border-bottom:1px dashed var(--line);padding:11px 2px">
-            <i class="fas ${t.type === 'deposit' ? 'fa-arrow-down' : t.type === 'withdraw' ? 'fa-arrow-up' : t.type === 'adjust' ? 'fa-sliders' : 'fa-flask'}" style="color:var(--gold);width:26px;text-align:center"></i>
+            <i class="fas ${t.type === 'deposit' ? 'fa-arrow-down' : t.type === 'withdraw' ? 'fa-arrow-up' : t.type === 'swap' ? 'fa-right-left' : t.type === 'adjust' ? 'fa-sliders' : 'fa-flask'}" style="color:var(--gold);width:26px;text-align:center"></i>
             <div><div class="mq-name">${t.type.replace('_', ' ').toUpperCase()} · ${t.asset}</div>
             <div class="mq-sub">${BB.fmtTime(t.createdAt)}${t.adminNote ? ' · ' + BB.esc(t.adminNote) : ''}</div></div>
             <div class="mq-right"><div class="mq-price">${t.type === 'withdraw' ? '−' : '+'}${BB.fmtUSD(t.amountUsd)}</div>

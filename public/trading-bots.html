@@ -30,7 +30,7 @@
     <div class="container">
       <div class="grid grid-3">
         <div class="card"><div class="feat-icon"><i class="fas fa-key"></i></div><h3>Connection Key Required</h3><p>Every bot is gated behind a connection key. Request yours below — our team reviews each request manually and issues your personal key by email.</p></div>
-        <div class="card"><div class="feat-icon"><i class="fas fa-scale-balanced"></i></div><h3>Portfolio Requirement</h3><p>Each bot requires a specific minimum live portfolio balance. Start with Bull Scout at $500 and unlock the bigger engines as your portfolio grows.</p></div>
+        <div class="card"><div class="feat-icon"><i class="fas fa-scale-balanced"></i></div><h3>Portfolio Requirement</h3><p>Each bot requires a specific minimum live portfolio balance. Start with Bull Scout at $2,500 and unlock the bigger engines as your portfolio grows.</p></div>
         <div class="card"><div class="feat-icon"><i class="fas fa-hand"></i></div><h3>You Stay in Control</h3><p>Bots mirror into your allocation proportionally with their own take-profit and stop-loss discipline. Stop a bot anytime — positions close and funds return to your wallet.</p></div>
       </div>
     </div>
@@ -98,9 +98,12 @@
         else if (st.key === 'anon') btn = `<a class="btn btn-primary btn-sm mt-1" href="/login?next=/trading-bots"><i class="fas fa-right-to-bracket"></i> Log In to Activate</a>`;
         else btn = `<button class="btn btn-primary btn-sm mt-1" data-request="${b.id}"><i class="fas fa-key"></i> Request Connection Key</button>`;
         const riskBadge = b.risk === 'Low' ? 'badge-green' : b.risk === 'High' ? 'badge-red' : 'badge-gold';
+        const av = b.avatar
+          ? `<img src="${b.avatar}" alt="${BB.esc(b.name)} avatar" style="width:58px;height:58px;border-radius:14px;object-fit:cover;border:2px solid ${b.avatarColor};background:#fff">`
+          : `<div class="avatar-lg" style="background:${b.avatarColor};font-size:26px;display:flex;align-items:center;justify-content:center">${b.emoji || '🤖'}</div>`;
         return `<div class="card card-hover leader-card mb-2 reveal visible">
           <div class="leader-id">
-            <div class="avatar-lg" style="background:${b.avatarColor};font-size:26px;display:flex;align-items:center;justify-content:center">${b.emoji || '🤖'}</div>
+            ${av}
             <div>
               <div class="flex-between" style="justify-content:flex-start;gap:8px">
                 <b class="font-head" style="font-size:16px">${BB.esc(b.name)}</b>

@@ -150,7 +150,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', '/api/copy/leaders');
   ok('bots listed publicly', r.data.ok && r.data.leaders.length >= 4 && r.data.leaders.every(l => l.bot && l.minBalance > 0), r.data.leaders.length);
   const bot = r.data.leaders[0]; // sorted ascending by minBalance
-  ok('bot has stats + risk + min balance', bot.stats.demo.trades > 0 && !!bot.risk && bot.minBalance === 500, { risk: bot.risk, min: bot.minBalance });
+  ok('bot has stats + risk + min balance', bot.stats.demo.trades > 0 && !!bot.risk && bot.minBalance === 2500, { risk: bot.risk, min: bot.minBalance });
   ok('bots sorted by min balance', bot.minBalance <= r.data.leaders[r.data.leaders.length - 1].minBalance);
   r = await req('POST', '/api/bots/request-key', { botId: bot.id });
   ok('key request requires login', r.status === 401);
@@ -160,6 +160,23 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('activation blocked without approved key', r.status === 400);
   const redir = await fetch(BASE + '/copy-trading', { redirect: 'manual' });
   ok('legacy /copy-trading redirects', redir.status === 302 && redir.headers.get('location') === '/trading-bots', redir.status);
+
+  console.log('== SWAP ==');
+  r = await req('GET', '/api/swap/assets');
+  ok('swap assets list (USD + coins)', r.data.assets.length > 10 && r.data.assets[0].id === 'usd', r.data.assets.length);
+  r = await req('GET', '/api/swap/quote?from=usd&to=cg-bitcoin&amount=200');
+  ok('swap quote USD→BTC (0.5% fee)', r.data.ok && r.data.receiveQty > 0 && r.data.feeUsd === 1, { recv: r.data.receiveQty, fee: r.data.feeUsd });
+  r = await req('POST', '/api/swap/execute', { from: 'usd', to: 'cg-bitcoin', amount: 200, mode: 'demo' }, userCookie);
+  ok('swap executed USD→BTC', r.data.ok && r.data.balances.coins['cg-bitcoin'] > 0, r.data.balances);
+  const btcQty = r.data.balances.coins['cg-bitcoin'];
+  r = await req('POST', '/api/swap/execute', { from: 'usd', to: 'cg-bitcoin', amount: 9999999, mode: 'demo' }, userCookie);
+  ok('insufficient balance blocked', r.status === 400);
+  r = await req('POST', '/api/swap/execute', { from: 'cg-bitcoin', to: 'cg-ethereum', amount: btcQty / 2, mode: 'demo' }, userCookie);
+  ok('coin→coin swap works', r.data.ok && r.data.balances.coins['cg-ethereum'] > 0 && r.data.balances.coins['cg-bitcoin'] < btcQty, r.data.balances);
+  r = await req('POST', '/api/swap/execute', { from: 'usd', to: 'usd', amount: 10, mode: 'demo' }, userCookie);
+  ok('same-coin swap blocked', r.status === 400);
+  r = await req('GET', '/api/trading/state?mode=demo', null, userCookie);
+  ok('equity includes spot coin holdings', r.data.equity.spot > 0 && r.data.equity.coins['cg-ethereum'] > 0, { spot: r.data.equity.spot });
 
   console.log('== FUNDING ==');
   r = await req('GET', '/api/funding/summary', null, userCookie);
@@ -292,7 +309,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', '/api/community/status', null, userCookie);
   ok('user sees community approved', r.data.status === 'approved');
   // trading bot connection-key flow (admin approval required)
-  r = await req('POST', '/api/admin/balance', { userId, mode: 'live', amountUsd: 1000, note: 'bot min balance' }, adminCookie);
+  r = await req('POST', '/api/admin/balance', { userId, mode: 'live', amountUsd: 3000, note: 'bot min balance' }, adminCookie);
   ok('live balance credited for bot test', r.data.ok);
   r = await req('POST', '/api/bots/request-key', { botId: bot.id }, userCookie);
   ok('connection key requested', r.data.ok, r.data);
@@ -300,7 +317,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('duplicate key request blocked', r.status === 409);
   r = await req('GET', '/api/admin/copy', null, adminCookie);
   const pendReq = (r.data.requests || []).find(x => x.status === 'pending');
-  ok('pending key request visible in admin', !!pendReq && pendReq.botMin === 500, pendReq);
+  ok('pending key request visible in admin', !!pendReq && pendReq.botMin === 2500, pendReq);
   r = await req('POST', '/api/admin/bot-key', { requestId: pendReq.id, action: 'approve' }, adminCookie);
   ok('connection key issued', r.data.ok && /^BB-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(r.data.key || ''), r.data.key);
   const connKey = r.data.key;

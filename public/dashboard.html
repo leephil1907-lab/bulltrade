@@ -272,9 +272,9 @@
         if (!meR.ok) return;
         const live = meR.live, demo = meR.demo;
         const cards = [
-          { label: 'Live Equity', icon: 'fa-bolt', value: live.equity, sub: `${BB.fmtUSD(live.free)} free · ${BB.fmtUSD(live.marginUsed)} margin · ${BB.fmtUSD(live.inCopy || 0)} copying`, cls: 'var(--green-bright)' },
+          { label: 'Live Equity', icon: 'fa-bolt', value: live.equity, sub: `${BB.fmtUSD(live.free)} free · ${BB.fmtUSD(live.marginUsed)} margin · ${BB.fmtUSD(live.spot || 0)} coins · ${BB.fmtUSD(live.inCopy || 0)} copying`, cls: 'var(--green-bright)' },
           { label: 'Live Unrealized P/L', icon: 'fa-arrow-trend-up', value: live.unrealized, sub: 'across open live positions', cls: live.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' },
-          { label: 'Demo Equity', icon: 'fa-flask', value: demo.equity, sub: `${BB.fmtUSD(demo.free)} free · ${BB.fmtUSD(demo.marginUsed)} margin · ${BB.fmtUSD(demo.inCopy || 0)} copying`, cls: 'var(--sky)' },
+          { label: 'Demo Equity', icon: 'fa-flask', value: demo.equity, sub: `${BB.fmtUSD(demo.free)} free · ${BB.fmtUSD(demo.marginUsed)} margin · ${BB.fmtUSD(demo.spot || 0)} coins · ${BB.fmtUSD(demo.inCopy || 0)} copying`, cls: 'var(--sky)' },
           { label: 'Demo Unrealized P/L', icon: 'fa-arrow-trend-up', value: demo.unrealized, sub: 'practice account', cls: demo.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' }
         ];
         $('#balCards').innerHTML = cards.map(c => `
@@ -320,7 +320,8 @@
           }));
           const alloc = ps.map(p => ({ label: p.symbol, value: p.margin + p.pnl, color: null }));
           if (st.equity.free > 0) alloc.push({ label: 'Free USD', value: st.equity.free, color: '#d3a877' });
-          if ((st.equity.inCopy || 0) > 0) alloc.push({ label: 'Copy allocations', value: st.equity.inCopy, color: '#2E91FC' });
+          if ((st.equity.spot || 0) > 0) alloc.push({ label: 'Coin holdings', value: st.equity.spot, color: '#1ba94b' });
+          if ((st.equity.inCopy || 0) > 0) alloc.push({ label: 'Bot allocations', value: st.equity.inCopy, color: '#2E91FC' });
           drawDonut(alloc);
         }
         // history
@@ -458,7 +459,7 @@
         }
         $('#dashCopy').innerHTML = r.allocations.map(a => `
           <div class="flex-between" style="padding:10px 0;border-bottom:1px dashed var(--line)">
-            <div><b class="font-head">${BB.esc(a.leaderName)}</b> <span class="badge ${a.mode === 'live' ? 'badge-green' : 'badge-blue'}">${a.mode.toUpperCase()}</span>
+            <div>${a.leaderAvatar ? `<img src="${a.leaderAvatar}" alt="" style="width:30px;height:30px;border-radius:8px;object-fit:cover;vertical-align:middle;margin-right:6px;border:1px solid var(--line)">` : ''}<b class="font-head">${BB.esc(a.leaderName)}</b> <span class="badge ${a.mode === 'live' ? 'badge-green' : 'badge-blue'}">${a.mode.toUpperCase()}</span>
               <div class="muted small">${BB.esc(a.leaderTitle)} · ${a.mirrors.length} open mirror(s)</div></div>
             <div style="text-align:right"><b class="num font-head">${BB.fmtUSD(a.total)}</b>
               <div class="small ${a.pnl >= 0 ? 'up' : 'down'}" style="font-weight:700;font-family:var(--font-head)">${a.pnl >= 0 ? '+' : ''}${BB.fmtUSD(a.pnl)}</div></div>

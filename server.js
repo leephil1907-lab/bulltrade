@@ -706,7 +706,7 @@ api['GET /api/copy/leaders'] = async (req, res, body, cookies) => {
     return {
       id: l.id, userId: l.userId, status: l.status, title: l.title, style: l.style, description: l.description,
       name: u ? u.name : 'Unknown', avatarColor: u ? (u.avatarColor || '#d3a877') : '#d3a877',
-      emoji: l.emoji || '\u{1F916}', bot: !!l.bot, minBalance: l.minBalance || 0, risk: l.risk || '',
+      emoji: l.emoji || '\u{1F916}', avatar: l.avatar || '', bot: !!l.bot, minBalance: l.minBalance || 0, risk: l.risk || '',
       joinedAt: u ? u.joinedAt : 0, stats: trading.leaderStats(l)
     };
   }).sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
@@ -733,6 +733,7 @@ api['GET /api/copy/my'] = async (req, res, body, cookies) => {
     const openValue = mirrors.reduce((s, p) => s + p.margin + p.pnl, 0);
     return {
       id: a.id, leaderId: a.leaderId, leaderName: lu ? lu.name : 'Unknown', leaderTitle: l ? l.title : '',
+      leaderAvatar: l ? (l.avatar || '') : '', leaderEmoji: l ? (l.emoji || '\u{1F916}') : '\u{1F916}',
       mode: a.mode, allocated: a.allocated, cash: a.equity, openValue: U.round(openValue),
       total: U.round(a.equity + openValue), pnl: U.round(a.equity + openValue - a.allocated),
       startedAt: a.startedAt, mirrors
@@ -760,6 +761,23 @@ api['POST /api/copy/start'] = async (req, res, body, cookies) => {
 api['POST /api/copy/stop'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies); if (!user) return;
   const r = trading.stopCopy(user, body.allocationId);
+  if (r.error) return fail(res, r.status, r.error);
+  ok(res, r);
+};
+
+api['GET /api/swap/assets'] = async (req, res) => {
+  ok(res, { assets: trading.swapAssets(), feeRate: trading.SWAP_FEE });
+};
+
+api['GET /api/swap/quote'] = async (req, res, body, cookies, query) => {
+  const q = trading.swapQuote(query.get('from') || 'usd', query.get('to') || '', query.get('amount') || 0);
+  if (q.error) return fail(res, 400, q.error);
+  ok(res, q);
+};
+
+api['POST /api/swap/execute'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const r = trading.executeSwap(user, { from: body.from, to: body.to, amount: body.amount, mode: body.mode });
   if (r.error) return fail(res, r.status, r.error);
   ok(res, r);
 };
@@ -1098,7 +1116,8 @@ api['GET /api/admin/copy'] = async (req, res, body, cookies) => {
     const u = D.find('users', x => x.id === l.userId);
     return {
       id: l.id, userId: l.userId, status: l.status, title: l.title, style: l.style, description: l.description,
-      userName: u ? u.name : 'deleted', userEmail: u ? u.email : '',
+      userName: u ? u.name : 'deleted', userEmail: u ? u.email : '', avatar: l.avatar || '',
+      minBalance: l.minBalance || 0, risk: l.risk || '',
       stats: trading.leaderStats(l), approvedAt: l.approvedAt
     };
   });

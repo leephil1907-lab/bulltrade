@@ -458,7 +458,7 @@
         </div>
         <div class="admin-card"><h3><i class="fas fa-robot" style="color:var(--gold)"></i> Active Bots (${r.leaders.length})</h3>
           <div class="table-wrap"><table class="dt"><thead><tr><th>Bot</th><th>Strategy</th><th>Risk</th><th>Min balance</th><th>Allocations</th><th>Trades</th><th>Win rate</th><th>Realized</th></tr></thead><tbody>
-          ${r.leaders.map(l => `<tr><td><b class="font-head">${BB.esc(l.userName)}</b></td>
+          ${r.leaders.map(l => `<tr><td>${l.avatar ? `<img src="${l.avatar}" alt="" style="width:30px;height:30px;border-radius:8px;object-fit:cover;vertical-align:middle;margin-right:7px">` : ''}<b class="font-head">${BB.esc(l.userName)}</b></td>
             <td class="small">${BB.esc(l.title)}</td>
             <td><span class="pill badge ${l.risk === 'Low' ? 'badge-green' : l.risk === 'High' ? 'badge-red' : 'badge-gold'}">${BB.esc(l.risk || '—')}</span></td>
             <td class="num">$${(l.minBalance || 0).toLocaleString()}</td>

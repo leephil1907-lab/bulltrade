@@ -138,7 +138,10 @@
         <div class="card" id="orderPanel">
           <div class="flex-between mb-2">
             <b class="font-head" style="font-size:15px">Place Order</b>
-            <span class="badge badge-gold" id="walletBadge">—</span>
+            <span style="display:flex;gap:6px;align-items:center">
+              <button class="btn btn-outline btn-sm" id="swapBtn" title="Instantly swap one coin for another"><i class="fas fa-right-left"></i> Swap Coins</button>
+              <span class="badge badge-gold" id="walletBadge">—</span>
+            </span>
           </div>
           <div class="side-tabs">
             <button class="buy active" id="sideBuy">Buy / Long</button>
@@ -410,6 +413,68 @@
           refreshState(); refreshAll();
         } else BB.toast(r.error, 'error');
       });
+
+      // ---------- instant coin swap ----------
+      function openSwap() {
+        if (!BB.user) return location.href = '/login?next=/trade';
+        const coins = (state && state.equity && state.equity.coins) || {};
+        const usdFree = (state && state.equity && state.equity.free) || 0;
+        const opts = id => assets.filter(a => a.tradable && a.price != null)
+          .map(a => `<option value="${a.id}" ${a.id === id ? 'selected' : ''}>${BB.esc(a.symbol)} — ${BB.esc(a.name)}</option>`).join('');
+        const bd = BB.modal(`⇄ Swap Coins <span class="badge ${mode === 'live' ? 'badge-green' : 'badge-blue'}" style="margin-left:6px">${mode.toUpperCase()}</span>`, `
+          <div class="field"><label>From</label>
+            <select class="input" id="swapFrom"><option value="usd">USD — US Dollar</option>${opts('cg-bitcoin')}</select>
+            <div class="hint" id="swapFromBal">Balance: —</div></div>
+          <div class="field"><label>Amount</label>
+            <div style="display:flex;gap:8px">
+              <input class="input num" id="swapAmt" type="number" step="any" min="0" placeholder="0.00" style="flex:1">
+              <button class="btn btn-outline btn-sm" id="swapMax" style="white-space:nowrap">MAX</button>
+            </div></div>
+          <div style="text-align:center;color:var(--gold);margin:2px 0"><i class="fas fa-arrow-down"></i></div>
+          <div class="field"><label>To</label>
+            <select class="input" id="swapTo">${opts('cg-ethereum')}</select>
+            <div class="hint" id="swapToBal">Balance: —</div></div>
+          <div class="order-summary mb-2" id="swapQuoteBox">
+            <div><span>Rate</span><b id="sqRate">—</b></div>
+            <div><span>Fee (0.5%)</span><b id="sqFee">—</b></div>
+            <div><span>You receive</span><b id="sqRecv" style="color:var(--green-bright)">—</b></div>
+            <div><span>Value</span><b id="sqVal">—</b></div>
+          </div>
+          <button class="btn btn-gold btn-block btn-lg" id="swapGo"><i class="fas fa-right-left"></i> Swap Now</button>
+          <p class="muted small text-center mt-1">Instant market swap. Live swaps require KYC.</p>`);
+
+        const fromSel = $('#swapFrom', bd), toSel = $('#swapTo', bd), amt = $('#swapAmt', bd);
+        const balOf = id => id === 'usd' ? usdFree : (coins[id] || 0);
+        const symOf = id => id === 'usd' ? 'USD' : (assets.find(a => a.id === id) || {}).symbol || id;
+        const updBals = () => {
+          $('#swapFromBal', bd).textContent = `Balance: ${balOf(fromSel.value).toLocaleString(undefined, { maximumFractionDigits: 8 })} ${symOf(fromSel.value)}`;
+          $('#swapToBal', bd).textContent = `Balance: ${balOf(toSel.value).toLocaleString(undefined, { maximumFractionDigits: 8 })} ${symOf(toSel.value)}`;
+        };
+        const quote = async () => {
+          const q = { from: fromSel.value, to: toSel.value, amount: amt.value || 0 };
+          $('#sqRate', bd).textContent = '—'; $('#sqFee', bd).textContent = '—'; $('#sqRecv', bd).textContent = '—'; $('#sqVal', bd).textContent = '—';
+          if (!q.amount || Number(q.amount) <= 0) return;
+          const r = await BB.api(`/api/swap/quote?from=${encodeURIComponent(q.from)}&to=${encodeURIComponent(q.to)}&amount=${encodeURIComponent(q.amount)}`, { silent: true });
+          if (!r.ok) { $('#sqRecv', bd).textContent = r.error || '—'; return; }
+          $('#sqRate', bd).textContent = `1 ${r.from.symbol} ≈ ${r.rate.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${r.to.symbol}`;
+          $('#sqFee', bd).textContent = `$${r.feeUsd.toFixed(2)}`;
+          $('#sqRecv', bd).textContent = `${r.receiveQty.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${r.to.symbol}`;
+          $('#sqVal', bd).textContent = `$${r.usdValue.toFixed(2)}`;
+        };
+        fromSel.addEventListener('change', updBals); toSel.addEventListener('change', updBals);
+        [fromSel, toSel].forEach(sel => sel.addEventListener('change', quote));
+        amt.addEventListener('input', quote);
+        $('#swapMax', bd).addEventListener('click', () => { amt.value = balOf(fromSel.value); quote(); });
+        $('#swapGo', bd).addEventListener('click', async () => {
+          const btn = $('#swapGo', bd); btn.disabled = true;
+          const r = await BB.api('/api/swap/execute', { method: 'POST', body: { from: fromSel.value, to: toSel.value, amount: parseFloat(amt.value), mode } });
+          btn.disabled = false;
+          if (r.ok) { bd.remove(); BB.toast(r.message, 'success'); refreshState(); refreshAll(); }
+          else BB.toast(r.error, 'error');
+        });
+        updBals();
+      }
+      $('#swapBtn').addEventListener('click', openSwap);
 
       // ---------- state / books ----------
       async function refreshState() {
