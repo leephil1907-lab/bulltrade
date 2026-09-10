@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=12">
+  <link rel="stylesheet" href="/assets/css/main.css?v=13">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -68,8 +68,8 @@
             <button class="bub-chip active" data-tf="1D">24h</button>
             <button class="bub-chip" data-tf="7D">7d</button>
             <span class="bub-sep"></span>
-            <button class="bub-chip active" data-size="movers">Size: movers</button>
-            <button class="bub-chip" data-size="cap">Size: market cap</button>
+            <button class="bub-chip" data-size="movers">Size: movers</button>
+            <button class="bub-chip active" data-size="cap">Size: market cap</button>
           </div>
           <span class="muted small" id="bubCount">—</span>
         </div>
@@ -79,9 +79,9 @@
           <div class="bub-empty" id="bubEmpty" style="display:none"><i class="fas fa-magnifying-glass"></i>No assets match the current filters.</div>
         </div>
         <div class="bub-legend muted small">
-          <span><span class="bub-dot" style="background:#1ba94b"></span> gaining</span>
-          <span><span class="bub-dot" style="background:#e0324b"></span> losing</span>
-          <span>color intensity = size of the move</span>
+          <span><span class="bub-dot" style="background:#089981"></span> gaining</span>
+          <span><span class="bub-dot" style="background:#f23645"></span> losing</span>
+          <span>·</span><span>bubble size = market cap</span>
           <span>·</span><span>click a bubble for the coin view</span>
         </div>
       </div>
@@ -259,7 +259,7 @@
 
       // ---------- bubbles view (crypto-bubbles style board) ----------
       const Bubbles = {
-        items: [], tf: '1D', sizeMode: 'movers', running: false, raf: 0, hover: null,
+        items: [], tf: '1D', sizeMode: 'cap', running: false, raf: 0, hover: null,
         cv: null, ctx: null, W: 0, H: 0, mouse: null,
 
         changeOf(a) {
@@ -273,8 +273,8 @@
           const chgs = list.map(a => Math.abs(this.changeOf(a)));
           const maxChg = Math.max(0.5, ...chgs);
           const maxCap = Math.max(1, ...list.map(a => a.marketCap || 0));
-          const minR = Math.min(this.W, this.H) < 480 ? 15 : 20;
-          const maxR = Math.min(this.W, this.H) < 480 ? 46 : 62;
+          const minR = Math.min(this.W, this.H) < 480 ? 13 : 16;
+          const maxR = Math.min(this.W, this.H) < 480 ? 48 : 64;
           return list.map((a, i) => {
             let t;
             if (this.sizeMode === 'cap' && a.marketCap) t = Math.pow(a.marketCap / maxCap, 0.5);
@@ -306,9 +306,9 @@
           for (const it of this.items) { it.x = Math.min(it.x, this.W - 10); it.y = Math.min(it.y, this.H - 10); }
         },
         colorOf(chg) {
-          const up = chg >= 0;
-          const i = Math.min(1, 0.18 + Math.abs(chg) / 9);
-          return up ? { r: 27, g: 169, b: 75, i } : { r: 224, g: 50, b: 75, i };
+          // authentic crypto-bubbles palette: solid TradingView green/red —
+          // same hues as the real board, no translucency, no intensity scaling
+          return chg >= 0 ? { r: 8, g: 153, b: 129 } : { r: 242, g: 54, b: 69 };
         },
         loop() {
           if (view !== 'bubbles' || document.hidden) { this.running = false; return; }
@@ -342,23 +342,20 @@
           const order = its.slice().sort((a, b) => b.r - a.r); // big bubbles behind
           for (const it of order) {
             const c = this.colorOf(it.chg), hov = it === this.hover;
-            const grad = ctx.createRadialGradient(it.x - it.r * 0.3, it.y - it.r * 0.35, it.r * 0.15, it.x, it.y, it.r);
-            grad.addColorStop(0, `rgba(${Math.min(255, c.r + 70)},${Math.min(255, c.g + 70)},${Math.min(255, c.b + 70)},${(0.35 + 0.5 * c.i).toFixed(2)})`);
-            grad.addColorStop(1, `rgba(${c.r},${c.g},${c.b},${(0.55 + 0.4 * c.i).toFixed(2)})`);
-            ctx.beginPath(); ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2);
-            ctx.fillStyle = grad; ctx.fill();
-            ctx.lineWidth = hov ? 3 : 1.5;
-            ctx.strokeStyle = hov ? '#d3a877' : `rgba(${c.r},${c.g},${c.b},0.95)`;
-            ctx.stroke();
-            if (it.r >= 24) {
+            const rr = it.r * (hov ? 1.09 : 1); // hover grows the bubble, like the real board
+            ctx.beginPath(); ctx.arc(it.x, it.y, rr, 0, Math.PI * 2);
+            ctx.fillStyle = `rgb(${c.r},${c.g},${c.b})`; // flat solid fill — authentic look
+            ctx.fill();
+            if (hov) { ctx.lineWidth = 2.5; ctx.strokeStyle = '#d3a877'; ctx.stroke(); }
+            if (rr >= 19) {
               ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
               ctx.fillStyle = '#fff';
-              ctx.font = `700 ${Math.max(10, Math.min(17, it.r * 0.36)).toFixed(0)}px "Quattrocento Sans"`;
-              ctx.fillText(it.a.symbol, it.x, it.y - (it.r > 34 ? it.r * 0.14 : 0));
-              if (it.r > 34) {
-                ctx.font = `700 ${Math.max(9, Math.min(13, it.r * 0.26)).toFixed(0)}px "Quattrocento Sans"`;
+              ctx.font = `700 ${Math.max(10, Math.min(17, rr * 0.36)).toFixed(0)}px "Quattrocento Sans"`;
+              ctx.fillText(it.a.symbol, it.x, it.y - (rr > 30 ? rr * 0.14 : 0));
+              if (rr > 30) {
+                ctx.font = `700 ${Math.max(9, Math.min(13, rr * 0.26)).toFixed(0)}px "Quattrocento Sans"`;
                 ctx.fillStyle = 'rgba(255,255,255,0.92)';
-                ctx.fillText(`${it.chg >= 0 ? '+' : ''}${it.chg.toFixed(1)}%`, it.x, it.y + it.r * 0.24);
+                ctx.fillText(`${it.chg >= 0 ? '+' : ''}${it.chg.toFixed(1)}%`, it.x, it.y + rr * 0.24);
               }
             }
           }
