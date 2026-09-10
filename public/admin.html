@@ -335,19 +335,19 @@
           ${pending.length ? `<div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Type</th><th>Asset</th><th>Amount</th><th>Submitted</th><th>TxID / Address</th><th>Payment proof</th><th>Actions</th></tr></thead><tbody>
           ${pending.map(t => `<tr>
             <td><b class="font-head">${BB.esc(t.userName || '')}</b><br><small class="muted">${BB.esc(t.userEmail)}</small></td>
-            <td><span class="pill badge ${t.type === 'deposit' ? 'badge-green' : 'badge-red'}">${t.type}</span></td>
-            <td>${t.asset}</td><td class="num">$${t.amountUsd.toLocaleString()}</td>
+            <td><span class="pill badge ${t.type === 'deposit' ? 'badge-green' : t.type === 'product' ? 'badge-blue' : 'badge-red'}">${t.type}</span></td>
+            <td>${t.type === 'product' ? `${BB.esc(t.productName || '')}<br><small class="muted">paid in ${t.asset}</small>` : t.asset}</td><td class="num">$${t.amountUsd.toLocaleString()}</td>
             <td class="muted small">${BB.timeAgo(t.createdAt)}</td>
             <td class="muted small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${BB.esc(t.txid || t.address || '')}">${BB.esc(t.txid || t.address || '')}</td>
             <td>${t.proof ? `<a href="/api/admin/proof?id=${t.id}" target="_blank" title="Open payment proof"><img src="/api/admin/proof?id=${t.id}" style="width:52px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--line)" onerror="this.outerHTML='<span class=\'badge badge-blue\'><i class=\'fas fa-file-pdf\'></i> PDF</span>'"></a>`
               : '<span class="badge badge-gray">none</span>'}</td>
-            <td style="white-space:nowrap"><button class="btn btn-green btn-sm" data-txok="${t.id}"><i class="fas fa-check"></i> Approve &amp; Credit</button>
+            <td style="white-space:nowrap"><button class="btn btn-green btn-sm" data-txok="${t.id}"><i class="fas fa-check"></i> ${t.type === 'product' ? 'Approve &amp; Unlock' : 'Approve &amp; Credit'}</button>
             <button class="btn btn-danger btn-sm" data-txno="${t.id}"><i class="fas fa-xmark"></i> Reject</button></td></tr>`).join('')}
           </tbody></table></div>` : '<div class="empty-state"><i class="fas fa-check"></i>Nothing pending.</div>'}
         </div>
         <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> History (${hist.length})</h3>
           <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Type</th><th>Asset</th><th>Amount</th><th>Status</th><th>When</th><th>Note</th></tr></thead><tbody>
-          ${hist.slice(0, 60).map(t => `<tr><td><small>${BB.esc(t.userEmail)}</small></td><td>${t.type}</td><td>${t.asset}</td>
+          ${hist.slice(0, 60).map(t => `<tr><td><small>${BB.esc(t.userEmail)}</small></td><td>${t.type}</td><td>${t.type === 'product' ? BB.esc(t.productName || '') : t.asset}</td>
             <td class="num">$${t.amountUsd.toLocaleString()}</td>
             <td><span class="pill badge ${t.status === 'completed' ? 'badge-green' : 'badge-red'}">${t.status}</span></td>
             <td class="muted small">${BB.timeAgo(t.createdAt)}</td><td class="muted small">${BB.esc(t.adminNote || t.note || '')}</td></tr>`).join('')}

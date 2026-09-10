@@ -1,89 +1,117 @@
-# Deploying Blockchain Bullhorn
+# Deploying Blockchain Bullhorn — including FREE options
 
-A zero-dependency Node.js app (Node 18+) that serves 21 pages, a REST API,
-and stores all state in `data/` (JSON database + uploaded KYC/deposit-proof
-files). It needs **one long-running Node process with a persistent disk
-mounted at `data/`**.
+A zero-dependency Node.js app (Node 18+) that serves 21 pages, a REST API, and
+stores all state in `data/` (JSON database + uploaded KYC/deposit-proof files).
+It needs **one long-running Node process** and somewhere persistent to keep
+`data/`.
 
-## Where to host it
+## Free options at a glance
 
-| Host | Fit | Notes |
-|---|---|---|
-| **Render.com** (recommended) | ✅ | GitHub auto-deploy on every push, Docker support, persistent disk. Blueprint included (`render.yaml`). |
-| Fly.io | ✅ | `fly launch --dockerfile Dockerfile` + attach a volume at `/app/data`. |
-| VPS (Hetzner, DigitalOcean, …) | ✅ | `git pull && pm2 start server.js` behind nginx. Cheapest full control. |
-| Railway / Koyeb | ⚠️ | Works, but add a persistent volume or state is lost on redeploy. |
-| **Deno Deploy / Vercel / Netlify functions** | ❌ | **Not suitable** — see below. |
+| Option | Card needed | Always on | Data survives | Verdict |
+|---|---|---|---|---|
+| **Render free tier** | ❌ no | sleeps after 15 min idle* | ✅ via GitHub data-sync (built in) | **Best zero-cost start** |
+| **Oracle Cloud Always Free** | ⚠️ card for verification (never charged) | ✅ | ✅ real disk | Best free production host |
+| Railway / Fly.io / Koyeb | trial credits only | — | — | Not reliably free anymore |
+| Deno Deploy / Vercel / Netlify functions | — | — | — | ❌ Unsuitable: ephemeral filesystem on every request + no raw TCP for SMTP |
 
-### Why not Deno Deploy (or any serverless platform)
+\* A free uptime pinger (cron-job.org / UptimeRobot) hitting `/` every 10
+minutes keeps the service awake — Render's 750 free hours/month cover a full
+month of 24/7 uptime.
 
-Even though this app has zero npm dependencies and could technically boot on
-Deno's Node compat layer, two hard blockers make it unworkable in production:
+---
 
-1. **Ephemeral filesystem.** Serverless platforms reset the filesystem on
-   every cold start and redeploy. This app keeps its entire database
-   (`data/db.json` — users, balances, wallet addresses, settings) and all
-   uploaded KYC documents / deposit proofs in `data/`. On Deno Deploy every
-   user registration, deposit and upload would be silently wiped.
-2. **No arbitrary outbound TCP.** The built-in SMTP mailer (welcome emails,
-   2FA notifications, admin test emails) speaks raw SMTP over TCP, which
-   serverless platforms block (HTTP fetch only).
+## Option A — Render FREE (zero cost, no card, ~10 minutes)
 
-The app needs exactly one always-on Node process with persistent storage —
-which is what Render/Fly/VPS provide.
+The free tier has no persistent disk — **the app handles this itself**: it
+syncs `data/db.json` and `data/uploads/` to a **private GitHub repository**
+after every change and restores them automatically on every boot
+(`lib/backup.js`, activated by the `BACKUP_REPO` + `BACKUP_TOKEN` env vars).
 
-## Option A — Render.com (easiest, auto-deploys on every git push)
+1. **Create a private data repo** on GitHub (must be PRIVATE — it will hold
+   user data and password hashes). One named `bulltrade-data` already exists
+   on the project account; you can reuse it or create your own empty private
+   repo with a README.
 
-1. Go to [render.com](https://render.com) → **New → Blueprint** and pick this repo.
-   Render reads `render.yaml` automatically: web service + 1 GB persistent
-   disk at `/app/data`.
-2. When prompted, set the secret environment variables (see table below).
-3. Deploy. Every future `git push` to `main` auto-deploys.
+2. **Create a GitHub personal access token** with `repo` scope
+   (Settings → Developer settings → Personal access tokens). This is
+   `BACKUP_TOKEN`.
 
-## Option B — Fly.io
+3. On [render.com](https://render.com) (no card needed): **New → Web Service**
+   → connect your GitHub account → pick this repo. Then:
+   - Runtime: **Node**
+   - Build command: `npm install`
+   - Start command: `npm start`
+   - Instance type: **Free**
 
-```bash
-fly launch --dockerfile Dockerfile --name blockchain-bullhorn
-fly volumes create bb_data --size 1
-# map the volume to /app/data in fly.toml, then:
-fly deploy
-```
+4. **Environment variables** (Render → your service → Environment):
 
-## Option C — any VPS
+   | Key | Value |
+   |---|---|
+   | `ADMIN_EMAIL` | your admin email |
+   | `ADMIN_PASSWORD` | a strong password (seeds the admin on first boot) |
+   | `JWT_SECRET` | long random string (32+ chars) |
+   | `BACKUP_REPO` | `yourname/bulltrade-data` |
+   | `BACKUP_TOKEN` | the token from step 2 |
+   | `NODE_ENV` | `production` |
 
-```bash
-git clone https://github.com/<you>/<repo>.html && cd <repo>
-npm i -g pm2
-ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='strong-password' pm2 start server.js --name bullhorn
-# put nginx (or caddy) in front as an HTTPS reverse proxy to :3000
-```
+5. Deploy. First boot seeds the admin account; every deploy/restart restores
+   the latest data from the backup repo automatically.
+
+6. **Keep it awake** (optional but recommended): create a free account at
+   [cron-job.org](https://cron-job.org) or [UptimeRobot](https://uptimerobot.com)
+   and ping `https://your-app.onrender.com/` every 10 minutes.
+
+Free-tier limits: 0.1 CPU / 512 MB RAM (plenty for this app), 5 GB
+bandwidth/month, 500 build minutes/month.
+
+## Option B — Oracle Cloud Always Free (real VPS, never sleeps)
+
+Genuinely free forever; requires a credit/debit card for identity verification
+(**never charged**). You get up to 2 ARM OCPUs / 12 GB RAM (or tiny x86
+instances) + 200 GB storage.
+
+1. Sign up at [oracle.com/cloud/free](https://www.oracle.com/cloud/free/) →
+   create a VM (Ubuntu 22.04, the free "Always Free" shape).
+2. Open ports 80/443 in the Oracle Security List for your instance.
+3. SSH in and run:
+
+   ```bash
+   sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/leephil1907-lab/bulltrade/main/deploy/vps-setup.sh)" your-domain.com
+   ```
+
+   (or clone the repo and run `deploy/vps-setup.sh`). It installs Node 20,
+   pm2, Caddy (automatic HTTPS) and starts the app. Works on any Ubuntu VPS.
+
+## Option C — paid upgrade later
+
+When you outgrow free: on Render switch the plan to Starter + add a 1 GB disk
+(uncomment the block in `render.yaml`) — no code changes needed, the GitHub
+sync simply becomes an extra safety net.
+
+---
 
 ## Environment variables
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `PORT` | no | HTTP port (default 3000). Hosts inject this automatically. |
-| `JWT_SECRET` | recommended | Session-token signing key. If unset, one is generated and stored in `data/.jwt-secret`. Set it so restarts/multiple instances don't invalidate sessions. |
-| `ADMIN_EMAIL` | first boot only | Seeds the admin account. |
-| `ADMIN_PASSWORD` | first boot only | Seeds the admin account. If unset, a random password is printed to the console once — save it. |
+| `PORT` | no | HTTP port (default 3000) — hosts inject this automatically |
+| `JWT_SECRET` | recommended | Session-token key. Auto-generated to `data/.jwt-secret` if unset |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | first boot | Seed the admin account (a random password is printed to the console if unset) |
+| `BACKUP_REPO` | ephemeral hosts | `owner/name` of a **private** GitHub repo for data sync |
+| `BACKUP_TOKEN` | ephemeral hosts | PAT with repo scope (used by the sync) |
+| `BACKUP_BRANCH` / `BACKUP_DIR` | no | Sync branch (`main`) / path prefix (`data`) |
 
-## ⚠️ After the first deploy (important)
+## ⚠️ After the first deploy
 
-The repository deliberately ships with **empty deposit wallet addresses**
-(they are runtime data, not code, so they are never committed). On a fresh
-deployment:
+The repo ships with empty deposit wallet addresses on purpose (they are
+runtime data, not code). On a fresh deployment either let the backup restore
+them or paste them in **Admin → Settings → Crypto Deposit Addresses**. Also:
+change the admin password, configure SMTP (test email), paste the Smartsupp
+key, and set the contest prize.
 
-1. Log in at `/admin` with the seeded admin account and **change the password**.
-2. **Admin → Settings → Crypto Deposit Addresses** — paste the real wallet
-   addresses (USDT TRC-20/ERC-20, BTC, ETH, SOL, BNB, XRP, LTC, DOGE, TRX,
-   ZEC). Each coin activates instantly once its address is saved.
-3. Configure **SMTP** (host, port, user, password, from) and send a test email.
-4. Paste the **Smartsupp live-chat key**.
-5. Configure the weekly contest prize if desired.
-
-Everything above lives in `data/db.json` on the persistent disk — it survives
-redeploys and restarts, and it is excluded from git on purpose.
+**Data-sync rules:** one backup repo per instance (two instances sharing a
+repo would fight). Never make the backup repo public — it contains user data.
 
 ## Health check
 
-`GET /` returns `200` — point your host's health check at it.
+`GET /` returns `200` — point your host's health check / uptime pinger at it.

@@ -1,25 +1,38 @@
-# Render.com blueprint — deploy Blockchain Bullhorn with a persistent disk.
-# 1. Push this repo to GitHub (done).
-# 2. Render dashboard → New → Blueprint → select this repo.
-# 3. Fill in the secret env vars when prompted (ADMIN_EMAIL, ADMIN_PASSWORD, JWT_SECRET).
-# Note: persistent disks require a paid instance (Starter plan).
+# Render.com blueprint — FREE tier deployment (no credit card, no persistent disk).
+#
+# Data persistence: free instances lose the filesystem on every deploy, so the
+# app syncs data/db.json + data/uploads/ to a PRIVATE GitHub repository
+# (BACKUP_REPO + BACKUP_TOKEN) and restores them automatically on boot.
+#
+# Set these env vars when prompted: ADMIN_EMAIL, ADMIN_PASSWORD, JWT_SECRET,
+# BACKUP_REPO, BACKUP_TOKEN.
+#
+# Later upgrade to always-on + persistent disk: change plan to `starter` and
+# uncomment the disk block (the GitHub sync then acts as a safety net).
 services:
   - type: web
     name: blockchain-bullhorn
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    plan: starter
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
     autoDeploy: true
-    disk:
-      name: bb-data
-      mountPath: /app/data
-      sizeGB: 1
     envVars:
+      - key: NODE_ENV
+        value: production
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: NODE_ENV
-        value: production
+      - key: BACKUP_REPO
+        sync: false
+      - key: BACKUP_TOKEN
+        sync: false
+    # ---- paid upgrade (always-on + persistent disk) ----
+    # plan: starter
+    # disk:
+    #   name: bb-data
+    #   mountPath: /app/data
+    #   sizeGB: 1

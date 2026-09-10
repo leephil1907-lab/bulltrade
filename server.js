@@ -17,14 +17,15 @@ const mailer = require('./lib/mailer');
 const gamify = require('./lib/gamify');
 const markets = require('./lib/markets');
 const trading = require('./lib/trading');
+const Backup = require('./lib/backup');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
-D.load();
+// NOTE: no top-level D.load() here — the async boot below calls D.init(),
+// which restores the GitHub backup first when running on an ephemeral host.
 markets.onTick(trading.tick);
-markets.start().catch(() => {});
 
 // ---------------- helpers ----------------
 const MIME = {
@@ -454,6 +455,13 @@ api['GET /api/funding/summary'] = async (req, res, body, cookies) => {
 };
 
 const PROOF_TYPES = { 'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'application/pdf': '.pdf' };
+
+// purchasable education products (keep in sync with public/store.html)
+const PRODUCTS = {
+  ssc:   { id: 'ssc',   name: 'Super Simple Crypto (Trading) System', price: 497 },
+  cheat: { id: 'cheat', name: 'The Crypto Cheat Guide (Solo) 2026',   price: 27  },
+  combo: { id: 'combo', name: 'Crypto Cheat Guide — COMBO PACK',      price: 47  }
+};
 const PROOF_MAX = 5 * 1024 * 1024;
 
 api['POST /api/funding/deposit'] = async (req, res, body, cookies) => {
@@ -479,6 +487,7 @@ api['POST /api/funding/deposit'] = async (req, res, body, cookies) => {
       fs.mkdirSync(dir, { recursive: true });
       const fname = U.uid('dpf_') + PROOF_TYPES[p.mime];
       fs.writeFileSync(path.join(dir, fname), buf);
+      Backup.pushFile(path.join(dir, fname)); // GitHub data-sync
       proof = { file: fname, mime: p.mime, name: String(p.name || 'proof').slice(0, 120), size: buf.length };
     } catch (e) { return fail(res, 500, 'Could not store the proof file. Try again.'); }
   }
@@ -488,6 +497,49 @@ api['POST /api/funding/deposit'] = async (req, res, body, cookies) => {
     proof: proof || null
   });
   ok(res, { message: 'Deposit submitted with your transaction proof. Our admin team will verify it and credit your live wallet — you will be notified.' });
+};
+
+api['POST /api/store/purchase'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const prod = PRODUCTS[String(body.productId || '')];
+  if (!prod) return fail(res, 400, 'Product not found.');
+  const asset = String(body.asset || '');
+  const txid = String(body.txid || '').trim();
+  const s = D.db().settings;
+  if (!(asset in s.depositAddresses)) return fail(res, 400, 'Choose a valid payment asset.');
+  if (!String(s.depositAddresses[asset]).trim()) return fail(res, 400, `${asset} payments are not yet available — please choose another coin.`);
+  if (txid.length < 10) return fail(res, 400, 'Please paste your transaction hash (TXID) so we can verify the payment.');
+  const existing = D.find('transactions', t => t.userId === user.id && t.type === 'product' && t.productId === prod.id && (t.status === 'pending' || t.status === 'completed'));
+  if (existing) return fail(res, 400, existing.status === 'completed'
+    ? `You already own "${prod.name}" — it is unlocked on your account.`
+    : `Your payment for "${prod.name}" is already being verified.`);
+  // payment proof (same rules as deposit proofs)
+  const p = body.proof || {};
+  if (!p.data || !PROOF_TYPES[p.mime]) return fail(res, 400, 'Please upload a screenshot or receipt of your payment (JPG, PNG, WEBP or PDF).');
+  const buf = Buffer.from(String(p.data), 'base64');
+  if (!buf || buf.length < 100) return fail(res, 400, 'The uploaded proof file appears to be empty.');
+  if (buf.length > PROOF_MAX) return fail(res, 400, 'Proof file must be under 5MB.');
+  let proof;
+  try {
+    const dir = path.join(D.UPLOAD_DIR, user.id);
+    fs.mkdirSync(dir, { recursive: true });
+    const fname = U.uid('ppf_') + PROOF_TYPES[p.mime];
+    fs.writeFileSync(path.join(dir, fname), buf);
+    Backup.pushFile(path.join(dir, fname)); // GitHub data-sync
+    proof = { file: fname, mime: p.mime, name: String(p.name || 'proof').slice(0, 120), size: buf.length };
+  } catch (e) { return fail(res, 500, 'Could not store the proof file. Try again.'); }
+  D.insert('transactions', {
+    id: U.uid('tx_'), userId: user.id, type: 'product', productId: prod.id, productName: prod.name,
+    asset, amountUsd: prod.price, txid, status: 'pending', createdAt: Date.now(), updatedAt: Date.now(), proof
+  });
+  ok(res, { message: `Payment submitted for "${prod.name}". Our team will verify it and unlock your product — you will be notified.` });
+};
+
+api['GET /api/store/purchases'] = (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const purchases = D.filter('transactions', t => t.userId === user.id && t.type === 'product')
+    .map(t => ({ id: t.id, productId: t.productId, productName: t.productName, amountUsd: t.amountUsd, asset: t.asset, status: t.status, createdAt: t.createdAt }));
+  ok(res, { purchases });
 };
 
 api['POST /api/funding/withdraw'] = async (req, res, body, cookies) => {
@@ -881,6 +933,8 @@ api['POST /api/admin/tx'] = async (req, res, body, cookies) => {
       tx.status = 'completed';
     } else if (tx.type === 'withdraw') {
       tx.status = 'completed';
+    } else if (tx.type === 'product') {
+      tx.status = 'completed'; // product unlocked for the buyer
     }
     tx.adminNote = body.note || '';
     tx.updatedAt = Date.now();
@@ -890,6 +944,8 @@ api['POST /api/admin/tx'] = async (req, res, body, cookies) => {
     if (tu) {
       const tpl = tx.type === 'deposit'
         ? { to: tu.email, subject: '💰 Deposit credited — Blockchain Bullhorn', html: mailer.templates.depositApproved(tu, tx.amountUsd, tx.asset) }
+        : tx.type === 'product'
+        ? { to: tu.email, subject: `📦 Purchase confirmed — ${tx.productName}`, html: mailer.templates.purchaseApproved(tu, tx.productName) }
         : { to: tu.email, subject: '📤 Withdrawal processed — Blockchain Bullhorn', html: mailer.templates.withdrawDone(tu, tx.amountUsd, tx.asset, tx.address || '') };
       mailer.sendMail(tpl).catch(() => {});
     }
@@ -905,6 +961,10 @@ api['POST /api/admin/tx'] = async (req, res, body, cookies) => {
       const tu = D.find('users', x => x.id === tx.userId);
       if (tu) mailer.sendMail({ to: tu.email, subject: 'Withdrawal declined — Blockchain Bullhorn',
         html: mailer.templates.withdrawRejected(tu, tx.amountUsd, tx.adminNote) }).catch(() => {});
+    } else if (tx.type === 'product') {
+      const tu = D.find('users', x => x.id === tx.userId);
+      if (tu) mailer.sendMail({ to: tu.email, subject: 'Purchase payment not verified — Blockchain Bullhorn',
+        html: mailer.templates.purchaseRejected(tu, tx.productName, tx.adminNote) }).catch(() => {});
     }
     ok(res, { message: 'Transaction rejected' + (tx.type === 'withdraw' ? ' and funds returned to user wallet' : '') });
   } else fail(res, 400, 'Unknown action');
@@ -1179,7 +1239,13 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, HOST, () => {
-  console.log(`Blockchain Bullhorn server running at http://localhost:${PORT} (bound ${HOST})`);
-  console.log(`Admin panel: http://localhost:${PORT}/admin`);
-});
+(async () => {
+  // restore data/ from the GitHub backup first (ephemeral hosts), then serve
+  await D.init();
+  Backup.start();
+  markets.start().catch(() => {});
+  server.listen(PORT, HOST, () => {
+    console.log(`Blockchain Bullhorn server running at http://localhost:${PORT} (bound ${HOST})`);
+    console.log(`Admin panel: http://localhost:${PORT}/admin`);
+  });
+})().catch(e => { console.error('Boot failed:', e); process.exit(1); });
