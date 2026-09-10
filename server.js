@@ -865,7 +865,11 @@ api['GET /api/settings/public'] = async (req, res) => {
 api['GET /api/push/config'] = async (req, res) => {
   const push = require('./lib/push');
   const k = push.keys();
-  ok(res, { publicKey: k ? k.publicKey : null, ready: !!(k && push.webpush()) });
+  // diagnostics: is the vendored web-push tree present, and does it load?
+  let vendorFiles = false, requireErr = null;
+  try { vendorFiles = fs.existsSync(path.join(__dirname, 'vendor', 'node_modules', 'web-push', 'src', 'index.js')); } catch (e) { vendorFiles = false; }
+  try { require('./vendor/node_modules/web-push'); } catch (e) { requireErr = (e && e.message || String(e)).slice(0, 200); }
+  ok(res, { publicKey: k ? k.publicKey : null, ready: !!(k && push.webpush()), vendorFiles, requireErr });
 };
 
 api['POST /api/push/subscribe'] = async (req, res, body, cookies) => {
