@@ -65,6 +65,7 @@ const ROUTES = {
   '/mentorship': 'mentorship.html', '/cmf-engine': 'cmf-engine.html', '/faq': 'faq.html',
   '/contact': 'contact.html', '/avoid-scams': 'avoid-scams.html', '/legal': 'legal.html',
   '/trading-bots': 'trading-bots.html',
+  '/relay-setup': 'relay-setup.html', // public helper: copy the email-relay Apps Script code
   '/admin': 'admin.html', '/admin/': 'admin.html'
 };
 

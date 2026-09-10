@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Email Relay Setup — Blockchain Bullhorn</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; background: #f7efdd; color: #3f140c; margin: 0; padding: 24px 14px; }
+    .wrap { max-width: 620px; margin: 0 auto; }
+    h1 { font-size: 22px; margin: 0 0 6px; }
+    h1 span { color: #1ba94b; }
+    .sub { color: #7a6a58; font-size: 14px; margin-bottom: 20px; }
+    .card { background: #fff; border: 1px solid #e5d9c3; border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(63,20,12,.06); }
+    .step { display: flex; gap: 12px; margin-bottom: 14px; }
+    .n { flex: 0 0 26px; height: 26px; border-radius: 50%; background: #d3a877; color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+    .step p { margin: 2px 0 0; font-size: 14.5px; line-height: 1.5; }
+    textarea { width: 100%; box-sizing: border-box; height: 190px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.5; border: 1.5px solid #e5d9c3; border-radius: 8px; padding: 12px; background: #fdfbf7; color: #3f140c; resize: vertical; }
+    .btn { display: block; width: 100%; border: none; background: #1ba94b; color: #fff; font-weight: 700; font-size: 16px; padding: 14px; border-radius: 10px; cursor: pointer; margin-top: 10px; }
+    .btn:active { transform: scale(.99); }
+    .okmsg { text-align: center; color: #1ba94b; font-weight: 700; margin-top: 8px; visibility: hidden; }
+    code { background: #f6f1e8; border-radius: 5px; padding: 1px 6px; font-size: 13px; }
+    b.warn { color: #b3541e; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Blockchain <span>Bullhorn</span> — Email Relay Setup</h1>
+    <p class="sub">Follow the 5 steps below at <b>script.google.com</b>. Takes about 2 minutes.</p>
+
+    <div class="card">
+      <div class="step"><div class="n">1</div><p>Open <b>script.google.com</b> logged in as <b>blockchainbullhornfaqs@gmail.com</b> and open your project.</p></div>
+      <div class="step"><div class="n">2</div><p>Tap inside the code editor → <b>Select all</b> → <b>delete everything</b>. The editor must be completely empty.</p></div>
+      <div class="step"><div class="n">3</div><p>Tap the green button below to copy the code, then <b>paste</b> it into the empty editor. After pasting, the first line must read <code>function doPost(e) {</code> — if it says anything else, delete and re-paste.</p></div>
+      <textarea readonly id="code">function doPost(e) {
+  var b = JSON.parse(e.postData.contents);
+  if (b.secret !== 'relay-d8af6ea576ac87b51b27fbe9') return ContentService.createTextOutput('bad secret');
+  MailApp.sendEmail({ to: b.to, subject: b.subject, htmlBody: b.html, name: 'Blockchain Bullhorn' });
+  return ContentService.createTextOutput('sent');
+}
+</textarea>
+      <button class="btn" id="copyBtn">⧉ &nbsp;Copy the code</button>
+      <div class="okmsg" id="okmsg">✓ Copied — now paste it into the Apps Script editor</div>
+      <div class="step" style="margin-top:16px"><div class="n">4</div><p><b>Save</b>: tap the floppy-disk 💾 icon (or File → Save). There should be <b>no red</b> anywhere.</p></div>
+      <div class="step"><div class="n">5</div><p><b>Deploy → Manage deployments</b> → tap the pencil ✏️ → set <b>Version: New version</b> → make sure <b>Who has access: Anyone</b> → tap <b>Deploy</b>. If it asks to authorize: Allow → choose your account → Advanced → Go to project (unsafe) → Allow.</p></div>
+      <p style="font-size:13.5px;color:#7a6a58;margin-top:14px">That's it — the web app URL stays the same. If you created a brand-new deployment instead, copy its new <code>/exec</code> URL and send it to me.</p>
+    </div>
+
+    <div class="card">
+      <p style="margin:0;font-size:13.5px;color:#7a6a58"><b class="warn">Note:</b> type the code by hand? No need — just use the Copy button. Copying from chat apps can silently replace the straight quotes <code>'</code> with curly ones <code>&lsquo;</code>, which breaks Apps Script. This page copies byte-perfect code.</p>
+    </div>
+
+    <script>
+      document.getElementById('copyBtn').addEventListener('click', function () {
+        var t = document.getElementById('code');
+        t.select(); t.setSelectionRange(0, 999999);
+        var done = function () { document.getElementById('okmsg').style.visibility = 'visible'; };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(t.value).then(done).catch(function () {
+            document.execCommand('copy'); done();
+          });
+        } else { document.execCommand('copy'); done(); }
+      });
+    </script>
+  </div>
+</body>
+</html>

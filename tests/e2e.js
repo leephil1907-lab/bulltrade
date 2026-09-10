@@ -22,7 +22,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
 
 (async () => {
   console.log('== PAGES ==');
-  const pages = ['/', '/markets', '/trade', '/trading-bots', '/community', '/dashboard', '/funding', '/login', '/signup', '/forgot-password', '/reset-password', '/kyc', '/store', '/mentorship', '/cmf-engine', '/faq', '/contact', '/avoid-scams', '/legal?p=gdpr', '/admin', '/nonexistent-page-xyz'];
+  const pages = ['/', '/markets', '/trade', '/trading-bots', '/relay-setup', '/community', '/dashboard', '/funding', '/login', '/signup', '/forgot-password', '/reset-password', '/kyc', '/store', '/mentorship', '/cmf-engine', '/faq', '/contact', '/avoid-scams', '/legal?p=gdpr', '/admin', '/nonexistent-page-xyz'];
   for (const p of pages) {
     const res = await fetch(BASE + p);
     ok(`GET ${p} → ${p === '/nonexistent-page-xyz' ? 404 : 200}`, res.status === (p === '/nonexistent-page-xyz' ? 404 : 200), res.status);
