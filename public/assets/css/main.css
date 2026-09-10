@@ -657,3 +657,53 @@ html { scroll-behavior: smooth; }
 /* ============ Portfolio share bars (dashboard) ============ */
 .pf-bar { height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; margin-top: 4px; min-width: 70px; }
 .pf-bar span { display: block; height: 100%; border-radius: 3px; }
+
+/* ============ Markets: market pulse + bubbles + coin view ============ */
+.pulse-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 900px) { .pulse-strip { grid-template-columns: 1fr 1fr; } }
+.pulse-stat {
+  display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  background: var(--card-solid); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow-soft);
+}
+.pulse-stat i { font-size: 20px; width: 26px; text-align: center; }
+.pulse-stat small { display: block; font-family: var(--font-head); font-size: 10px; letter-spacing: 1.3px; color: var(--ink-dim); font-weight: 700; }
+.pulse-stat b { font-family: var(--font-head); font-size: 16.5px; }
+.pulse-mover { cursor: pointer; transition: transform .15s, border-color .15s; }
+.pulse-mover:hover { transform: translateY(-2px); border-color: var(--gold); }
+.pulse-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green-bright); flex: 0 0 auto; animation: pulsePulse 2s infinite; }
+@keyframes pulsePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(27,169,75,.5); } 50% { box-shadow: 0 0 0 7px rgba(27,169,75,0); } }
+
+.view-seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--card-solid); }
+.view-seg button {
+  border: none; background: none; padding: 9px 16px; cursor: pointer; font-family: var(--font-head);
+  font-weight: 700; font-size: 12.5px; color: var(--ink-soft); display: flex; align-items: center; gap: 7px;
+}
+.view-seg button.active { background: var(--gold); color: #fff; }
+
+.bubbles-panel { background: var(--card-solid); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-soft); }
+.bub-chips { display: flex; align-items: center; gap: 6px; padding: 12px 14px; flex-wrap: wrap; }
+.bub-chip {
+  border: 1.5px solid var(--line); background: var(--bg-soft); color: var(--ink-soft); border-radius: 999px;
+  padding: 5px 13px; font-family: var(--font-head); font-weight: 700; font-size: 11.5px; cursor: pointer; transition: all .15s;
+}
+.bub-chip.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+.bub-sep { width: 1px; height: 20px; background: var(--line); margin: 0 4px; }
+.bubbles-stage { position: relative; height: 560px; background: radial-gradient(ellipse at 30% 20%, #faf3e3 0%, var(--bg-soft) 60%, #efe3c9 100%); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+@media (max-width: 640px) { .bubbles-stage { height: 420px; } }
+.bubbles-stage canvas { display: block; touch-action: pan-y; }
+.bub-tip {
+  display: none; position: absolute; z-index: 5; pointer-events: none;
+  background: var(--ink); color: #fff; padding: 8px 12px; border-radius: 9px; font-size: 12.5px;
+  font-family: var(--font-head); box-shadow: var(--shadow); max-width: 180px; line-height: 1.5;
+}
+.bub-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-dim); font-family: var(--font-head); gap: 8px; }
+.bub-legend { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; padding: 10px 14px; }
+.bub-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; }
+
+.coin-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 560px) { .coin-stats { grid-template-columns: 1fr 1fr; } }
+.coin-stats > div { background: var(--bg-soft); border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; }
+.coin-stats small { display: block; font-family: var(--font-head); font-size: 10px; letter-spacing: 1px; color: var(--ink-dim); font-weight: 700; text-transform: uppercase; }
+.coin-stats b { font-size: 15px; font-family: var(--font-head); }
+.coin-chart { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }

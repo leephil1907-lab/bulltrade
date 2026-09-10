@@ -368,6 +368,10 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   const tradeHtml = await (await fetch(BASE + '/trade')).text();
   ok('swap button present on trading session', tradeHtml.includes('swapBtn'));
   ok('TradingView embed uses live s3 host', tradeHtml.includes('s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js') && !tradeHtml.includes('src=\'https://s.tradingview.com'));
+  const mktHtml = await (await fetch(BASE + '/markets')).text();
+  ok('markets: bubbles view + coin view present', mktHtml.includes('id="bubblesCv"') && mktHtml.includes('coinView') && mktHtml.includes('viewSeg'));
+  ok('markets: pulse strip + timeframe chips', mktHtml.includes('pulseStrip') && mktHtml.includes('data-tf="7D"') && mktHtml.includes('data-size="cap"'));
+  ok('markets: candle chart lib included', mktHtml.includes('/assets/js/chart.js'));
   const cjs = await (await fetch(BASE + '/assets/js/common.js?v=11')).text();
   ok('announcement ticker engine served', cjs.includes('renderAnnouncement') && cjs.includes('fx-roll'));
   ok('live-chat open helper served', cjs.includes('openChat()') && cjs.includes("closest('[data-open-chat]')"));
