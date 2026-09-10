@@ -601,3 +601,17 @@ html { scroll-behavior: smooth; }
     transition-duration: .01ms !important; }
   html.js .reveal { opacity: 1 !important; transform: none !important; }
 }
+
+/* ============ Product crypto-checkout (shared /store + homepage) ============ */
+.btn-chat-ask { background: none; border: none; color: var(--blue); font-size: 13px; cursor: pointer;
+  font-family: var(--font-head); padding: 0; text-decoration: underline; }
+.coin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.coin-pick { display: flex; align-items: center; gap: 10px; border: 1.5px solid var(--line-soft); border-radius: 10px;
+  padding: 10px 12px; cursor: pointer; transition: border-color .15s, transform .15s; background: #fff; text-align: left; }
+.coin-pick:hover { border-color: var(--green); transform: translateY(-2px); }
+.coin-pick img { width: 28px; height: 28px; }
+.coin-pick b { display: block; font-size: 14px; } .coin-pick small { color: var(--ink-dim); font-size: 11.5px; }
+.own-pill { display: inline-block; font-family: var(--font-head); font-size: 12.5px; font-weight: 700;
+  border-radius: 20px; padding: 5px 13px; margin-bottom: 10px; }
+.own-pill.owned { background: rgba(27,169,75,.12); color: var(--green-deep); }
+.own-pill.pending { background: rgba(211,168,119,.2); color: #8a6a3b; }

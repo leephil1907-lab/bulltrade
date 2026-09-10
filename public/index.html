@@ -14,7 +14,7 @@
   <meta name="theme-color" content="#ffffff">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css">
-  <link rel="stylesheet" href="/assets/css/main.css?v=7">
+  <link rel="stylesheet" href="/assets/css/main.css?v=8">
   <style>@media (max-width: 980px){ #offerGrid { grid-template-columns: 1fr !important; } }</style>
   <script>document.documentElement.classList.add('js')</script>
 </head>
@@ -152,7 +152,7 @@
             <h3>Super Simple Crypto (Trading) System</h3>
             <p>Unlock the secrets of profitable crypto trading. A proven, simple system guiding you step by step through strategies, tools and market insights.</p>
             <div class="pc-price">$497 <small>one-time</small></div>
-            <button class="btn btn-primary btn-sm" data-open-chat type="button"><i class="fas fa-fire"></i> Get Instant Access</button>
+            <button class="btn btn-primary btn-sm" data-buy="ssc" type="button"><i class="fas fa-fire"></i> Get Instant Access</button>
           </div>
         </div>
         <div class="card card-hover product-card reveal reveal-d1">
@@ -161,7 +161,7 @@
             <h3>The Crypto Cheat Guide (Solo) 2026</h3>
             <p>Exclusive secrets to mastering the crypto world — strategic decision-making that safeguards and grows your investments.</p>
             <div class="pc-price">$27 <small>only</small></div>
-            <a class="btn btn-primary btn-sm" href="/store"><i class="fas fa-book-open"></i> Learn More</a>
+            <button class="btn btn-primary btn-sm" data-buy="cheat" type="button"><i class="fas fa-book-open"></i> Buy with Crypto</button>
           </div>
         </div>
         <div class="card card-hover product-card reveal reveal-d2">
@@ -170,7 +170,7 @@
             <h3>Crypto Cheat Guide — COMBO PACK</h3>
             <p>From basics to mastery: eBook + audio content for learning on-the-go. Test your knowledge and accelerate FAST.</p>
             <div class="pc-price">$47 <small>combo</small></div>
-            <a class="btn btn-primary btn-sm" href="/store"><i class="fas fa-layer-group"></i> Learn More</a>
+            <button class="btn btn-primary btn-sm" data-buy="combo" type="button"><i class="fas fa-layer-group"></i> Buy with Crypto</button>
           </div>
         </div>
       </div>
@@ -352,13 +352,11 @@
       }));
     });
   </script>
+  <script src="/assets/js/qrcode.js"></script>
+  <script src="/assets/js/store-checkout.js"></script>
   <script>
     document.addEventListener('bb:ready', () => {
-      const openChat = () => {
-        if (BB.settings.smartsuppKey && typeof window.smartsupp === 'function') window.smartsupp('chat:open');
-        else Chat.toggle(true);
-      };
-      document.querySelectorAll('[data-open-chat]').forEach(el => el.addEventListener('click', openChat));
+      document.querySelectorAll('[data-buy]').forEach(el => el.addEventListener('click', () => openCheckout(el.dataset.buy)));
     });
   </script>
 </body>
