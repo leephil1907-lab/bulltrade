@@ -359,8 +359,13 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('announcement feed public (3 items cycling)', r.data.announcements.length === 3 && r.data.announcements[0] === 'Welcome to Blockchain Bullhorn!', r.data.announcements);
   const tradeHtml = await (await fetch(BASE + '/trade')).text();
   ok('swap button present on trading session', tradeHtml.includes('swapBtn'));
-  const cjs = await (await fetch(BASE + '/assets/js/common.js?v=10')).text();
+  const cjs = await (await fetch(BASE + '/assets/js/common.js?v=11')).text();
   ok('announcement ticker engine served', cjs.includes('renderAnnouncement') && cjs.includes('fx-roll'));
+  ok('live-chat open helper served', cjs.includes('openChat()') && cjs.includes("closest('[data-open-chat]')"));
+  const idxHtml = await (await fetch(BASE + '/')).text();
+  ok('homepage Elite Mentorship CTA opens live chat', idxHtml.includes('data-open-chat>Elite Mentorship'));
+  const storeHtml = await (await fetch(BASE + '/store')).text();
+  ok('store mentorship CTA opens live chat', storeHtml.includes('data-open-chat><i class="fas fa-crown"></i> Apply for Mentorship'));
   // admin chat reply
   r = await req('GET', `/api/admin/chat-messages?id=${convId}`, null, adminCookie);
   ok('admin reads chat', r.data.ok && r.data.messages.length >= 2);

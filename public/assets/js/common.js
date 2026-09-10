@@ -124,6 +124,21 @@ window.BB = {
     return Array.from({ length: n }, () =>
       `<div class="card"><span class="skeleton" style="width:100%;height:${h}px"></span></div>`).join('');
   },
+  // Open the site's live chat: official Smartsupp when configured, built-in branded widget otherwise.
+  openChat() {
+    if (BB.settings.smartsuppKey) {
+      if (typeof window.smartsupp === 'function') { try { window.smartsupp('chat:open'); } catch (e) { } return; }
+      // Smartsupp script still loading — retry briefly, then fall back to the built-in widget
+      let tries = 0;
+      const iv = setInterval(() => {
+        if (typeof window.smartsupp === 'function') { clearInterval(iv); try { window.smartsupp('chat:open'); } catch (e) { } }
+        else if (++tries > 20) { clearInterval(iv); Chat.ensureBuiltIn(); Chat.toggle(true); }
+      }, 150);
+      return;
+    }
+    Chat.ensureBuiltIn();
+    Chat.toggle(true);
+  },
 
   assetIcon(a, size = 30) {
     if (a.logo) return `<img class="a-logo" src="${a.logo}" alt="${BB.esc(a.symbol)}" loading="lazy" style="width:${size}px;height:${size}px">`;
@@ -377,7 +392,7 @@ function initCounters() {
    handles conversations.
    ============================================================ */
 const Chat = {
-  convId: null, lastAt: 0, open: false, unread: 0, pollTimer: null, initialized: false,
+  convId: null, lastAt: 0, open: false, unread: 0, pollTimer: null, initialized: false, builtIn: false,
 
   injectSmartsupp(key) {
     window._smartsupp = window._smartsupp || {};
@@ -403,7 +418,12 @@ const Chat = {
       Chat.injectSmartsupp(BB.settings.smartsuppKey);
       return;
     }
-    // Built-in widget (Branded "Blockchain Bullhorn Support", logo avatar)
+    Chat.ensureBuiltIn();
+  },
+
+  // Built-in widget (Branded "Blockchain Bullhorn Support", logo avatar) — idempotent
+  ensureBuiltIn() {
+    if (Chat.builtIn) return; Chat.builtIn = true;
     const btn = document.createElement('button');
     btn.className = 'chat-launcher';
     btn.innerHTML = '<i class="fas fa-comment-dots"></i><span class="chat-unread" id="chatUnread">0</span>';
@@ -571,6 +591,11 @@ async function bootCommon() {
   initCounters();
   loadTicker();
   Chat.init();
+  // any element with data-open-chat opens the support live chat (Smartsupp or built-in)
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-open-chat]');
+    if (t) { e.preventDefault(); BB.openChat(); }
+  });
   document.dispatchEvent(new CustomEvent('bb:ready'));
 }
 

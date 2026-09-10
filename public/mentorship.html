@@ -100,7 +100,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=10"></script>
+  <script src="/assets/js/common.js?v=11"></script>
   <script>
     const FAQS = [
       ['Is this a signals service?', 'No. The Elite Mentorship helps you develop your own decision-making framework — not dependence on someone else\u2019s signals.'],
@@ -129,11 +129,7 @@
   </script>
   <script>
     document.addEventListener('bb:ready', () => {
-      const openChat = () => {
-        if (BB.settings.smartsuppKey && typeof window.smartsupp === 'function') window.smartsupp('chat:open');
-        else Chat.toggle(true);
-      };
-      document.querySelectorAll('[data-open-chat]').forEach(el => el.addEventListener('click', openChat));
+      // [data-open-chat] is handled globally by common.js (BB.openChat)
     });
   </script>
 </body>
