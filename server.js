@@ -867,8 +867,8 @@ api['GET /api/push/config'] = async (req, res) => {
   const k = push.keys();
   // diagnostics: is the vendored web-push tree present, and does it load?
   let vendorFiles = false, requireErr = null;
-  try { vendorFiles = fs.existsSync(path.join(__dirname, 'vendor', 'node_modules', 'web-push', 'src', 'index.js')); } catch (e) { vendorFiles = false; }
-  try { require('./vendor/node_modules/web-push'); } catch (e) { requireErr = (e && e.message || String(e)).slice(0, 200); }
+  try { vendorFiles = fs.existsSync(path.join(__dirname, 'vendor', 'webpush.bundle.js')); } catch (e) { vendorFiles = false; }
+  try { require('./vendor/webpush.bundle.js'); } catch (e) { requireErr = (e && e.message || String(e)).slice(0, 200); }
   ok(res, { publicKey: k ? k.publicKey : null, ready: !!(k && push.webpush()), vendorFiles, requireErr });
 };
 
