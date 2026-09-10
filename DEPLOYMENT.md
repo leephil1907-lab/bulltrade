@@ -122,17 +122,42 @@ repo would fight). Never make the backup repo public — it contains user data.
 
 ## Finishing Touches (recommended after first deploy)
 
-### 1. Make emails actually send (SMTP)
-All transactional emails (connection keys, purchase approvals, password resets) are already coded —
-they send through SMTP the moment credentials are configured. No code changes needed:
+### 1. Make emails actually send
+All transactional emails (connection keys, purchase approvals, password resets) are already coded.
+**Render's FREE tier blocks ALL outbound SMTP ports (25/465/587)** — a platform-wide policy since
+September 2025 — so direct SMTP cannot work there no matter the credentials. Use an HTTPS-based
+transport instead (Admin → Settings → **Email Delivery** → Transport):
 
-1. Create a FREE Brevo account (brevo.com, 300 emails/day free) — or use a Gmail account with an
-   App Password (Google Account → Security → 2-Step Verification → App passwords).
-2. Log into the site as admin → **Admin → Settings → SMTP** and fill in:
-   - Brevo: host `smtp-relay.brevo.com`, port `587`, user = your Brevo login email, pass = Brevo SMTP key, from = `blockchainbullhornfaqs@gmail.com`
-   - Gmail: host `smtp.gmail.com`, port `465`, user = your Gmail, pass = the App Password (not your normal password), from = the same Gmail — port 465 (implicit TLS) is required; 587/STARTTLS is blocked on some networks
-3. Click **Send Test Email** to verify. Done — key approvals, purchase confirmations and resets
-   now arrive in real inboxes (they also stay logged under Admin → Emails).
+**Option A — Gmail Relay via Google Apps Script (free, no new accounts, 100 emails/day):**
+1. Go to https://script.google.com while logged into `blockchainbullhornfaqs@gmail.com` → New project.
+2. Delete the default code and paste:
+
+   ```js
+   function doPost(e) {
+     var SECRET = 'CHANGE_THIS_TO_A_LONG_RANDOM_SECRET';
+     try {
+       var b = JSON.parse(e.postData.contents);
+       if (b.secret !== SECRET) return ContentService.createTextOutput('bad secret');
+       MailApp.sendEmail({ to: b.to, subject: b.subject, htmlBody: b.html, name: 'Blockchain Bullhorn' });
+       return ContentService.createTextOutput('sent');
+     } catch (err) { return ContentService.createTextOutput('error: ' + err); }
+   }
+   ```
+
+3. Change `CHANGE_THIS_TO_A_LONG_RANDOM_SECRET` to any long random text (keep it — you'll paste it below).
+4. Deploy → New deployment → type **Web app** → Execute as: **Me** → Who has access: **Anyone** → Deploy → copy the Web App URL.
+5. On the site: Admin → Settings → Email Delivery → Transport = **Gmail Relay** → paste the URL + the secret → Save → **Send Test Email**.
+
+**Option B — SendGrid API (free 100/day, standard):**
+1. Create a free SendGrid account (sendgrid.com) → Settings → Sender Authentication → verify a Single Sender
+   using `blockchainbullhornfaqs@gmail.com` (click the confirmation email).
+2. Settings → API Keys → Create (Full access) → copy the `SG.…` key.
+3. On the site: Admin → Settings → Email Delivery → Transport = **SendGrid API** → paste the key → Save → **Send Test Email**.
+
+**Option C — Render paid instance (from ~$7/mo):** upgrades unblock SMTP ports; the already-working
+Gmail SMTP settings (smtp.gmail.com:465 + App Password) then send directly.
+
+All emails are journaled under Admin → Emails regardless of transport (sent/failed/skipped + errors).
 
 ### 2. Eliminate cold starts (~1 min delay after idle)
 Render's free tier sleeps the service after ~15 min without traffic. Fix with a free uptime pinger:

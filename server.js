@@ -1239,6 +1239,13 @@ api['POST /api/admin/settings'] = async (req, res, body, cookies) => {
     s.contest.enabled = !!b.contest.enabled;
     s.contest.prize = String(b.contest.prize || '').slice(0, 300);
   }
+  if (b.email && typeof b.email === 'object') {
+    s.email = s.email || { transport: 'smtp', sendgridKey: '', relayUrl: '', relaySecret: '' };
+    if (typeof b.email.transport === 'string' && ['smtp', 'sendgrid', 'relay'].includes(b.email.transport)) s.email.transport = b.email.transport;
+    for (const k of ['sendgridKey', 'relayUrl', 'relaySecret']) {
+      if (typeof b.email[k] === 'string') s.email[k] = b.email[k].trim().slice(0, 500);
+    }
+  }
   if (b.smtp && typeof b.smtp === 'object') {
     s.smtp = s.smtp || { host: '', port: 587, user: '', pass: '', from: '' };
     if (typeof b.smtp.host === 'string') s.smtp.host = b.smtp.host.trim().slice(0, 200);

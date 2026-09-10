@@ -572,8 +572,20 @@
           <div class="field"><label>Prize description</label><input class="input" id="setContestPrize" value="${BB.esc((s.contest && s.contest.prize) || '')}" placeholder="🥇 1st: $200 live credit · 🥈 2nd: $100 · 🥉 3rd: $50"></div>
           <p class="muted small">Standings = demo ROI for the current week (Mon UTC), min 3 closed trades. Runs automatically.</p>
         </div>
-        <div class="admin-card"><h3><i class="fas fa-envelope" style="color:var(--gold)"></i> Email Notifications (SMTP)</h3>
-          <p class="muted small mb-2">Transactional emails: KYC results, deposits/withdrawals, new-device alerts, 2FA changes. Uses your own SMTP account (Gmail, Brevo, SES…). Without SMTP, emails are journaled but not sent.</p>
+        <div class="admin-card"><h3><i class="fas fa-envelope" style="color:var(--gold)"></i> Email Delivery</h3>
+          <p class="muted small mb-2">Transactional emails: KYC results, deposits/withdrawals, bot keys, purchase approvals, security alerts. <b>Important:</b> Render's free tier blocks SMTP ports — use the <b>SendGrid API</b> or <b>Gmail Relay</b> transport there (both work over HTTPS). SMTP works on paid plans and other hosts. Without a transport, emails are journaled but not sent.</p>
+          <div class="field"><label>Transport</label>
+            <select class="input" id="setEmailTransport">
+              <option value="smtp">SMTP (direct — blocked on Render free tier)</option>
+              <option value="sendgrid">SendGrid API (HTTPS — free 100/day)</option>
+              <option value="relay">Gmail Relay — Apps Script (HTTPS — uses your Gmail)</option>
+            </select></div>
+          <div id="sendgridFields" style="display:none" class="field"><label>SendGrid API key</label><input class="input" id="setSendgridKey" value="${BB.esc((s.email && s.email.sendgridKey) || '')}" placeholder="SG.xxxxxxxx"></div>
+          <div id="relayFields" style="display:none">
+            <div class="field"><label>Apps Script web app URL</label><input class="input" id="setRelayUrl" value="${BB.esc((s.email && s.email.relayUrl) || '')}" placeholder="https://script.google.com/macros/s/…/exec"></div>
+            <div class="field"><label>Relay secret</label><input class="input" id="setRelaySecret" value="${BB.esc((s.email && s.email.relaySecret) || '')}" placeholder="the same secret you set in the script"></div>
+          </div>
+          <div id="smtpFields">
           <div class="form-row">
             <div class="field"><label>SMTP host</label><input class="input" id="setSmtpHost" value="${BB.esc((s.smtp && s.smtp.host) || '')}" placeholder="smtp.example.com"></div>
             <div class="field"><label>Port</label><input class="input num" id="setSmtpPort" type="number" value="${(s.smtp && s.smtp.port) || 587}"></div>
@@ -583,6 +595,7 @@
             <div class="field"><label>Password / API key</label><input class="input" id="setSmtpPass" type="password" value="${BB.esc((s.smtp && s.smtp.pass) || '')}"></div>
           </div>
           <div class="field"><label>From address</label><input class="input" id="setSmtpFrom" value="${BB.esc((s.smtp && s.smtp.from) || '')}" placeholder="no-reply@blockchainbullhorn.com"></div>
+          </div>
           <button class="btn btn-outline btn-sm" id="testEmailBtn"><i class="fas fa-paper-plane"></i> Send Test Email</button>
         </div>
         <div class="admin-card"><h3><i class="fas fa-lock" style="color:var(--gold)"></i> Security</h3>
@@ -612,6 +625,15 @@
           if (r2.ok) { toast('Announcement removed', 'success'); renderAnns(); } else toast(r2.error, 'error');
         }));
       };
+      const syncEmailFields = () => {
+        const t = R('setEmailTransport').value;
+        R('smtpFields').style.display = t === 'smtp' ? 'block' : 'none';
+        R('sendgridFields').style.display = t === 'sendgrid' ? 'block' : 'none';
+        R('relayFields').style.display = t === 'relay' ? 'block' : 'none';
+      };
+      R('setEmailTransport').value = (s.email && s.email.transport) || 'smtp';
+      R('setEmailTransport').addEventListener('change', syncEmailFields);
+      syncEmailFields();
       R('setAnnAdd').addEventListener('click', async () => {
         const v = R('setAnnNew').value.trim();
         if (!v) return toast('Type an announcement first', 'error');
@@ -628,7 +650,8 @@
             depositAddresses: {}, minDeposit: R('setMinDep').value, minWithdraw: R('setMinWd').value,
             demoStartBalance: R('setDemoBal').value, supportEmail: R('setSupport').value,
             contest: { enabled: R('setContestOn').checked, prize: R('setContestPrize').value },
-            smtp: { host: R('setSmtpHost').value, port: R('setSmtpPort').value, user: R('setSmtpUser').value, pass: R('setSmtpPass').value, from: R('setSmtpFrom').value }
+            smtp: { host: R('setSmtpHost').value, port: R('setSmtpPort').value, user: R('setSmtpUser').value, pass: R('setSmtpPass').value, from: R('setSmtpFrom').value },
+            email: { transport: R('setEmailTransport').value, sendgridKey: R('setSendgridKey').value, relayUrl: R('setRelayUrl').value, relaySecret: R('setRelaySecret').value }
           }
         };
         $$('.addr-in').forEach(i => body.settings.depositAddresses[i.dataset.coin] = i.value);

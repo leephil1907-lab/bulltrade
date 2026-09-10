@@ -360,6 +360,12 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   // settings
   r = await req('POST', '/api/admin/settings', { settings: { siteName: 'Blockchain Bullhorn' } }, adminCookie);
   ok('settings saved', r.data.ok);
+  r = await req('POST', '/api/admin/settings', { settings: { email: { transport: 'relay', relayUrl: 'https://script.google.com/macros/s/TEST/exec', relaySecret: 's3cret' } } }, adminCookie);
+  ok('email transport settings saved', r.data.ok);
+  r = await req('GET', '/api/admin/settings', null, adminCookie);
+  ok('email transport round-trips', r.data.settings.email.transport === 'relay' && r.data.settings.email.relayUrl.includes('TEST'));
+  r = await req('POST', '/api/admin/settings', { settings: { email: { transport: 'smtp' } } }, adminCookie);
+  ok('email transport back to smtp', r.data.ok);
   r = await req('GET', '/api/settings/public');
   ok('public settings: smartsupp present', typeof r.data.smartsuppKey === 'string' && Array.isArray(r.data.announcements));
   // announcement live feed
