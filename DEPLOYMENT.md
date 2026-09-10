@@ -174,3 +174,11 @@ Remember to also update any hardcoded links if you switch the primary domain.
 ### 4. Watch the bots work
 The Trading Bots page has a **Live Bot Activity** feed (recent opens/closes with P/L, refreshed
 every 20s), and Admin → Trading Bots shows key requests, allocations and per-bot stats.
+
+## 26. PWA (installable app) & Web Push notifications
+- The site is a full **Progressive Web App**: `public/manifest.webmanifest` (standalone display, 192/512 + maskable icons, app shortcuts), `public/sw.js` (service worker: offline shell + `offline.html` fallback, cache-first for `/assets/*`, network-only for `/api/*` and `/admin`), and an install banner (`beforeinstallprompt` on Android/desktop; Share → Add to Home Screen instructions on iOS).
+- Users install via the banner, the footer **Install App** link, or the browser's own install button — no app store needed. For a Play Store presence later, wrap the PWA with PWABuilder (free) into an APK/AAB.
+- **Web Push** (VAPID) is wired end-to-end: users enable via **Notifications** (footer link / user menu) → subscription stored in `push_subs`. Admin → Settings → **Push Notifications**: generate keys, see subscriber count, broadcast a pop-up notification to everyone. Broadcasts are also the mechanism for future per-user event pushes.
+- The platform now has **one runtime dependency**: `web-push` (package.json). Render runs `npm install` automatically on deploy. For local dev, run `npm install` once after cloning (node_modules is not stored in git).
+- If keys are missing or web-push is not installed, `/api/push/config` returns `ready:false` and the UI degrades gracefully — nothing else breaks.
+- **iOS/iPadOS**: web push works only when the site is installed to the home screen (an OS limitation); the UI explains this to iOS users automatically.

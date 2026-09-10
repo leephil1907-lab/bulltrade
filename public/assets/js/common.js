@@ -248,6 +248,7 @@ function renderHeaderActions() {
           <a href="/trading-bots"><i class="fas fa-robot"></i> Trading Bots</a>
           <a href="/kyc"><i class="fas fa-id-card"></i> KYC Verification</a>
           <a href="/trade"><i class="fas fa-chart-line"></i> Trade Now</a>
+          <a href="#" id="menuNotify"><i class="fas fa-bell"></i> Notifications</a>
           <button id="logoutBtn"><i class="fas fa-arrow-right-from-bracket"></i> Log Out</button>
         </div>
       </div>`;
@@ -290,6 +291,8 @@ function renderFooter() {
           <a href="/community">Community <i class="fas fa-lock" style="font-size:9px;color:var(--gold)"></i></a>
           <a href="/signup">Create Account</a>
           <a href="/login">Log In</a>
+          <a href="#" id="footInstall"><i class="fas fa-mobile-screen-button"></i> Install App</a>
+          <a href="#" id="footNotify"><i class="fas fa-bell"></i> Notifications</a>
         </div>
       </div>
       <div>
@@ -594,6 +597,122 @@ function renderAnnouncement() {
   display();
 }
 
+// ---------- PWA: install + web push ----------
+const PWA = {
+  deferredPrompt: null,
+
+  urlBase64ToUint8Array(b64) {
+    const padding = '='.repeat((4 - b64.length % 4) % 4);
+    const base64 = (b64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64), arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  },
+
+  isIOS() { return /iphone|ipad|ipod/i.test(navigator.userAgent); },
+  isStandalone() { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; },
+
+  async registerSW() {
+    if (!('serviceWorker' in navigator)) return;
+    try { await navigator.serviceWorker.register('/sw.js'); } catch (e) { /* offline support best-effort */ }
+  },
+
+  maybeInstallBanner() {
+    if (this.isStandalone() || localStorage.getItem('bbInstallDismissed')) return;
+    const show = (mode) => {
+      if ($('#bbInstallBanner')) return;
+      const b = document.createElement('div');
+      b.id = 'bbInstallBanner';
+      b.innerHTML = `
+        <img src="/assets/img/brand/logo.png" alt="">
+        <div class="ib-txt"><b>Get the Blockchain Bullhorn app</b>
+          <small>${mode === 'ios' ? 'Tap <b>Share</b> ⬆️ then <b>Add to Home Screen</b>' : 'Fast, full-screen, works offline'}</small></div>
+        ${mode === 'ios' ? '' : '<button class="ib-go" id="bbInstallGo">Install</button>'}
+        <button class="ib-x" aria-label="Dismiss">✕</button>`;
+      document.body.appendChild(b);
+      const dismiss = () => { localStorage.setItem('bbInstallDismissed', '1'); b.remove(); };
+      b.querySelector('.ib-x').addEventListener('click', dismiss);
+      const go = $('#bbInstallGo');
+      if (go) go.addEventListener('click', async () => {
+        if (!PWA.deferredPrompt) return;
+        PWA.deferredPrompt.prompt();
+        const c = await PWA.deferredPrompt.userChoice;
+        if (c && c.outcome === 'accepted') { localStorage.setItem('bbInstallDismissed', '1'); b.remove(); }
+        PWA.deferredPrompt = null;
+      });
+      setTimeout(() => b.classList.add('show'), 600);
+    };
+    if (this.isIOS()) setTimeout(() => show('ios'), 2500);
+  },
+
+  async notificationsModal() {
+    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+    if (!supported) return BB.toast('Notifications are not supported by this browser.', 'error');
+    const cfg = await BB.api('/api/push/config', { silent: true });
+    if (!cfg.ready) return BB.toast('Notifications are not set up on the server yet — try again soon.', 'error');
+    const perm = Notification.permission;
+    let sub = null;
+    try { const reg = await navigator.serviceWorker.ready; sub = await reg.pushManager.getSubscription(); } catch (e) { /* noop */ }
+    const body = `
+      <div style="text-align:center;padding:6px 0 2px">
+        <i class="fas fa-bell" style="font-size:34px;color:var(--gold-deep)"></i>
+        <p class="muted" style="font-size:13.5px;line-height:1.6;margin:10px 0 4px">Get pop-up notifications for deposits, withdrawals, KYC results, bot activity and platform announcements — even when the app is closed.</p>
+        <p class="small" style="font-size:12px">Status: <b>${perm === 'granted' && sub ? '🔔 Enabled' : perm === 'denied' ? '⛔ Blocked in browser settings' : '🔕 Not enabled'}</b></p>
+        ${PWA.isIOS() && !PWA.isStandalone() ? '<p class="small" style="font-size:11.5px;color:#b3541e">On iPhone/iPad, notifications require the installed app: tap Share ⬆️ → Add to Home Screen first.</p>' : ''}
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">
+          ${perm === 'denied' ? '' : (sub
+            ? '<button class="btn btn-outline" id="nwOff">Turn Off</button>'
+            : '<button class="btn btn-primary" id="nwOn">Enable Notifications</button>')}
+          <button class="btn btn-ghost" data-close-modal>Close</button>
+        </div>
+      </div>`;
+    const bd = BB.modal('Notifications', body);
+    const cb = bd.querySelector('[data-close-modal]');
+    if (cb) cb.addEventListener('click', () => bd.remove());
+    const on = $('#nwOn', bd), off = $('#nwOff', bd);
+    if (on) on.addEventListener('click', async () => {
+      on.disabled = true; on.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+      try {
+        const p = await Notification.requestPermission();
+        if (p !== 'granted') throw new Error('Permission was not granted. Check your browser notification settings.');
+        const reg = await navigator.serviceWorker.ready;
+        const s2 = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: PWA.urlBase64ToUint8Array(cfg.publicKey) });
+        const j = s2.toJSON();
+        const r = await BB.api('/api/push/subscribe', { method: 'POST', body: { endpoint: j.endpoint, keys: j.keys } });
+        if (!r.ok) throw new Error(r.error || 'Could not save the subscription.');
+        bd.remove(); BB.toast('🔔 Notifications enabled!', 'success');
+      } catch (e) { BB.toast(e.message, 'error'); on.disabled = false; on.innerHTML = 'Enable Notifications'; }
+    });
+    if (off) off.addEventListener('click', async () => {
+      try {
+        if (sub) { await sub.unsubscribe(); await BB.api('/api/push/unsubscribe', { method: 'POST', body: { endpoint: sub.endpoint } }); }
+        bd.remove(); BB.toast('Notifications turned off.', 'success');
+      } catch (e) { BB.toast(e.message, 'error'); }
+    });
+  },
+
+  init() {
+    this.registerSW();
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      this.deferredPrompt = e;
+      this.maybeInstallBanner();
+    });
+    window.addEventListener('appinstalled', () => { const b = $('#bbInstallBanner'); if (b) b.remove(); localStorage.setItem('bbInstallDismissed', '1'); });
+    if (this.isIOS()) this.maybeInstallBanner();
+    const openNotify = e => { e.preventDefault(); PWA.notificationsModal(); };
+    const mn = $('#menuNotify'); if (mn) mn.addEventListener('click', openNotify);
+    const fn = $('#footNotify'); if (fn) fn.addEventListener('click', openNotify);
+    const fi = $('#footInstall'); if (fi) fi.addEventListener('click', e => {
+      e.preventDefault();
+      if (PWA.deferredPrompt) { PWA.deferredPrompt.prompt(); PWA.deferredPrompt = null; }
+      else if (PWA.isIOS()) BB.toast('On iPhone/iPad: tap the Share button ⬆️ then "Add to Home Screen".', 'info');
+      else if (PWA.isStandalone()) BB.toast('You already have the app installed 🎉', 'success');
+      else BB.toast('Use your browser menu: "Install app" / "Add to Home screen".', 'info');
+    });
+  }
+};
+
 // ---------- boot ----------
 async function bootCommon() {
   Motion.init();
@@ -608,6 +727,7 @@ async function bootCommon() {
   initCounters();
   loadTicker();
   Chat.init();
+  PWA.init();
   // any element with data-open-chat opens the support live chat (Smartsupp or built-in)
   document.addEventListener('click', e => {
     const t = e.target.closest('[data-open-chat]');

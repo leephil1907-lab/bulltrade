@@ -1,14 +1,26 @@
 {
-  "name": "Blockchain Bullhorn",
+  "id": "/",
+  "name": "Blockchain Bullhorn — Crypto Education & Trading",
   "short_name": "Bullhorn",
-  "description": "Elite crypto education, live markets & trading — Grab the Bull by the HORNS.",
-  "start_url": "/",
+  "description": "Elite crypto education, live markets, trading bots and multi-asset trading — Grab the Bull by the HORNS.",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#140a06",
-  "theme_color": "#1d0f08",
+  "orientation": "portrait-primary",
+  "background_color": "#f7efdd",
+  "theme_color": "#ffffff",
+  "categories": ["finance", "education", "business"],
   "icons": [
     { "src": "/assets/img/favicon-64.png", "sizes": "64x64", "type": "image/png" },
-    { "src": "/assets/img/app-icon.png", "sizes": "500x500", "type": "image/png", "purpose": "any" },
-    { "src": "/assets/img/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "maskable" }
+    { "src": "/assets/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/img/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/img/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Live Markets", "url": "/markets" },
+    { "name": "Trading Terminal", "url": "/trade" },
+    { "name": "Trading Bots", "url": "/trading-bots" },
+    { "name": "Dashboard", "url": "/dashboard" }
   ]
 }

@@ -75,7 +75,7 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=12"></script>
+  <script src="/assets/js/common.js?v=13"></script>
   <script>
     'use strict';
     let VIEW = 'overview';
@@ -667,6 +667,17 @@
           <p class="muted small">Sessions use signed JWTs (HS256) with a server-side secret stored outside the public web root — never exposed to browsers. All admin actions are recorded in the <a href="#" id="auditLink">audit log</a>.</p>
         </div>
       </div>
+        <div class="admin-card"><h3><i class="fas fa-bell" style="color:var(--gold)"></i> Push Notifications</h3>
+          <p class="muted small mb-2">Pop-up notifications on users' phones/desktops (Web Push — works through the installed app and on Android/desktop browsers). <b id="pushSubCount">…</b> subscriber(s).</p>
+          <div class="flex-between mb-2" style="gap:10px;flex-wrap:wrap">
+            <span class="muted small">VAPID keys: <b id="pushKeyState">checking…</b></span>
+            <button class="btn btn-outline btn-sm" id="pushKeyBtn"><i class="fas fa-key"></i> Generate New Keys</button>
+          </div>
+          <div class="field"><label>Broadcast title</label><input class="input" id="pushTitle" maxlength="80" placeholder="e.g. 🥇 Contest results are in!"></div>
+          <div class="field"><label>Message</label><input class="input" id="pushBody" maxlength="200" placeholder="e.g. Check the leaderboard on your dashboard."></div>
+          <div class="field"><label>Opens link (optional)</label><input class="input" id="pushUrl" placeholder="/dashboard"></div>
+          <button class="btn btn-primary btn-sm" id="pushSendBtn"><i class="fas fa-paper-plane"></i> Send to Everyone</button>
+        </div>
       <div class="admin-card"><h3><i class="fas fa-outbox" style="color:var(--gold)"></i> Email Outbox (latest 20)</h3>
         <div class="table-wrap" style="box-shadow:none"><table class="dt" style="min-width:0"><thead><tr><th>When</th><th>To</th><th>Subject</th><th>Status</th></tr></thead><tbody id="emailOutbox">
         <tr><td><span class="skeleton" style="width:45%"></span></td><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:53%"></span></td><td><span class="skeleton" style="width:82%"></span></td></tr>
@@ -707,6 +718,28 @@
         if (r2.ok) { toast('Announcement posted — now live in the site bar', 'success'); renderAnns(); } else toast(r2.error, 'error');
       });
       renderAnns();
+      // ---- push notifications card ----
+      const loadPush = async () => {
+        const p = await api('/api/admin/push-subs');
+        if (p.ok) {
+          R('pushSubCount').textContent = p.total;
+          R('pushKeyState').textContent = p.keysConfigured ? 'configured ✓' : 'not configured';
+        }
+      };
+      loadPush();
+      R('pushKeyBtn').addEventListener('click', async () => {
+        if (!confirm('Generate new push keys? Users who already enabled notifications will need to re-enable them.')) return;
+        const r2 = await api('/api/admin/push-keys', { method: 'POST', body: {} });
+        if (r2.ok) { toast(r2.message, 'success'); loadPush(); } else toast(r2.error, 'error');
+      });
+      R('pushSendBtn').addEventListener('click', async () => {
+        if (!confirm('Send this notification to ALL subscribers?')) return;
+        const btn = R('pushSendBtn'); btn.disabled = true;
+        const r2 = await api('/api/admin/push', { method: 'POST', body: { title: R('pushTitle').value, body: R('pushBody').value, url: R('pushUrl').value || '/' } });
+        btn.disabled = false;
+        if (r2.ok) { toast(r2.message, 'success'); loadPush(); } else toast(r2.error, 'error');
+      });
+
       R('saveSettings').addEventListener('click', async () => {
         const body = {
           settings: {

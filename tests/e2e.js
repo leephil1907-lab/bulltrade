@@ -405,6 +405,49 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', `/api/chat/messages?after=0`, null, userCookie);
   ok('user receives admin reply', r.data.messages.some(m => m.from === 'admin'));
 
+  // ========== PWA + WEB PUSH ==========
+  {
+    let res = await fetch(BASE + '/sw.js');
+    ok('service worker served', res.status === 200 && (res.headers.get('content-type') || '').includes('javascript'));
+    const sw = await res.text();
+    ok('sw handles push + notificationclick', sw.includes("addEventListener('push'") && sw.includes('notificationclick'));
+    res = await fetch(BASE + '/offline.html');
+    ok('offline page served', res.status === 200);
+    res = await fetch(BASE + '/sitemap.xml');
+    const sm = await res.text();
+    ok('sitemap served with urls', res.status === 200 && sm.includes('<urlset') && (sm.match(/<url>/g) || []).length >= 18);
+    res = await fetch(BASE + '/robots.txt');
+    const rb = await res.text();
+    ok('robots references sitemap', rb.includes('Sitemap:'));
+    res = await fetch(BASE + '/manifest.webmanifest');
+    const mf = await res.text();
+    ok('manifest: standalone + 512 icon + shortcuts', mf.includes('"display": "standalone"') && mf.includes('512x512') && mf.includes('shortcuts'));
+    // push flow
+    r = await req('GET', '/api/push/config');
+    ok('push config endpoint', r.data.ok && 'publicKey' in r.data && 'ready' in r.data);
+    r = await req('POST', '/api/admin/push-keys', {}, adminCookie);
+    ok('admin generates VAPID keys', r.data.ok && r.data.publicKey.length > 80, r.data);
+    r = await req('GET', '/api/push/config');
+    ok('push config now ready with key', r.data.ready === true && r.data.publicKey.length > 80, r.data);
+    const fakeSub = { endpoint: 'https://expired.example.com/push/abc', keys: { p256dh: 'BPkx' + 'A'.repeat(80), auth: 'au1' + 'B'.repeat(16) } };
+    r = await req('POST', '/api/push/subscribe', fakeSub);
+    ok('push subscribe stored', r.data.ok && r.data.subscribed === true);
+    r = await req('POST', '/api/push/subscribe', fakeSub);
+    ok('push subscribe deduped by endpoint', r.data.ok);
+    r = await req('GET', '/api/admin/push-subs', null, adminCookie);
+    ok('admin sees 1 subscriber', r.data.ok && r.data.total === 1, r.data);
+    r = await req('POST', '/api/push/subscribe', { endpoint: 'ftp://bad', keys: {} });
+    ok('bad subscription rejected', r.status === 400);
+    r = await req('POST', '/api/admin/push', { title: 'e2e', body: 'test broadcast', url: '/dashboard' }, adminCookie);
+    ok('broadcast handles failing endpoint gracefully', r.data.ok && r.data.sent === 0 && r.data.failed + r.data.removed >= 1, r.data);
+    r = await req('POST', '/api/push/unsubscribe', { endpoint: fakeSub.endpoint });
+    ok('push unsubscribe removes sub', r.data.ok);
+    r = await req('GET', '/api/admin/push-subs', null, adminCookie);
+    ok('subscriber list empty after unsubscribe', r.data.total === 0, r.data);
+    r = await req('POST', '/api/admin/push', { title: '', body: '' }, adminCookie);
+    ok('broadcast requires title + body', r.status === 400);
+  }
+
   // ========== SUPER ADMIN: P/L adjust, user actions, user email ==========
   {
     const suEmail = `superadmin${Date.now()}@example.com`;

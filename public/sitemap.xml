@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://blockchainbullhorn.onrender.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/markets</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/trade</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/trading-bots</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/community</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/dashboard</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/funding</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/login</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/signup</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/forgot-password</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/reset-password</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/kyc</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/store</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/mentorship</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/cmf-engine</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/faq</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/contact</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/avoid-scams</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/legal</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://blockchainbullhorn.onrender.com/relay-setup</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+</urlset>

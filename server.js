@@ -861,6 +861,63 @@ api['GET /api/settings/public'] = async (req, res) => {
 };
 
 // ---- admin ----
+// ---- web push ----
+api['GET /api/push/config'] = async (req, res) => {
+  const push = require('./lib/push');
+  const k = push.keys();
+  ok(res, { publicKey: k ? k.publicKey : null, ready: !!(k && push.webpush()) });
+};
+
+api['POST /api/push/subscribe'] = async (req, res, body, cookies) => {
+  const user = Auth.userFromRequest(req, cookies); // may be null (guests can subscribe too)
+  const endpoint = String(body.endpoint || '');
+  const keys = body.keys || {};
+  if (!/^https:\/\//.test(endpoint) || !keys.p256dh || !keys.auth) return fail(res, 400, 'Invalid subscription');
+  if (!(D.db().push_subs || []).some(s => s.endpoint === endpoint)) {
+    D.insert('push_subs', { id: U.uid('ps_'), userId: user ? user.id : null, endpoint, keys: { p256dh: keys.p256dh, auth: keys.auth }, createdAt: Date.now() });
+    D.save();
+  }
+  ok(res, { subscribed: true });
+};
+
+api['POST /api/push/unsubscribe'] = async (req, res, body) => {
+  const endpoint = String(body.endpoint || '');
+  const before = (D.db().push_subs || []).length;
+  D.db().push_subs = (D.db().push_subs || []).filter(s => s.endpoint !== endpoint);
+  if (D.db().push_subs.length !== before) D.save();
+  ok(res, { unsubscribed: true });
+};
+
+api['POST /api/admin/push-keys'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  try {
+    const push = require('./lib/push');
+    const k = push.generateKeys();
+    D.logAudit(admin.id, 'push.keys', '', 'VAPID keys generated');
+    ok(res, { publicKey: k.publicKey, message: 'Push keys generated. Subscribers can now enable notifications.' });
+  } catch (e) { return fail(res, 500, e.message); }
+};
+
+api['GET /api/admin/push-subs'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const subs = D.db().push_subs || [];
+  const users = new Set(subs.map(s => s.userId).filter(Boolean));
+  ok(res, { total: subs.length, identifiedUsers: users.size, keysConfigured: !!(require('./lib/push').keys()) });
+};
+
+api['POST /api/admin/push'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const title = String(body.title || '').trim().slice(0, 80);
+  const message = String(body.body || '').trim().slice(0, 200);
+  const url = String(body.url || '/').trim().slice(0, 200);
+  if (!title || !message) return fail(res, 400, 'Title and message are required');
+  const push = require('./lib/push');
+  if (!push.keys() || !push.webpush()) return fail(res, 400, 'Push is not configured yet — generate keys first (and run npm install on the server).');
+  const r = await push.broadcast({ title, body: message, url, tag: 'bb-broadcast-' + Date.now() });
+  D.logAudit(admin.id, 'push.broadcast', '', `${r.sent} sent / ${r.failed} failed / ${r.removed} removed — "${title}"`);
+  ok(res, { message: `Notification sent to ${r.sent} subscriber(s)${r.failed ? `, ${r.failed} failed` : ''}${r.removed ? `, ${r.removed} stale removed` : ''}.`, ...r });
+};
+
 api['GET /api/admin/overview'] = async (req, res, body, cookies) => {
   const admin = requireAdmin(req, res, cookies); if (!admin) return;
   const db = D.db();
@@ -1431,14 +1488,16 @@ const server = http.createServer(async (req, res) => {
       if (fs.existsSync(fp) && fs.statSync(fp).isFile()) return serveFile(res, fp);
       return fail(res, 404, 'Not found');
     }
+    if (pathname === '/sw.js') return serveFile(res, page('sw.js'));
     if (pathname === '/favicon.ico') return serveFile(res, page('favicon.ico'));
     if (pathname === '/favicon.png') return serveFile(res, page('assets/img/favicon-64.png'));
     if (pathname === '/apple-touch-icon.png') return serveFile(res, page('assets/img/apple-touch-icon.png'));
     if (pathname === '/manifest.webmanifest') return serveFile(res, page('manifest.webmanifest'));
     if (pathname === '/robots.txt') {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
-      return res.end('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\n');
+      return res.end('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\nSitemap: https://blockchainbullhorn.onrender.com/sitemap.xml\n');
     }
+    if (pathname === '/sitemap.xml') return serveFile(res, page('sitemap.xml'));
 
     // ---- pages ----
     if (pathname === '/copy-trading') { // legacy URL → Trading Bots
