@@ -107,6 +107,10 @@ api['POST /api/auth/signup'] = async (req, res, body, cookies) => {
     }
   }
   const t = Auth.createSession(result.user.id);
+  // welcome email — fire-and-forget; reserved test domains are never emailed
+  if (!/@(example\.com|x\.com|t\.com)$/.test(email)) {
+    mailer.sendMail({ to: email, subject: '🐂 Welcome to Blockchain Bullhorn — your account is ready', html: mailer.templates.welcome(result.user) }).catch(() => {});
+  }
   const kycDocs = Array.isArray(body.kycDocs) ? body.kycDocs : null;
   let kycStatus = 'not_submitted';
   if (kycDocs && kycDocs.length) {
