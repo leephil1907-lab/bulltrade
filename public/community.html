@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Community — Members Only — The Blockchain Bullhorn</title>
+  <meta name="description" content="The Blockchain Bullhorn Community: apply for membership, complete onboarding, and learn how the whole trading system works — chart reading, risk management and more.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <style>
+    .gate-hero { text-align: center; padding: 54px 0 30px; }
+    .gate-hero .lock-badge { width: 84px; height: 84px; border-radius: 50%; background: var(--gold-dim); border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--gold); margin: 0 auto 20px; }
+    .apply-wrap { max-width: 720px; margin: 0 auto; }
+    .lesson { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); overflow: hidden; margin-bottom: 16px; }
+    .lesson-head { display: flex; align-items: center; gap: 14px; padding: 18px 22px; cursor: pointer; }
+    .lesson-head .l-num { width: 40px; height: 40px; border-radius: 11px; background: var(--brown-700); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: var(--font-head); font-weight: 700; color: var(--gold); flex-shrink: 0; }
+    .lesson-head b { font-family: var(--font-head); display: block; }
+    .lesson-head small { color: var(--ink-dim); font-size: 12px; }
+    .lesson-head .l-done { margin-left: auto; color: var(--green-bright); font-size: 17px; visibility: hidden; }
+    .lesson.done .l-done { visibility: visible; }
+    .lesson-body { display: none; padding: 0 26px 24px; color: var(--ink-soft); font-size: 15px; line-height: 1.75; }
+    .lesson.open .lesson-body { display: block; animation: slideIn .3s ease; }
+    .lesson-body h4 { color: var(--ink); margin: 18px 0 8px; font-size: 16px; }
+    .lesson-body ul { padding-left: 20px; }
+    .lesson-body li { margin-bottom: 6px; }
+    .lesson-body .kw { color: var(--gold); font-weight: 700; }
+    .mark-btn { margin-top: 14px; }
+    .quiz-q { background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-bottom: 14px; }
+    .quiz-q b { font-family: var(--font-head); display: block; margin-bottom: 10px; }
+    .quiz-opt { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all .15s; font-size: 14px; }
+    .quiz-opt:hover { border-color: var(--green); }
+    .quiz-opt.sel { border-color: var(--green); background: rgba(27,169,75,.1); }
+    .quiz-opt input { accent-color: var(--green); }
+    .candle-demo { background: #fff; border: 1px solid var(--line-soft); border-radius: 12px; padding: 18px; margin: 14px 0; box-shadow: var(--shadow-soft); }
+    .member-wall { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    @media (max-width: 980px) { .member-wall { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .member-wall { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <!-- ============ GATE: guests & non-members ============ -->
+  <div id="gateView" style="display:none">
+    <section class="gate-hero">
+      <div class="container">
+        <div class="lock-badge"><i class="fas fa-lock"></i></div>
+        <span class="eyebrow">Members Only</span>
+        <h1 style="font-size:clamp(28px,4.4vw,44px)">The Blockchain Bullhorn Community</h1>
+        <p class="muted" style="max-width:640px;margin:10px auto 0">A private learning community for disciplined traders. Membership is <b style="color:var(--gold)">by application only</b> — every request is reviewed manually by our team, so the herd stays focused, safe and scam-free.</p>
+      </div>
+    </section>
+
+    <section class="section-tight">
+      <div class="container">
+        <div class="grid grid-3 mb-3">
+          <div class="card card-hover reveal"><div class="feat-icon"><i class="fas fa-graduation-cap"></i></div><h3>The Trading Academy</h3><p>Step-by-step lessons: how to read candlestick charts, market structure, support &amp; resistance, indicators, order types, leverage and risk management — how the whole system works.</p></div>
+          <div class="card card-hover reveal reveal-d1"><div class="feat-icon"><i class="fas fa-people-group"></i></div><h3>A Disciplined Herd</h3><p>Moderated community standards: no shilling, no signal-selling, no fake accounts. Structure over hype — ask questions, share charts and grow with peers.</p></div>
+          <div class="card card-hover reveal reveal-d2"><div class="feat-icon"><i class="fas fa-shield-halved"></i></div><h3>Vetted &amp; Verified</h3><p>Applications are manually approved by the admin team. Onboarding includes a short quiz on risk basics so every member starts with the right mindset.</p></div>
+        </div>
+
+        <!-- onboarding / application -->
+        <div class="apply-wrap card" style="padding:34px" id="applyCard">
+          <div id="applyStage"></div>
+        </div>
+
+        <div class="grid grid-4 mt-3">
+          <div class="card stat-tile reveal"><b><span data-count="125" data-suffix="K+">0</span></b><span>TikTok Community</span></div>
+          <div class="card stat-tile reveal reveal-d1"><b id="memberCount">—</b><span>Approved Members</span></div>
+          <div class="card stat-tile reveal reveal-d2"><b>9</b><span>Academy Lessons</span></div>
+          <div class="card stat-tile reveal reveal-d3"><b>Weekly</b><span>Live Sessions 7–8PM EST</span></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ MEMBER VIEW ============ -->
+  <div id="memberView" style="display:none">
+    <section class="page-hero" style="padding-bottom:26px">
+      <div class="container">
+        <span class="badge badge-green mb-1"><i class="fas fa-check"></i> APPROVED MEMBER</span>
+        <h1 style="font-size:clamp(26px,4vw,40px)">Welcome to the Herd 🐂</h1>
+        <p>The Trading Academy — learn how the whole system works, from reading your first candle to managing risk like a professional.</p>
+      </div>
+    </section>
+
+    <section class="section-tight">
+      <div class="container">
+        <div class="flex-between mb-2">
+          <h2 style="font-size:24px"><i class="fas fa-graduation-cap" style="color:var(--gold)"></i> The Trading Academy</h2>
+          <div class="kpi"><i class="fas fa-book-open"></i> Progress: <b id="academyProgress">0%</b></div>
+        </div>
+        <div id="lessons"></div>
+
+        <!-- live sessions -->
+        <div class="card mt-3" style="background:linear-gradient(120deg,rgba(0,71,194,.16),rgba(63,20,12,.4))">
+          <div class="flex-between">
+            <div>
+              <h3><i class="fas fa-tower-broadcast" style="color:var(--sky)"></i> Weekly Live Sessions</h3>
+              <p class="muted mt-1">Calvin goes live on TikTok every week between <b>7PM–8PM EST</b> — market breakdowns, Q&amp;A and mindset lessons. Bring your questions from the lessons above.</p>
+            </div>
+            <a class="btn btn-primary" href="https://www.tiktok.com/@blockchainbullhorn" target="_blank" rel="noopener" title="TikTok — @blockchainbullhorn"><i class="fab fa-tiktok"></i> Watch Live</a>
+          </div>
+        </div>
+
+        <!-- member wall -->
+        <div class="mt-3">
+          <h2 style="font-size:24px" class="mb-2"><i class="fas fa-users" style="color:var(--gold)"></i> Community Team</h2>
+          <div class="member-wall" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+            <div class="card member-card"><img class="face" src="/assets/img/community/founder.jpg" alt="Calvin Hill"><h4>Calvin Hill</h4><div class="role">Founder &amp; Head Coach</div><p>Live weekly on TikTok. Creator of the Super Simple Crypto System &amp; CMF Engine.</p></div>
+            <div class="card member-card" style="padding:22px;text-align:left">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                <svg width="27" height="27" viewBox="0 0 27 27" style="flex-shrink:0"><path fill="#00b67a" d="M12.9 1.6l3 6.1 6.7 1-4.9 4.7 1.2 6.7-6-3.1-6 3.1 1.2-6.7L3.2 8.7l6.7-1z"/></svg>
+                <b class="font-head" style="font-size:15px">Trustpilot</b>
+              </div>
+              <span style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+              <div class="font-head" style="font-size:14px;margin-top:6px"><b>Excellent</b> · 4.7 / 5 · 312 reviews</div>
+              <p class="muted small mt-1">Verified students and traders across the Blockchain Bullhorn ecosystem.</p>
+              <a href="https://www.trustpilot.com" target="_blank" rel="noopener" class="btn btn-outline btn-sm mt-2">Read all reviews</a>
+            </div>
+            <div class="card member-card" style="padding:22px;text-align:left">
+              <span style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+              <b class="font-head" style="display:block;margin-top:8px">"Finally, honest crypto education"</b>
+              <p class="small mt-1" style="color:var(--ink-soft)">"The only course where the guy actually trades what he teaches. Paid for itself in two weeks of disciplined demo trading."</p>
+              <div class="muted small font-head mt-1">Marcus T. · <span style="color:#00b67a">✔ Verified</span></div>
+            </div>
+            <div class="card member-card" style="padding:22px;text-align:left">
+              <span style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+              <b class="font-head" style="display:block;margin-top:8px">"The CMF Engine changed everything"</b>
+              <p class="small mt-1" style="color:var(--ink-soft)">"Risk management explained better than anywhere else. Withdrawal hit my wallet the same day it was approved."</p>
+              <div class="muted small font-head mt-1">Adebayo O. · <span style="color:#00b67a">✔ Verified</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- next steps -->
+        <div class="grid grid-3 mt-3">
+          <a class="card card-hover text-center" href="/trade" style="display:block"><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-chart-line"></i></div><h3>Practice in the Terminal</h3><p class="muted">Apply the lessons with $10,000 demo funds and live market prices.</p></a>
+          <a class="card card-hover text-center" href="/copy-trading" style="display:block"><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-users-rectangle"></i></div><h3>Copy Trading</h3><p class="muted">Mirror vetted leaders trade-by-trade while you learn.</p></a>
+          <a class="card card-hover text-center" href="/mentorship" style="display:block"><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-crown"></i></div><h3>Elite Mentorship</h3><p class="muted">Ready for 1-on-1 work with Calvin? Apply for the Elite Mentorship.</p></a>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script>
+    /* ---------------- Academy curriculum ---------------- */
+    const LESSONS = [
+      { t: 'How This Trading System Works', m: '6 min', body: `
+        <p>Every market on this platform — <span class="kw">crypto, stocks, commodities (RWA) and indices</span> — trades through the same engine. Here is the full picture of what happens when you press Buy:</p>
+        <h4>The lifecycle of a trade</h4>
+        <ul>
+          <li><b>1 · Live price feed</b> — prices stream in from CoinGecko (crypto) and Yahoo Finance (stocks/commodities/indices) and refresh continuously.</li>
+          <li><b>2 · Order</b> — you choose an asset, direction (Buy/Long or Sell/Short), amount in USD, leverage, and optional Take-Profit / Stop-Loss.</li>
+          <li><b>3 · Margin</b> — with leverage, you only lock a fraction of the position value (margin = amount ÷ leverage). The rest is effectively borrowed exposure.</li>
+          <li><b>4 · Fees &amp; spread</b> — a 0.1% taker fee applies per fill, plus a small spread between bid and ask.</li>
+          <li><b>5 · Position management</b> — your open position marks to market on every price update. Unrealized P/L moves live.</li>
+          <li><b>6 · Exit</b> — close manually, or automatically via TP/SL. If losses reach ~90% of margin, the position is <b>liquidated</b>.</li>
+        </ul>
+        <h4>Demo vs Live</h4>
+        <p>The <span class="kw">DEMO</span> book uses $10,000 of practice money — reset anytime. The <span class="kw">LIVE</span> book requires completed KYC and real deposits. Both use the same live prices, so practice translates.</p>` },
+      { t: 'How to Read a Candlestick Chart', m: '8 min', body: `
+        <p>Each <span class="kw">candle</span> summarizes four prices for one time bucket — the <b>O</b>pen, <b>H</b>igh, <b>L</b>ow and <b>C</b>lose (OHLC).</p>
+        <div class="candle-demo">
+          <svg viewBox="0 0 420 190" width="100%" style="max-width:520px">
+            <line x1="70" y1="18" x2="70" y2="165" stroke="#1ba94b" stroke-width="2"/>
+            <rect x="55" y="60" width="30" height="80" fill="#1ba94b" rx="2"/>
+            <line x1="190" y1="10" x2="190" y2="172" stroke="#ff5268" stroke-width="2"/>
+            <rect x="175" y="45" width="30" height="90" fill="#ff5268" rx="2"/>
+            <text x="110" y="30" fill="#97836f" font-size="11" font-family="Quattrocento Sans">High</text>
+            <line x1="75" y1="25" x2="185" y2="25" stroke="#97836f" stroke-dasharray="3 4" stroke-width="1"/>
+            <text x="235" y="15" fill="#3f140c" font-size="12" font-family="Quattrocento Sans" font-weight="bold">BULLISH (green): close &gt; open</text>
+            <text x="235" y="52" fill="#3f140c" font-size="12" font-family="Quattrocento Sans" font-weight="bold">BEARISH (red): close &lt; open</text>
+            <text x="235" y="92" fill="#97836f" font-size="11" font-family="Quattrocento Sans">Thin line = High→Low range (wicks)</text>
+            <text x="235" y="112" fill="#97836f" font-size="11" font-family="Quattrocento Sans">Thick body = Open→Close</text>
+            <text x="10" y="185" fill="#97836f" font-size="11" font-family="Quattrocento Sans">Time →</text>
+          </svg>
+        </div>
+        <ul>
+          <li><b>Long green candles</b> = strong buying pressure; <b>long red</b> = strong selling.</li>
+          <li><b>Small bodies + long wicks</b> = indecision — the market is fighting over price.</li>
+          <li><b>A close near the high</b> of the range shows buyers finished in control.</li>
+        </ul>
+        <p>Switch the chart timeframe (1D → 1W → 1M → 3M → 1Y) in the terminal to see how candles aggregate: each candle covers more time, smoothing out noise. Volume bars under the chart confirm conviction — big move + big volume is more trustworthy than big move + thin volume.</p>` },
+      { t: 'Market Structure: Trends, Support & Resistance', m: '7 min', body: `
+        <h4>Trends</h4>
+        <p>Markets move in <span class="kw">higher highs &amp; higher lows</span> (uptrend), lower highs &amp; lower lows (downtrend), or ranges (sideways). Trade WITH structure — "the trend is your friend" is cliché because it's true.</p>
+        <h4>Support &amp; Resistance</h4>
+        <ul>
+          <li><b>Support</b> — a price zone where demand repeatedly steps in and price bounces up.</li>
+          <li><b>Resistance</b> — a zone where supply repeatedly caps the price.</li>
+        </ul>
+        <p>Draw these zones on the areas price <i>reacted</i> to before — not single-price lines. When resistance breaks convincingly, it often flips into support (and vice versa).</p>
+        <h4>Break of Structure</h4>
+        <p>When price makes a new higher high in a downtrend, structure is shifting. These moments — not the middle of a range — are where the highest-probability setups live.</p>` },
+      { t: 'Order Types: Market & Limit', m: '5 min', body: `
+        <ul>
+          <li><b>Market order</b> — fills immediately at the current price (plus small spread). Use when speed matters more than exact price.</li>
+          <li><b>Limit order</b> — rests on the book until price crosses your level. Buy limits fill at or below your price; sell limits at or above. Use for precise entries — e.g. buying at support.</li>
+        </ul>
+        <p>On this platform, open limit orders sit in the <b>Open Orders</b> tab and fill automatically when the live price crosses your level — even while you're offline.</p>` },
+      { t: 'Leverage & Margin — Respect the Tool', m: '7 min', body: `
+        <p>Leverage multiplies both gains AND losses. With <span class="kw">10× leverage</span>, a 10% adverse move wipes out your entire margin — that's liquidation.</p>
+        <div class="candle-demo"><b class="font-head">Liquidation math (approximate):</b><p class="mt-1" style="font-family:var(--font-head)">Liquidation ≈ Entry × (1 − 0.9 ÷ Leverage) for longs<br>Margin = Order size ÷ Leverage</p></div>
+        <ul>
+          <li>Keep leverage <b>low (1–3×)</b> while learning. Survival first, compounding second.</li>
+          <li>Your <b>Take-Profit and Stop-Loss</b> are enforced by the engine automatically — use them on every leveraged trade.</li>
+          <li>Different assets allow different maximum leverage (crypto up to 20×, stocks 5×, indices 5×, gold 10×).</li>
+        </ul>` },
+      { t: 'Risk Management — The Real Edge', m: '8 min', body: `
+        <p>Calvin's core rule set, straight from the Super Simple Crypto System:</p>
+        <ul>
+          <li><b>Risk 1–2% per trade.</b> Size = (Account × Risk %) ÷ distance to stop-loss. If your stop is 5% away and you risk 1% of a $10,000 account, that's a $2,000 position — not a $10,000 one.</li>
+          <li><b>Know your invalidation before entry.</b> If you can't say where the trade is wrong, you don't have a trade.</li>
+          <li><b>Cap total exposure.</b> All open margins shouldn't exceed ~20–30% of your account.</li>
+          <li><b>Drawdown discipline.</b> After 3 consecutive losses, stop for the day. Review, don't revenge-trade.</li>
+          <li><b>Compounding.</b> The CMF engine exists for this: a sequence of small, managed wins beats one moonshot.</li>
+        </ul>` },
+      { t: 'Trading Psychology & Discipline', m: '6 min', body: `
+        <p>The chart is 20% of the game — the other 80% happens between your ears.</p>
+        <ul>
+          <li><b>FOMO</b> — chasing green candles is buying someone else's exit liquidity.</li>
+          <li><b>Revenge trading</b> — doubling up to "win it back" is how accounts die.</li>
+          <li><b>Journaling</b> — log every trade: setup, entry, exit, emotion. Patterns in your behavior are as important as chart patterns.</li>
+          <li><b>Patience is a position.</b> Knowing when NOT to trade is a skill the market pays for.</li>
+        </ul>
+        <p>Elite Mentorship exists because most traders don't need more information — they need help <i>applying</i> what they already know.</p>` },
+      { t: 'Asset Classes: Crypto, Stocks, RWA & Indices', m: '6 min', body: `
+        <ul>
+          <li><b>Crypto</b> — 24/7 markets, high volatility. BTC &amp; ETH lead; altcoins follow with more risk.</li>
+          <li><b>Stocks</b> — company shares (Apple, NVIDIA, Tesla…). Markets open weekdays 9:30–4 ET; outside those hours prices hold steady at the last close.</li>
+          <li><b>RWA / Commodities</b> — gold, silver, platinum, palladium, copper, oil (WTI &amp; Brent), natural gas, plus tokenized gold (PAXG, XAUT). Classic inflation hedges.</li>
+          <li><b>Indices</b> — S&amp;P 500, Nasdaq 100, Dow 30, Russell 2000. One trade, whole-market exposure.</li>
+        </ul>
+        <p>Diversify across classes: when crypto chops sideways, metals or indices may trend.</p>` },
+      { t: 'Spotting Scams & Staying Safe', m: '5 min', body: `
+        <p>The community rules exist because this space is full of predators:</p>
+        <ul>
+          <li><b>Calvin never DMs first</b> — no Telegram, no WhatsApp, no Discord, no "assistants".</li>
+          <li>Anyone promising <b>guaranteed returns</b> is lying. Full stop.</li>
+          <li>Never share your password, seed phrase or KYC documents with anyone.</li>
+          <li>Fake accounts never go live. Real Calvin is live weekly on TikTok.</li>
+          <li>Report suspicious accounts to the platform and warn the herd.</li>
+        </ul>
+        <p>Read the full <a href="/avoid-scams">Fraud Alert page</a> — verifying official accounts protects your capital.</p>` }
+    ];
+
+    /* ---------------- Onboarding quiz ---------------- */
+    const QUIZ = [
+      { q: 'What does a green candlestick mean?', opts: ['The price closed higher than it opened', 'The price closed lower than it opened', 'There were more buyers than sellers in volume', 'The market is closed'], a: 0 },
+      { q: 'You risk 1% of a $10,000 account and your stop-loss is 5% below entry. How large should the position be?', opts: ['$1,000', '$500', '$2,000', '$10,000'], a: 2 },
+      { q: 'With 10× leverage, roughly how big an adverse move liquidates your position?', opts: ['50%', '5%', '10%', '100%'], a: 2 },
+      { q: 'Which of these is a SCAM red flag?', opts: ['A trader going live weekly on TikTok', 'Someone DMing you "guaranteed profits"', 'A platform requiring KYC for withdrawals', 'A stop-loss on every trade'], a: 1 },
+      { q: 'What is "support" on a chart?', opts: ['A price zone where demand repeatedly lifts price', 'The exchange customer service', 'A tax on profits', 'The lowest price ever traded'], a: 0 }
+    ];
+
+    const answers = new Array(QUIZ.length).fill(null);
+
+    document.addEventListener('bb:ready', async () => {
+      const r = await BB.api('/api/community/status', { silent: true });
+      const status = r.status || 'guest';
+      $('#memberCount').textContent = (r.memberCount || 0).toLocaleString();
+
+      const meR = await BB.api('/api/auth/me', { silent: true });
+      const meStatus = meR.ok && meR.user ? meR.user.communityStatus : 'guest';
+
+      if (status === 'approved' || meStatus === 'approved') return renderMember();
+      renderGate(status, meStatus);
+    });
+
+    function renderGate(status, meStatus) {
+      $('#gateView').style.display = 'block';
+      const stage = $('#applyStage');
+      if (!BB.user) {
+        stage.innerHTML = `
+          <div class="text-center" style="padding:22px 8px">
+            <h3 style="font-size:24px">Want in? Two steps:</h3>
+            <p class="muted mt-1 mb-2">1 · Create your free account (includes $10,000 demo funds).<br>2 · Apply for community membership &amp; pass the onboarding quiz.</p>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+              <a class="btn btn-gold btn-lg" href="/signup"><i class="fas fa-user-plus"></i> Create Free Account</a>
+              <a class="btn btn-outline btn-lg" href="/login"><i class="fas fa-right-to-bracket"></i> I Already Have One</a>
+            </div>
+          </div>`;
+        return;
+      }
+      if (status === 'pending' || meStatus === 'pending') {
+        stage.innerHTML = `
+          <div class="text-center" style="padding:26px 8px">
+            <i class="fas fa-hourglass-half" style="font-size:38px;color:var(--gold);margin-bottom:16px"></i>
+            <h3 style="font-size:23px">Application Under Review</h3>
+            <p class="muted mt-1">Thanks for applying! Our admin team reviews every membership request manually — most are decided within 24 hours. This page unlocks automatically once you're approved.</p>
+            <div class="alert alert-info" style="display:block;max-width:460px;margin:18px auto 0"><i class="fas fa-circle-info"></i> While you wait: the <a href="/trade">trading terminal</a> and <a href="/markets">live markets</a> are already open to you — start practicing with demo funds.</div>
+          </div>`;
+        return;
+      }
+      // none or rejected → application flow
+      stage.innerHTML = `
+        <div id="appStepIntro">
+          ${status === 'rejected' ? `<div class="alert alert-error" style="display:block"><i class="fas fa-triangle-exclamation"></i> Your previous application was declined${r2reason()}. You can reapply below.</div>` : ''}
+          <h3 style="font-size:23px">Apply for Membership</h3>
+          <p class="muted mt-1 mb-2">Tell us where you are and where you want to go, pass the risk-basics quiz, and accept the community rules. Our admin team reviews manually.</p>
+          <div class="field"><label>Your trading experience so far</label>
+            <select class="input" id="appExp">
+              <option value="complete-beginner">Complete beginner — learning to read charts</option>
+              <option value="some-experience">Some experience — traded a few times</option>
+              <option value="regular">Regular — I trade actively</option>
+              <option value="experienced">Experienced — focused on refining my system</option>
+            </select></div>
+          <div class="field"><label>What do you want from this community?</label>
+            <textarea class="input" id="appGoals" rows="3" placeholder="e.g. Learn to read charts, stop over-leveraging, build a disciplined system…"></textarea></div>
+          <button class="btn btn-primary" id="toQuizBtn">Continue to Onboarding Quiz <i class="fas fa-arrow-right"></i></button>
+        </div>
+        <div id="appStepQuiz" style="display:none">
+          <h3 style="font-size:23px">Onboarding Quiz — Risk Basics</h3>
+          <p class="muted mt-1 mb-2">Score at least <b>4 / 5</b> to submit your application. All answers are in the academy preview above — and you'll get the full lessons once inside.</p>
+          <div id="quizBox"></div>
+          <label class="checkline mb-2"><input type="checkbox" id="appRules">
+            <span>I accept the <b>community rules</b> (structure over hype, no signal-selling, no shilling, respect the herd) and the <a href="/legal?p=disclaimer" target="_blank">Risk Disclosure</a>.</span></label>
+          <button class="btn btn-gold btn-lg" id="submitAppBtn"><i class="fas fa-paper-plane"></i> Submit Application for Review</button>
+        </div>`;
+      function r2reason() { return ''; }
+
+      $('#toQuizBtn').addEventListener('click', () => {
+        $('#appStepIntro').style.display = 'none';
+        $('#appStepQuiz').style.display = 'block';
+        renderQuiz();
+        window.scrollTo({ top: $('#applyCard').offsetTop - 90, behavior: 'smooth' });
+      });
+
+      function renderQuiz() {
+        $('#quizBox').innerHTML = QUIZ.map((q, i) => `
+          <div class="quiz-q"><b>${i + 1}. ${q.q}</b>
+            ${q.opts.map((o, j) => `<label class="quiz-opt"><input type="radio" name="q${i}" value="${j}"> ${o}</label>`).join('')}
+          </div>`).join('');
+        for (let i = 0; i < QUIZ.length; i++) {
+          $$(`input[name="q${i}"]`).forEach(inp => inp.addEventListener('change', () => { answers[i] = +inp.value; }));
+        }
+      }
+
+      $('#submitAppBtn').addEventListener('click', async () => {
+        const score = answers.reduce((s, a, i) => s + (a === QUIZ[i].a ? 1 : 0), 0);
+        if (answers.some(a => a === null)) return BB.toast('Please answer all 5 quiz questions.', 'error');
+        if (!$('#appRules').checked) return BB.toast('Please accept the community rules to continue.', 'error');
+        const btn = $('#submitAppBtn'); btn.disabled = true;
+        const r = await BB.api('/api/community/apply', {
+          method: 'POST',
+          body: { experience: $('#appExp').value, goals: $('#appGoals').value, quizScore: score, rulesAccepted: true }
+        });
+        btn.disabled = false;
+        if (r.ok) {
+          stage.innerHTML = `<div class="text-center" style="padding:26px 8px">
+            <i class="fas fa-hourglass-half" style="font-size:38px;color:var(--gold);margin-bottom:16px"></i>
+            <h3 style="font-size:23px">Application Submitted${score}/5 🎯</h3>
+            <p class="muted mt-1">${r.message}</p></div>`;
+        } else BB.toast(r.error, 'error');
+      });
+    }
+
+    function renderMember() {
+      $('#memberView').style.display = 'block';
+      const done = new Set(JSON.parse(localStorage.getItem('bb_lessons') || '[]'));
+      const box = $('#lessons');
+      box.innerHTML = LESSONS.map((l, i) => `
+        <div class="lesson ${done.has(i) ? 'done' : ''}" data-i="${i}">
+          <div class="lesson-head">
+            <div class="l-num">${i + 1}</div>
+            <div><b>${l.t}</b><small>${l.m} · ${l.done ? '' : ''}lesson</small></div>
+            <i class="fas fa-circle-check l-done"></i>
+            <i class="fas fa-chevron-down" style="margin-left:8px;color:var(--ink-dim)"></i>
+          </div>
+          <div class="lesson-body">${l.body}
+            <button class="btn btn-green btn-sm mark-btn" data-mark="${i}"><i class="fas fa-check"></i> Mark lesson complete</button>
+          </div>
+        </div>`).join('');
+      $$('.lesson-head').forEach(h => h.addEventListener('click', e => {
+        if (e.target.closest('.mark-btn')) return;
+        const les = h.closest('.lesson');
+        $$('.lesson').forEach(x => { if (x !== les) x.classList.remove('open'); });
+        les.classList.toggle('open');
+      }));
+      $$('[data-mark]').forEach(b => b.addEventListener('click', () => {
+        const i = +b.dataset.mark;
+        done.add(i);
+        localStorage.setItem('bb_lessons', JSON.stringify([...done]));
+        b.closest('.lesson').classList.add('done');
+        b.innerHTML = '<i class="fas fa-check-double"></i> Completed';
+        b.disabled = true;
+        updateProgress();
+        BB.toast('Lesson complete! 🎓', 'success');
+      }));
+      // open first incomplete
+      const first = LESSONS.findIndex((_, i) => !done.has(i));
+      if (first >= 0) $(`.lesson[data-i="${first}"]`).classList.add('open');
+      function updateProgress() {
+        $('#academyProgress').textContent = Math.round(done.size / LESSONS.length * 100) + '%';
+      }
+      updateProgress();
+    }
+  </script>
+</body>
+</html>

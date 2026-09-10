@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — The Blockchain Bullhorn</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <style>
+    .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .bal-card { position: relative; overflow: hidden; }
+    .bal-card .bc-label { font-family: var(--font-head); font-size: 11.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-dim); display: flex; align-items: center; gap: 7px; }
+    .bal-card .bc-value { font-family: var(--font-head); font-size: 26px; font-weight: 700; margin: 9px 0 4px; }
+    .bal-card .bc-sub { font-size: 12.5px; color: var(--ink-soft); font-family: var(--font-head); }
+    .qa-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+    .qa { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 10px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink-soft); font-family: var(--font-head); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all .18s; text-align: center; }
+    .qa:hover { border-color: var(--green); color: var(--ink); transform: translateY(-3px); box-shadow: var(--shadow-soft); }
+    .qa i { font-size: 18px; color: var(--green-deep); }
+    .kyc-track { display: flex; align-items: center; margin-top: 16px; }
+    .kyc-step { flex: 1; text-align: center; position: relative; }
+    .kyc-step .kdot { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-soft); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; margin: 0 auto 7px; color: var(--ink-dim); font-size: 13px; z-index: 2; position: relative; }
+    .kyc-step.done .kdot { background: var(--green); border-color: var(--green); color: #fff; }
+    .kyc-step.current .kdot { background: var(--green); border-color: var(--green); color: #fff; animation: pulse 1.8s infinite; }
+    .kyc-step span { font-size: 11px; font-family: var(--font-head); color: var(--ink-dim); text-transform: uppercase; letter-spacing: .5px; }
+    .kyc-step::before { content: ""; position: absolute; top: 17px; left: -50%; width: 100%; height: 2px; background: var(--line); }
+    .kyc-step:first-child::before { display: none; }
+    .kyc-step.done::before { background: var(--green); }
+    .acct-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .acct-chip { background: #fff; box-shadow: var(--shadow-soft); border: 1px solid var(--line); border-radius: 20px; padding: 6px 14px; font-family: var(--font-head); font-size: 12.5px; color: var(--ink-soft); display: inline-flex; gap: 7px; align-items: center; }
+    .acct-chip i { color: var(--green-deep); }
+    @media (max-width: 1080px) { .dash-grid { grid-template-columns: 1fr 1fr; } .qa-row { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px) { .dash-grid { grid-template-columns: 1fr; } .qa-row { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <section class="section-tight">
+    <div class="container-wide">
+      <div class="flex-between mb-2">
+        <div>
+          <h1 style="font-size:clamp(24px,3vw,32px)" id="welcomeTitle">Dashboard</h1>
+          <p class="muted" id="welcomeSub">Loading your account…</p>
+          <div class="acct-row mt-1" id="acctChips"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a href="/funding" class="btn btn-green"><i class="fas fa-wallet"></i> Deposit</a>
+          <a href="/trade" class="btn btn-gold"><i class="fas fa-chart-line"></i> Trade</a>
+        </div>
+      </div>
+
+      <!-- KYC status -->
+      <div class="card mb-2" id="kycCard"></div>
+
+      <!-- balances -->
+      <div class="dash-grid mb-2" id="balCards">
+        <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
+        <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
+        <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
+        <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
+      </div>
+
+      <!-- quick actions -->
+      <div class="qa-row mb-2">
+        <a class="qa" href="/funding"><i class="fas fa-arrow-down"></i> Deposit Crypto</a>
+        <a class="qa" href="/funding"><i class="fas fa-arrow-up"></i> Withdraw</a>
+        <a class="qa" href="/kyc"><i class="fas fa-id-card"></i> Verify Identity</a>
+        <a class="qa" href="/copy-trading"><i class="fas fa-users-rectangle"></i> Copy Trading</a>
+        <a class="qa" href="/community"><i class="fas fa-graduation-cap"></i> Academy</a>
+        <a class="qa" href="/markets"><i class="fas fa-chart-column"></i> Markets</a>
+      </div>
+
+      <!-- pro tools: alerts + XP -->
+      <div class="grid grid-2 mb-2">
+        <div class="card">
+          <div class="flex-between mb-2">
+            <b class="font-head" style="font-size:16px"><i class="fas fa-bell" style="color:var(--gold)"></i> Price Alerts</b>
+            <span class="badge badge-gold" id="alCount">0</span>
+          </div>
+          <div id="alList" style="max-height:210px;overflow-y:auto"><span class="skeleton" style="width:100%;height:60px"></span></div>
+          <div class="form-row mt-2" style="align-items:end">
+            <div class="field" style="margin:0">
+              <label>Asset</label>
+              <select class="input" id="alAsset"></select>
+            </div>
+            <div class="field" style="margin:0">
+              <label>When price is</label>
+              <div style="display:flex;gap:8px">
+                <select class="input" id="alDir" style="width:96px"><option value="above">Above</option><option value="below">Below</option></select>
+                <input class="input" id="alPrice" type="number" step="any" min="0" placeholder="Target $">
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-green btn-sm btn-block mt-1" id="alAdd"><i class="fas fa-plus"></i> Set Alert</button>
+        </div>
+        <div class="card">
+          <div class="flex-between mb-2">
+            <b class="font-head" style="font-size:16px"><i class="fas fa-medal" style="color:var(--gold)"></i> Level <span id="xpLevel">1</span> Trader</b>
+            <span class="badge badge-green" id="xpTotal">0 XP</span>
+          </div>
+          <div class="pw-meter" style="height:9px"><i id="xpBar" style="width:0%;background:var(--green)"></i></div>
+          <div class="muted small mt-1" id="xpNext"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px" id="badgeWall"></div>
+        </div>
+      </div>
+
+      <!-- gamification: contest + referrals -->
+      <div class="grid grid-2 mb-2">
+        <div class="card">
+          <div class="flex-between mb-2">
+            <b class="font-head" style="font-size:16px"><i class="fas fa-trophy" style="color:var(--gold)"></i> Weekly Demo Contest</b>
+            <a href="/trade" class="btn btn-outline btn-sm">Enter</a>
+          </div>
+          <div class="muted small mb-2" id="contestMeta"></div>
+          <div id="contestBoard"><span class="skeleton" style="width:100%;height:80px"></span></div>
+        </div>
+        <div class="card">
+          <div class="flex-between mb-2">
+            <b class="font-head" style="font-size:16px"><i class="fas fa-user-plus" style="color:var(--gold)"></i> Invite &amp; Earn XP</b>
+            <span class="badge badge-blue" id="refTotal">0 invited</span>
+          </div>
+          <p class="muted small mb-1">Share your link — you earn <b>100 XP</b> per trader who signs up.</p>
+          <div class="addr-box mb-1"><span id="refLink" style="flex:1"></span>
+            <button id="refCopy" title="Copy link"><i class="fas fa-copy"></i></button></div>
+          <div id="refList"></div>
+        </div>
+      </div>
+
+      <!-- performance -->
+      <div class="grid grid-2 mb-2">
+        <div class="card">
+          <div class="flex-between mb-2">
+            <b class="font-head" style="font-size:16px"><i class="fas fa-chart-area" style="color:var(--gold)"></i> Realized P/L — <span id="perfMode">DEMO</span></b>
+            <div class="tab-bar" style="margin:0" id="perfTabs">
+              <button class="tab-btn active" data-m="demo" style="padding:5px 12px">Demo</button>
+              <button class="tab-btn" data-m="live" style="padding:5px 12px">Live</button>
+            </div>
+          </div>
+          <canvas id="plChart" style="width:100%;height:190px"></canvas>
+          <div class="grid grid-4 mt-2" style="gap:10px" id="perfStats"></div>
+        </div>
+        <div class="card">
+          <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-chart-pie" style="color:var(--gold)"></i> Allocation — <span id="donutMode">DEMO</span></b></div>
+          <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
+            <canvas id="donut" width="180" height="180" style="max-width:180px"></canvas>
+            <div style="flex:1;min-width:190px" id="donutLegend"><span class="skeleton" style="width:100%;height:70px"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- positions & orders -->
+      <div class="card mb-2">
+        <div class="flex-between mb-2">
+          <b class="font-head" style="font-size:16px"><i class="fas fa-layer-group" style="color:var(--gold)"></i> Open Positions (<span id="cntPos">0</span>)</b>
+          <div class="tab-bar" style="margin:0" id="posTabs">
+            <button class="tab-btn active" data-m="demo" style="padding:5px 12px">Demo</button>
+            <button class="tab-btn" data-m="live" style="padding:5px 12px">Live</button>
+          </div>
+        </div>
+        <div id="positionsBox"></div>
+      </div>
+
+      <div class="grid grid-2">
+        <!-- copy allocations -->
+        <div class="card">
+          <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-users-rectangle" style="color:var(--gold)"></i> Copy Trading</b><a href="/copy-trading" class="btn btn-outline btn-sm">Browse Leaders</a></div>
+          <div id="dashCopy"><span class="skeleton" style="width:100%;height:60px"></span></div>
+        </div>
+        <!-- recent activity -->
+        <div class="card">
+          <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-receipt" style="color:var(--gold)"></i> Recent Activity</b><a href="/funding" class="btn btn-outline btn-sm">All</a></div>
+          <div id="dashTx"><span class="skeleton" style="width:100%;height:60px"></span></div>
+        </div>
+      </div>
+
+      <!-- trade history -->
+      <div class="card mt-2">
+        <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-clock-rotate-left" style="color:var(--gold)"></i> Trade History</b></div>
+        <div id="historyBox"></div>
+      </div>
+
+      <!-- security -->
+      <div class="grid grid-2 mt-2">
+        <div class="card">
+          <div class="flex-between mb-2">
+            <b class="font-head" style="font-size:16px"><i class="fas fa-shield-halved" style="color:var(--gold)"></i> Two-Factor Authentication</b>
+            <span id="twofaState"></span>
+          </div>
+          <div id="twofaBox"></div>
+        </div>
+        <div class="card">
+          <div class="flex-between mb-2">
+            <b class="font-head" style="font-size:16px"><i class="fas fa-clock" style="color:var(--gold)"></i> Login History</b>
+            <a href="/avoid-scams" class="btn btn-outline btn-sm">Fraud Alert</a>
+          </div>
+          <div class="table-wrap" style="box-shadow:none"><table class="dt" style="min-width:0">
+            <thead><tr><th>When</th><th>Device</th><th>IP</th></tr></thead>
+            <tbody id="loginRows"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/qrcode.js"></script>
+  <script>
+    document.addEventListener('bb:ready', async () => {
+      if (!BB.user) { location.href = '/login?next=' + encodeURIComponent('/dashboard'); return; }
+      let posMode = 'demo', perfMode = 'demo';
+      let assetMap = {};   // assetId -> asset (for logos)
+
+      $('#welcomeTitle').textContent = `Welcome, ${BB.user.name ? BB.user.name.split(' ')[0] : 'trader'} 🐂`;
+      $('#welcomeSub').textContent = `Member since ${new Date(BB.user.joinedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
+      $('#acctChips').innerHTML = `
+        <span class="acct-chip"><i class="fas fa-envelope"></i> ${BB.esc(BB.user.email)}</span>
+        <span class="acct-chip"><i class="fas fa-id-card"></i> KYC: ${BB.user.kycStatus.replace('_', ' ')}</span>
+        <span class="acct-chip"><i class="fas fa-users"></i> Community: ${BB.user.communityStatus === 'approved' ? 'Member ✅' : BB.user.communityStatus === 'pending' ? 'In review' : 'Not applied'}</span>
+        <span class="acct-chip"><i class="fas fa-gift"></i> Referral: ${BB.esc(BB.user.referralCode)}</span>`;
+
+      // ----- KYC card -----
+      const kycStatus = BB.user.kycStatus;
+      const kycCard = $('#kycCard');
+      function kycTrack(stage) {
+        const steps = [['Create Account', 1], ['Submit Documents', 2], ['Admin Review', 3], ['Verified', 4]];
+        return `<div class="kyc-track">${steps.map(([lbl, n]) => `
+          <div class="kyc-step ${n < stage || (n === 4 && stage === 4) ? 'done' : n === stage ? 'current' : ''}">
+            <div class="kdot">${n < stage || (n === 4 && stage === 4) ? '<i class="fas fa-check"></i>' : n}</div><span>${lbl}</span>
+          </div>`).join('')}</div>`;
+      }
+      if (kycStatus === 'approved') {
+        kycCard.innerHTML = `<div class="flex-between">
+          <div><span class="badge badge-green"><i class="fas fa-check"></i> KYC VERIFIED</span>
+          <h3 style="margin-top:10px">You're fully verified ✅</h3>
+          <p class="muted small">Live trading and withdrawals are unlocked.</p></div>
+          <a href="/trade" class="btn btn-green"><i class="fas fa-bolt"></i> Trade Live</a></div>${kycTrack(4)}`;
+      } else if (kycStatus === 'pending') {
+        kycCard.innerHTML = `<div class="flex-between">
+          <div><span class="badge badge-gold"><i class="fas fa-hourglass-half"></i> KYC UNDER REVIEW</span>
+          <h3 style="margin-top:10px">Our compliance team is verifying your documents</h3>
+          <p class="muted small">Manual review usually completes within 24 hours.</p></div>
+          <a href="/kyc" class="btn btn-outline">View Submission</a></div>${kycTrack(3)}`;
+      } else if (kycStatus === 'rejected') {
+        kycCard.innerHTML = `<div class="flex-between">
+          <div><span class="badge badge-red"><i class="fas fa-triangle-exclamation"></i> KYC REJECTED</span>
+          <h3 style="margin-top:10px">We couldn't verify your documents</h3>
+          <p class="muted small">Reason: ${BB.esc(BB.user.kycReason || 'Documents unclear')}. Please resubmit with clearer photos.</p></div>
+          <a href="/kyc" class="btn btn-gold"><i class="fas fa-rotate"></i> Resubmit</a></div>${kycTrack(2)}`;
+      } else {
+        kycCard.innerHTML = `<div class="flex-between">
+          <div><span class="badge badge-gray"><i class="fas fa-id-card"></i> KYC NOT SUBMITTED</span>
+          <h3 style="margin-top:10px">Unlock live trading &amp; withdrawals</h3>
+          <p class="muted small">Manual verification — reviewed by our team within 24 hours.</p></div>
+          <a href="/kyc" class="btn btn-gold"><i class="fas fa-id-card"></i> Start Verification</a></div>${kycTrack(1)}`;
+      }
+
+      // ----- main refresh -----
+      async function refresh() {
+        const mkR = await BB.api('/api/markets', { silent: true });
+        if (mkR.assets) mkR.assets.forEach(a => assetMap[a.id] = a);
+        const meR = await BB.api('/api/auth/me', { silent: true });
+        if (!meR.ok) return;
+        const live = meR.live, demo = meR.demo;
+        const cards = [
+          { label: 'Live Equity', icon: 'fa-bolt', value: live.equity, sub: `${BB.fmtUSD(live.free)} free · ${BB.fmtUSD(live.marginUsed)} margin · ${BB.fmtUSD(live.inCopy || 0)} copying`, cls: 'var(--green-bright)' },
+          { label: 'Live Unrealized P/L', icon: 'fa-arrow-trend-up', value: live.unrealized, sub: 'across open live positions', cls: live.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' },
+          { label: 'Demo Equity', icon: 'fa-flask', value: demo.equity, sub: `${BB.fmtUSD(demo.free)} free · ${BB.fmtUSD(demo.marginUsed)} margin · ${BB.fmtUSD(demo.inCopy || 0)} copying`, cls: 'var(--sky)' },
+          { label: 'Demo Unrealized P/L', icon: 'fa-arrow-trend-up', value: demo.unrealized, sub: 'practice account', cls: demo.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' }
+        ];
+        $('#balCards').innerHTML = cards.map(c => `
+          <div class="card bal-card">
+            <div class="bc-label"><i class="fas ${c.icon}"></i> ${c.label}</div>
+            <div class="bc-value" style="color:${c.cls}">${BB.fmtUSD(c.value)}</div>
+            <div class="bc-sub">${c.sub}</div>
+          </div>`).join('');
+
+        await Promise.all([renderBook(), renderPerf(), renderCopy(), renderTx()]);
+      }
+
+      async function renderBook() {
+        // read mode cookie
+        posMode = document.cookie.includes('bb_mode=live') ? 'live' : 'demo';
+        $$('#posTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.m === posMode));
+        document.cookie = 'bb_mode=' + posMode + '; path=/; max-age=31536000; samesite=lax';
+        const st = await BB.api('/api/trading/state', { silent: true });
+        if (!st.ok) return;
+        const ps = st.positions || [];
+        $('#cntPos').textContent = ps.length;
+        if (!ps.length) {
+          $('#positionsBox').innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i>No open positions in this mode. <a href="/trade">Place your first order →</a></div>';
+          drawDonut([{ label: 'Free USD', value: st.equity.free, color: '#d3a877' }]);
+        } else {
+          $('#positionsBox').innerHTML = `<div class="table-wrap"><table class="dt"><thead><tr>
+            <th>Asset</th><th>Side</th><th>Size</th><th>Entry</th><th>Mark</th><th>Liq. price</th><th>Margin</th><th>P/L</th><th></th></tr></thead><tbody>
+            ${ps.map(p => `<tr>
+              <td><div class="asset-cell">${assetIcon(p.assetId, p.symbol)}<div><b>${BB.esc(p.symbol)}</b><span>${BB.esc(p.name.slice(0, 18))}</span></div></div></td>
+              <td><span class="badge ${p.side === 'buy' ? 'badge-green' : 'badge-red'}">${p.side === 'buy' ? 'LONG' : 'SHORT'} ${p.leverage}×</span></td>
+              <td class="num">$${(p.qty * p.entry).toFixed(0)}</td>
+              <td class="num">$${BB.fmtPrice(p.entry)}</td>
+              <td class="num">$${BB.fmtPrice(p.currentPrice)}</td>
+              <td class="num muted">$${BB.fmtPrice(p.liquidationPrice)}</td>
+              <td class="num">$${p.margin.toFixed(2)}</td>
+              <td class="num" style="font-weight:700"><span class="${p.pnl >= 0 ? 'up' : 'down'}">${p.pnl >= 0 ? '+' : ''}${BB.fmtUSD(p.pnl)} (${p.pnlPct >= 0 ? '+' : ''}${p.pnlPct.toFixed(1)}%)</span></td>
+              <td><button class="btn btn-danger btn-sm" data-close="${p.id}">Close</button></td></tr>`).join('')}
+          </tbody></table></div>`;
+          $$('[data-close]').forEach(b => b.addEventListener('click', async () => {
+            const r = await BB.api('/api/trading/close', { method: 'POST', body: { positionId: b.dataset.close } });
+            if (r.ok) { BB.toast(`Closed — P/L ${r.pnl >= 0 ? '+' : ''}${BB.fmtUSD(r.pnl)}`, r.pnl >= 0 ? 'success' : 'error'); refresh(); }
+            else BB.toast(r.error, 'error');
+          }));
+          const alloc = ps.map(p => ({ label: p.symbol, value: p.margin + p.pnl, color: null }));
+          if (st.equity.free > 0) alloc.push({ label: 'Free USD', value: st.equity.free, color: '#d3a877' });
+          if ((st.equity.inCopy || 0) > 0) alloc.push({ label: 'Copy allocations', value: st.equity.inCopy, color: '#2E91FC' });
+          drawDonut(alloc);
+        }
+        // history
+        const trades = st.recentTrades || [];
+        $('#historyBox').innerHTML = trades.length ? `<div class="table-wrap"><table class="dt"><thead><tr>
+          <th>Time</th><th>Asset</th><th>Action</th><th>Side</th><th>Price</th><th>Size</th><th>Fee</th><th>Realized P/L</th></tr></thead><tbody>
+          ${trades.slice(0, 12).map(t => `<tr><td class="muted small">${BB.fmtTime(t.at)}</td>
+            <td><b class="font-head">${BB.esc(t.symbol)}</b></td>
+            <td><span class="badge ${t.action === 'open' ? 'badge-blue' : t.liquidated ? 'badge-red' : 'badge-gold'}">${t.action === 'open' ? 'OPENED' : t.liquidated ? 'LIQUIDATED' : (t.reason || 'CLOSED').toUpperCase()}</span></td>
+            <td class="${t.side === 'buy' ? 'up' : 'down'}">${t.side.toUpperCase()}</td>
+            <td class="num">$${BB.fmtPrice(t.price)}</td><td class="num">${BB.fmtUSD(t.notional)}</td>
+            <td class="num muted">${BB.fmtUSD(t.fee)}</td>
+            <td class="num" style="font-weight:700">${t.action === 'open' ? '—' : `<span class="${t.pnl >= 0 ? 'up' : 'down'}">${t.pnl >= 0 ? '+' : ''}${BB.fmtUSD(t.pnl)}</span>`}</td></tr>`).join('')}
+        </tbody></table></div>` : '<div class="empty-state"><i class="fas fa-clock-rotate-left"></i>No trades yet in this mode.</div>';
+      }
+
+      function assetIcon(assetId, symbol) {
+        const a = assetMap[assetId];
+        return BB.assetIcon(a || { logo: null, icon: null, symbol }, 28);
+      }
+
+      async function renderPerf() {
+        $$('#perfTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.m === perfMode));
+        // use trade history from /api/trading/state (mode cookie), but we need both modes — compute from trades endpoint per mode:
+        // simplest: fetch state twice by toggling cookie is ugly; use /api/copy/my + trades via state for current cookie mode only for live/demo perf we fetch with mode param
+        const st = await BB.api(`/api/trading/state?mode=${perfMode}`, { silent: true });
+        $('#perfMode').textContent = perfMode.toUpperCase();
+        $('#donutMode').textContent = posMode.toUpperCase();
+        const trades = (st.recentTrades || []).filter(t => t.action === 'close');
+        const wins = trades.filter(t => t.pnl > 0).length;
+        const realized = trades.reduce((s, t) => s + (t.pnl || 0), 0);
+        const best = trades.length ? Math.max(...trades.map(t => t.pnl)) : 0;
+        const worst = trades.length ? Math.min(...trades.map(t => t.pnl)) : 0;
+        $('#perfStats').innerHTML = `
+          <div class="stat-tile" style="padding:14px 8px"><b style="font-size:21px" class="${realized >= 0 ? 'up' : 'down'}">${realized >= 0 ? '+' : ''}${BB.fmtUSD(realized)}</b><span style="font-size:11px">Realized P/L</span></div>
+          <div class="stat-tile" style="padding:14px 8px"><b style="font-size:21px">${trades.length ? (wins / trades.length * 100).toFixed(0) : 0}%</b><span style="font-size:11px">Win rate (${trades.length} trades)</span></div>
+          <div class="stat-tile" style="padding:14px 8px"><b style="font-size:21px" class="up">+${BB.fmtUSD(best)}</b><span style="font-size:11px">Best trade</span></div>
+          <div class="stat-tile" style="padding:14px 8px"><b style="font-size:21px" class="down">${BB.fmtUSD(worst)}</b><span style="font-size:11px">Worst trade</span></div>`;
+        drawPL(trades.slice().reverse());
+      }
+
+      function drawPL(trades) {
+        const cv = $('#plChart'), ctx = cv.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const w = cv.clientWidth || cv.parentElement.clientWidth, h = 190;
+        cv.width = w * dpr; cv.height = h * dpr;
+        cv.style.height = h + 'px';
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        if (!trades.length) {
+          ctx.fillStyle = '#97836f'; ctx.font = '13px "Quattrocento Sans"'; ctx.textAlign = 'center';
+          ctx.fillText('No closed trades yet — your cumulative P/L curve appears here', w / 2, h / 2);
+          return;
+        }
+        let acc = 0;
+        const pts = [0, ...trades.map(t => (acc += t.pnl || 0))];
+        const min = Math.min(0, ...pts), max = Math.max(0, ...pts);
+        const span = (max - min) || 1;
+        const padL = 8, padR = 52, padT = 12, padB = 18;
+        const X = i => padL + (i / (pts.length - 1 || 1)) * (w - padL - padR);
+        const Y = v => padT + (1 - (v - min) / span) * (h - padT - padB);
+        // grid + labels
+        ctx.font = '10.5px "Quattrocento Sans"'; ctx.textAlign = 'left';
+        for (let i = 0; i <= 4; i++) {
+          const v = min + span * i / 4, y = Y(v);
+          ctx.strokeStyle = 'rgba(211,168,119,0.08)';
+          ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+          ctx.fillStyle = '#97836f';
+          ctx.fillText('$' + Math.round(v), w - padR + 6, y + 3);
+        }
+        // zero line
+        if (min < 0 && max > 0) {
+          ctx.strokeStyle = 'rgba(211,168,119,0.3)'; ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.moveTo(padL, Y(0)); ctx.lineTo(w - padR, Y(0)); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        const last = pts[pts.length - 1];
+        const color = last >= 0 ? '#1ba94b' : '#e0324b';
+        // area
+        const grad = ctx.createLinearGradient(0, padT, 0, h - padB);
+        grad.addColorStop(0, color + '55'); grad.addColorStop(1, color + '00');
+        ctx.beginPath();
+        ctx.moveTo(X(0), Y(pts[0]));
+        pts.forEach((p, i) => ctx.lineTo(X(i), Y(p)));
+        ctx.lineTo(X(pts.length - 1), h - padB); ctx.lineTo(X(0), h - padB); ctx.closePath();
+        ctx.fillStyle = grad; ctx.fill();
+        // line
+        ctx.beginPath();
+        pts.forEach((p, i) => i ? ctx.lineTo(X(i), Y(p)) : ctx.moveTo(X(i), Y(p)));
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+        // end dot
+        ctx.beginPath(); ctx.arc(X(pts.length - 1), Y(last), 4, 0, Math.PI * 2);
+        ctx.fillStyle = color; ctx.fill();
+      }
+
+      function drawDonut(items) {
+        const cv = $('#donut'), ctx = cv.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        cv.width = 180 * dpr; cv.height = 180 * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, 180, 180);
+        const total = items.reduce((s, i) => s + Math.max(0, i.value), 0) || 1;
+        const palette = ['#1ba94b', '#0047c2', '#d3a877', '#e0324b', '#9d7bea', '#f0b429', '#4cc9f0', '#e8709a'];
+        let angle = -Math.PI / 2;
+        items.forEach((it, i) => {
+          const frac = Math.max(0, it.value) / total;
+          if (frac <= 0) return;
+          ctx.beginPath();
+          ctx.moveTo(90, 90);
+          ctx.arc(90, 90, 80, angle, angle + frac * Math.PI * 2);
+          ctx.closePath();
+          ctx.fillStyle = it.color || palette[i % palette.length];
+          it._color = ctx.fillStyle;
+          ctx.fill();
+          angle += frac * Math.PI * 2;
+        });
+        ctx.beginPath(); ctx.arc(90, 90, 56, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill();
+        ctx.fillStyle = '#3f140c'; ctx.font = 'bold 15px "Quattrocento Sans"'; ctx.textAlign = 'center';
+        ctx.fillText('$' + Math.round(total).toLocaleString(), 90, 88);
+        ctx.fillStyle = '#6e5a4c'; ctx.font = '10px "Quattrocento Sans"';
+        ctx.fillText('TOTAL', 90, 104);
+        $('#donutLegend').innerHTML = items.map(it => `
+          <div class="flex-between" style="padding:5px 0;border-bottom:1px dashed var(--line)">
+            <span style="display:flex;align-items:center;gap:8px;font-family:var(--font-head);font-size:13px"><i style="width:10px;height:10px;border-radius:3px;background:${it._color || '#d3a877'};display:inline-block"></i>${BB.esc(it.label)}</span>
+            <b class="num" style="font-size:13px">${BB.fmtUSD(it.value)}</b>
+          </div>`).join('');
+      }
+
+      async function renderCopy() {
+        const r = await BB.api('/api/copy/my', { silent: true });
+        if (!r.ok) return;
+        if (!r.allocations.length) {
+          $('#dashCopy').innerHTML = `<div class="empty-state" style="padding:26px 12px"><i class="fas fa-users-rectangle"></i>Not copying anyone yet.<br><a href="/copy-trading" class="btn btn-gold btn-sm mt-1">Browse Leaders</a></div>`;
+          return;
+        }
+        $('#dashCopy').innerHTML = r.allocations.map(a => `
+          <div class="flex-between" style="padding:10px 0;border-bottom:1px dashed var(--line)">
+            <div><b class="font-head">${BB.esc(a.leaderName)}</b> <span class="badge ${a.mode === 'live' ? 'badge-green' : 'badge-blue'}">${a.mode.toUpperCase()}</span>
+              <div class="muted small">${BB.esc(a.leaderTitle)} · ${a.mirrors.length} open mirror(s)</div></div>
+            <div style="text-align:right"><b class="num font-head">${BB.fmtUSD(a.total)}</b>
+              <div class="small ${a.pnl >= 0 ? 'up' : 'down'}" style="font-weight:700;font-family:var(--font-head)">${a.pnl >= 0 ? '+' : ''}${BB.fmtUSD(a.pnl)}</div></div>
+          </div>`).join('') + '<a href="/copy-trading" class="btn btn-outline btn-sm btn-block mt-1">Manage Copies</a>';
+      }
+
+      async function renderTx() {
+        const fR = await BB.api('/api/funding/summary', { silent: true });
+        if (!fR.ok) return;
+        const txs = (fR.transactions || []).slice(0, 6);
+        $('#dashTx').innerHTML = txs.length ? txs.map(t => `
+          <div class="mini-quote" style="border-bottom:1px dashed var(--line);padding:10px 2px">
+            <i class="fas ${t.type === 'deposit' ? 'fa-arrow-down' : t.type === 'withdraw' ? 'fa-arrow-up' : t.type === 'adjust' ? 'fa-sliders' : 'fa-flask'}" style="color:var(--gold);width:26px;text-align:center"></i>
+            <div><div class="mq-name">${t.type.replace('_', ' ').toUpperCase()} ${t.asset}</div><div class="mq-sub">${BB.fmtTime(t.createdAt)}</div></div>
+            <div class="mq-right"><div class="mq-price">${t.type === 'withdraw' ? '−' : '+'}${BB.fmtUSD(t.amountUsd)}</div>
+            <div class="mq-chg"><span class="badge ${t.status === 'completed' ? 'badge-green' : t.status === 'pending' ? 'badge-gold' : 'badge-red'}">${t.status.toUpperCase()}</span></div></div>
+          </div>`).join('') : '<div class="empty-state"><i class="fas fa-receipt"></i>No activity yet — make your first deposit or start with demo.</div>';
+      }
+
+      $$('#posTabs .tab-btn').forEach(b => b.addEventListener('click', async () => {
+        posMode = b.dataset.m;
+        document.cookie = 'bb_mode=' + posMode + '; path=/; max-age=31536000; samesite=lax';
+        $$('#posTabs .tab-btn').forEach(x => x.classList.toggle('active', x === b));
+        await renderBook();
+      }));
+      $$('#perfTabs .tab-btn').forEach(b => b.addEventListener('click', () => { perfMode = b.dataset.m; renderPerf(); }));
+
+      refresh();
+      setInterval(refresh, 15000);
+
+      /* ================= PRICE ALERTS ================= */
+      let seenTriggered = new Set();
+      async function loadAlerts() {
+        const r = await BB.api('/api/alerts', { silent: true });
+        if (!r.alerts) return;
+        const act = r.alerts.filter(a => a.status === 'active');
+        $('#alCount').textContent = act.length + ' active';
+        $('#alList').innerHTML = r.alerts.length ? r.alerts.slice(0, 12).map(a => `
+          <div class="mini-quote">
+            <i class="fas ${a.status === 'triggered' ? 'fa-bell' : 'fa-bell-slash'}" style="color:${a.status === 'triggered' ? 'var(--red)' : 'var(--ink-dim)'};width:22px;text-align:center"></i>
+            <div><div class="mq-name">${BB.esc(a.symbol)} ${a.dir === 'above' ? '≥' : '≤'} $${BB.fmtPrice(a.target)}</div>
+            <div class="mq-sub">${a.status === 'triggered' ? '⚡ Triggered ' + BB.timeAgo(a.triggeredAt) + ' @ $' + BB.fmtPrice(a.triggeredPrice) : 'Waiting · set ' + BB.timeAgo(a.createdAt)}</div></div>
+            <div class="mq-right">${a.status === 'triggered' ? '<a class="btn btn-green btn-sm" href="/trade?asset=' + a.assetId + '">Trade</a>' : ''}</div>
+            <button class="pw-eye" data-del="${a.id}" title="Delete"><i class="fas fa-trash"></i></button>
+          </div>`).join('') : '<div class="empty-state" style="padding:18px"><i class="fas fa-bell"></i>No alerts yet — get notified when price hits your level.</div>';
+        $$('#alList [data-del]').forEach(b => b.addEventListener('click', async () => {
+          await BB.api('/api/alerts/delete', { method: 'POST', body: { id: b.dataset.del } });
+          loadAlerts();
+        }));
+        // toast + browser notification for fresh triggers
+        for (const a of r.alerts) {
+          if (a.status === 'triggered' && !seenTriggered.has(a.id)) {
+            seenTriggered.add(a.id);
+            if (seenTriggered.size > r.alerts.length + 5) seenTriggered = new Set([...seenTriggered].slice(-10));
+            BB.toast(`⚡ ${a.symbol} ${a.dir} $${BB.fmtPrice(a.target)} — triggered @ $${BB.fmtPrice(a.triggeredPrice)}!`, 'success');
+            try { if (window.Notification && Notification.permission === 'granted') new Notification(`Blockchain Bullhorn — ${a.symbol} alert`, { body: `${a.symbol} is ${a.dir} $${BB.fmtPrice(a.target)} (now $${BB.fmtPrice(a.triggeredPrice)})`, icon: '/assets/img/app-icon.png' }); } catch (e) {}
+          }
+        }
+      }
+      async function buildAlertPicker() {
+        const r = await BB.api('/api/markets', { silent: true });
+        if (!r.assets) return;
+        $('#alAsset').innerHTML = r.assets.filter(a => a.price != null).map(a => `<option value="${a.id}">${BB.esc(a.symbol)} — ${BB.esc(a.name)}</option>`).join('');
+        $('#alAdd').addEventListener('click', async () => {
+          const price = parseFloat($('#alPrice').value);
+          if (!price || price <= 0) return BB.toast('Enter a target price', 'error');
+          const r2 = await BB.api('/api/alerts', { method: 'POST', body: { assetId: $('#alAsset').value, dir: $('#alDir').value, price } });
+          if (r2.ok) { $('#alPrice').value = ''; BB.toast(r2.message, 'success'); loadAlerts(); }
+          else BB.toast(r2.error, 'error');
+        });
+        $('#alAsset').addEventListener('change', () => {
+          const r3 = (BB._mkts || []).find(a => a.id === $('#alAsset').value);
+          if (r3) $('#alPrice').placeholder = 'Now $' + BB.fmtPrice(r3.price);
+        });
+      }
+      try { if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
+
+      /* ================= XP / BADGES ================= */
+      function renderXP() {
+        const me = BB._me; if (!me || !me.gamify) return;
+        const g = me.gamify;
+        $('#xpLevel').textContent = g.level;
+        $('#xpTotal').textContent = g.xp + ' XP';
+        $('#xpBar').style.width = Math.round(g.xpIntoLevel / g.xpForNext * 100) + '%';
+        $('#xpNext').textContent = `${g.xpIntoLevel} / ${g.xpForNext} XP to level ${g.level + 1}`;
+        $('#badgeWall').innerHTML = g.badges.length ? g.badges.map(b => `
+          <span class="badge badge-gold" title="${BB.esc(b.desc)}"><i class="fas ${b.icon}"></i> ${BB.esc(b.name)}</span>`).join('')
+          : '<span class="muted small">Earn badges: first trade, winning trade, 3-win streak, KYC verified, quiz pass and more.</span>';
+      }
+
+      /* ================= WEEKLY CONTEST ================= */
+      async function loadContest() {
+        const r = await BB.api('/api/contest', { silent: true });
+        if (!r.standings) return;
+        $('#contestMeta').textContent = r.enabled ? (r.prize || '') : 'Contest currently paused';
+        const rows = r.standings.slice(0, 6);
+        $('#contestBoard').innerHTML = rows.length ? `
+          <div style="display:grid;gap:8px">${rows.map(s => `
+            <div class="mini-quote" style="border-bottom:1px dashed var(--line)">
+              <b class="font-head" style="width:26px;color:${s.rank <= 3 ? 'var(--gold-deep)' : 'var(--ink-dim)'}">#${s.rank}</b>
+              <div class="avatar" style="width:30px;height:30px;font-size:12px;background:${s.avatarColor}">${BB.esc(s.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase())}</div>
+              <div><div class="mq-name">${BB.esc(s.name)}${s.userId === BB.user.id ? ' (you)' : ''}</div><div class="mq-sub">${s.trades} closed trades</div></div>
+              <div class="mq-right"><div class="mq-price ${s.roi >= 0 ? 'up' : 'down'}">${s.roi >= 0 ? '+' : ''}${s.roi}%</div><div class="mq-sub">${BB.fmtUSD(s.pnl)}</div></div>
+            </div>`).join('')}</div>
+          <p class="muted small mt-1">Demo ROI this week (Mon UTC) · min 3 closed trades · resets every Monday.</p>`
+          : '<div class="empty-state" style="padding:18px"><i class="fas fa-trophy"></i>No qualifying traders yet this week — be the first!</div>';
+      }
+
+      /* ================= REFERRALS ================= */
+      async function loadReferrals() {
+        const r = await BB.api('/api/referrals', { silent: true });
+        if (!r.code) return;
+        $('#refLink').textContent = location.origin + r.link;
+        $('#refTotal').textContent = r.total + ' invited';
+        $('#refCopy').addEventListener('click', () => {
+          navigator.clipboard.writeText(location.origin + r.link).then(() => BB.toast('Invite link copied!', 'success'));
+        });
+        $('#refList').innerHTML = r.referred.length ? r.referred.slice(0, 5).map(u => `
+          <div class="mini-quote"><i class="fas fa-user" style="color:var(--green-deep);width:22px;text-align:center"></i>
+            <div><div class="mq-name">${BB.esc(u.name)}</div><div class="mq-sub">joined ${BB.timeAgo(u.joinedAt)}</div></div>
+            <div class="mq-right"><span class="badge ${u.kycStatus === 'approved' ? 'badge-green' : 'badge-gray'}">${u.kycStatus === 'approved' ? 'Verified' : 'KYC ' + u.kycStatus.replace('_', ' ')}</span></div>
+          </div>`).join('') : '<div class="muted small">No referrals yet — share your link to build your herd.</div>';
+      }
+
+      /* ================= 2FA + LOGIN HISTORY ================= */
+      function renderTwofa(state) {
+        $('#twofaState').innerHTML = state
+          ? '<span class="badge badge-green"><i class="fas fa-check"></i> ENABLED</span>'
+          : '<span class="badge badge-gray">OFF</span>';
+        $('#twofaBox').innerHTML = state
+          ? `<p class="muted small mb-2">Your account requires an authenticator code at every login.</p>
+             <button class="btn btn-danger btn-sm" id="tfaOff"><i class="fas fa-unlock"></i> Disable 2FA</button>`
+          : `<p class="muted small mb-2">Protect your account with Google Authenticator, Authy or any TOTP app.</p>
+             <button class="btn btn-green btn-sm" id="tfaOn"><i class="fas fa-shield-halved"></i> Enable 2FA</button>`;
+        const on = $('#tfaOn'), off = $('#tfaOff');
+        if (on) on.addEventListener('click', startTwofaSetup);
+        if (off) off.addEventListener('click', async () => {
+          const bd = BB.modal('Disable Two-Factor Authentication', `
+            <div class="field"><label>Password</label><input class="input" type="password" id="tfaPw"></div>
+            <div class="field"><label>Authenticator code</label><input class="input" id="tfaCode" placeholder="6-digit code" maxlength="6"></div>
+            <button class="btn btn-danger btn-block" id="tfaGo">Disable 2FA</button>`);
+          $('#tfaGo', bd).addEventListener('click', async () => {
+            const r = await BB.api('/api/auth/2fa-disable', { method: 'POST', body: { password: $('#tfaPw', bd).value, code: $('#tfaCode', bd).value } });
+            if (r.ok) { bd.remove(); BB.toast('2FA disabled', 'success'); boot2(); } else BB.toast(r.error, 'error');
+          });
+        });
+      }
+      async function startTwofaSetup() {
+        const r = await BB.api('/api/auth/2fa-setup', { method: 'POST', body: {} });
+        if (!r.secret) return BB.toast(r.error || 'Could not start setup', 'error');
+        // QR for the otpauth URL
+        let qrSvg = '';
+        try {
+          const qr = qrcode(0, 'M'); qr.addData(r.otpauth); qr.make();
+          const cell = 3, count = qr.getModuleCount(), quiet = 2;
+          let rects = '';
+          for (let y = 0; y < count; y++) for (let x = 0; x < count; x++)
+            if (qr.isDark(y, x)) rects += `<rect x="${(x + quiet) * cell}" y="${(y + quiet) * cell}" width="${cell}" height="${cell}" fill="#140a06"/>`;
+          const dim = (count + quiet * 2) * cell;
+          qrSvg = `<svg width="172" height="172" viewBox="0 0 ${dim} ${dim}" style="background:#fff;border-radius:10px;padding:6px">${rects}</svg>`;
+        } catch (e) {}
+        const bd = BB.modal('Enable Two-Factor Authentication', `
+          <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+            <div style="text-align:center">${qrSvg}<div class="muted small mt-1">Scan with your<br>authenticator app</div></div>
+            <div style="flex:1;min-width:200px">
+              <p class="small" style="color:var(--ink-soft)">1. Scan the QR (or enter the key manually)<br>2. Enter the 6-digit code from the app</p>
+              <div class="addr-box mb-2" style="font-size:12px"><span>${r.secret}</span>
+                <button onclick="navigator.clipboard.writeText('${r.secret}').then(()=>BB.toast('Key copied','success'))"><i class="fas fa-copy"></i></button></div>
+              <div class="field"><label>Authenticator code</label><input class="input" id="tfaCode2" placeholder="123456" maxlength="6" inputmode="numeric"></div>
+              <button class="btn btn-green btn-block" id="tfaConfirm">Verify &amp; Enable</button>
+            </div>
+          </div>`);
+        $('#tfaConfirm', bd).addEventListener('click', async () => {
+          const r2 = await BB.api('/api/auth/2fa-enable', { method: 'POST', body: { code: $('#tfaCode2', bd).value } });
+          if (r2.ok) { bd.remove(); BB.toast('2FA enabled — your account is safer now 🔐', 'success'); boot2(); }
+          else BB.toast(r2.error, 'error');
+        });
+      }
+      async function loadLogins() {
+        const r = await BB.api('/api/auth/logins', { silent: true });
+        if (!r.logins) return;
+        $('#loginRows').innerHTML = r.logins.map(l => `
+          <tr><td class="small" style="white-space:normal">${BB.timeAgo(l.at)}</td>
+          <td class="small" style="white-space:normal;max-width:190px;overflow:hidden;text-overflow:ellipsis">${l.newDevice ? '<span class="badge badge-gold" style="margin-right:4px">NEW</span>' : ''}${BB.esc((l.ua || '').split(')')[0] + ')')}</td>
+          <td class="small">${BB.esc(l.ip || '—')}</td></tr>`).join('');
+      }
+      async function boot2() {
+        const me = await BB.api('/api/auth/me', { silent: true });
+        BB._me = me; renderXP(); renderTwofa(me.totpEnabled);
+      }
+
+      buildAlertPicker(); loadAlerts(); setInterval(loadAlerts, 20000);
+      loadContest(); setInterval(loadContest, 60000);
+      loadReferrals(); loadLogins(); boot2();
+    });
+  </script>
+</body>
+</html>

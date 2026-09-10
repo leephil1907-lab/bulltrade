@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Funding — Crypto Deposits &amp; Withdrawals — The Blockchain Bullhorn</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <style>
+    .fund-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; align-items: start; }
+    .method { display: flex; align-items: center; gap: 12px; border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 15px; cursor: pointer; transition: all .15s; margin-bottom: 10px; }
+    .method:hover { border-color: var(--green); }
+    .method.selected { border-color: var(--green); background: rgba(27,169,75,.08); }
+    .method img { width: 34px; height: 34px; }
+    .method b { font-family: var(--font-head); display: block; font-size: 14px; }
+    .method small { color: var(--ink-dim); font-size: 11.5px; }
+    .addr-box { display: flex; gap: 8px; align-items: center; background: var(--bg-soft); border: 1px dashed var(--line); border-radius: 10px; padding: 11px 13px; font-family: var(--font-head); font-size: 12.5px; word-break: break-all; }
+    .addr-box button { background: none; border: none; color: var(--green-deep); cursor: pointer; font-size: 14px; }
+    .dep-grid { display: grid; grid-template-columns: 1fr 168px; gap: 18px; align-items: start; }
+    .qr-panel { text-align: center; background: #fff; border-radius: 12px; padding: 12px; }
+    .qr-panel canvas, .qr-panel img { display: block; margin: 0 auto; image-rendering: pixelated; }
+    .qr-panel small { color: #7a5f43; font-family: var(--font-head); font-size: 10px; display: block; margin-top: 6px; word-break: break-all; }
+    @media (max-width: 720px) { .dep-grid { grid-template-columns: 1fr; } .fund-layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <section class="section-tight">
+    <div class="container-wide">
+      <div class="page-hero" style="padding-bottom:20px">
+        <div class="crumbs"><a href="/">Home</a> · <a href="/dashboard">Dashboard</a> · Funding</div>
+        <h1 style="font-size:clamp(24px,3.4vw,34px)">Funding</h1>
+        <p><i class="fas fa-coins" style="color:var(--gold)"></i> 100% crypto wallet funding — deposit and withdraw directly from your own wallet. No banks, no cards.</p>
+      </div>
+
+      <div class="dash-grid mb-2" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" id="fundBals">
+        <div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
+        <div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
+        <div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
+      </div>
+
+      <div class="fund-layout">
+        <div class="card">
+          <div class="tab-bar" id="fundTabs">
+            <button class="tab-btn active" data-ft="deposit" style="flex:1;text-align:center"><i class="fas fa-arrow-down"></i> Deposit</button>
+            <button class="tab-btn" data-ft="withdraw" style="flex:1;text-align:center"><i class="fas fa-arrow-up"></i> Withdraw</button>
+            <button class="tab-btn" data-ft="demo" style="flex:1;text-align:center"><i class="fas fa-flask"></i> Demo Top-Up</button>
+          </div>
+
+          <!-- ============ DEPOSIT ============ -->
+          <div id="paneDeposit">
+            <div class="alert alert-info" style="display:block"><i class="fas fa-circle-info"></i> Deposits are verified manually by our admin team — your live wallet is credited once the transaction is confirmed on-chain. Minimum <b>$50</b> value.</div>
+            <h4 class="font-head mb-1" style="font-size:15px">1 · Choose your deposit coin</h4>
+            <div id="methods"></div>
+            <div class="dep-grid mt-2">
+              <div>
+                <h4 class="font-head mb-1" style="font-size:15px">2 · Send to the deposit address</h4>
+                <div class="addr-box"><span id="addrText">—</span><button id="copyAddr" title="Copy address"><i class="fas fa-copy"></i></button></div>
+                <p class="muted small mt-1">⚠️ Send only <b id="assetName">USDT</b> on the displayed network. Sending other coins or the wrong network may result in permanent loss.</p>
+                <div class="addr-box mt-2" style="background:rgba(27,169,75,.07);border-style:solid;border-color:rgba(27,169,75,.35)" id="depGuide"></div>
+                <h4 class="font-head mb-1 mt-2" style="font-size:15px">3 · Confirm your deposit</h4>
+                <div class="form-row">
+                  <div class="field"><label>Amount sent (USD value)</label><input class="input num" id="depAmount" type="number" min="50" step="any" placeholder="e.g. 250"></div>
+                  <div class="field"><label>Transaction hash (TXID)</label><input class="input" id="depTxid" placeholder="0x… / bc1…"></div>
+                </div>
+                <div class="field">
+                  <label>Proof of payment — upload screenshot / receipt <span style="color:var(--red)">*</span></label>
+                  <div class="dropzone" id="proofZone">
+                    <i class="fas fa-image"></i>
+                    <b>Upload transaction screenshot</b>
+                    <small>JPG, PNG, WEBP or PDF · max 5MB — from your wallet app or exchange</small>
+                  </div>
+                  <input type="file" id="proofFile" accept="image/jpeg,image/png,image/webp,application/pdf" style="display:none">
+                  <div id="proofPrev"></div>
+                </div>
+                <button class="btn btn-green btn-block btn-lg" id="depBtn"><i class="fas fa-check"></i> Submit Deposit for Verification</button>
+                <p class="muted small mt-1"><i class="fas fa-shield-halved" style="color:var(--green-deep)"></i> Your TXID + proof go straight to our admin team for manual verification. Once approved, your live wallet is credited and you're notified.</p>
+              </div>
+              <div class="qr-panel">
+                <div id="qrBox"></div>
+                <small id="qrLabel">Scan to deposit</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ WITHDRAW ============ -->
+          <div id="paneWithdraw" style="display:none">
+            <div class="alert alert-error" id="wdKycLock" style="display:none"><i class="fas fa-lock"></i> Withdrawals require <a href="/kyc">KYC verification</a> — submit your ID for manual review to unlock.</div>
+            <div id="wdForm">
+              <h4 class="font-head mb-1" style="font-size:15px">1 · Select withdrawal coin</h4>
+              <div id="wdMethods"></div>
+              <h4 class="font-head mb-1 mt-2" style="font-size:15px">2 · Enter amount &amp; destination wallet</h4>
+              <div class="field">
+                <label>Amount (USD value)</label>
+                <input class="input num" id="wdAmount" type="number" step="any" placeholder="Min. $20">
+                <div class="hint" id="wdAvail">—</div>
+              </div>
+              <div class="field">
+                <label>Withdraw to — your wallet address</label>
+                <input class="input" id="wdAddress" placeholder="Paste destination wallet address">
+                <div class="hint"><i class="fas fa-shield-halved"></i> Double-check the address. Crypto withdrawals are irreversible once processed.</div>
+              </div>
+              <button class="btn btn-gold btn-block btn-lg" id="wdBtn"><i class="fas fa-paper-plane"></i> Request Withdrawal</button>
+              <p class="muted small mt-1">Requests are reviewed manually by our admin team and typically processed within 24 hours. Funds are held immediately when you submit.</p>
+            </div>
+          </div>
+
+          <!-- ============ DEMO ============ -->
+          <div id="paneDemo" style="display:none">
+            <div class="text-center" style="padding:16px 6px">
+              <i class="fas fa-flask" style="font-size:36px;color:var(--sky);margin-bottom:14px"></i>
+              <h3>Reset your demo balance to $10,000</h3>
+              <p class="muted small mt-1 mb-2">Practice funds running low? Top back up instantly and keep practicing the system — risk-free, as always.</p>
+              <button class="btn btn-primary btn-lg" id="topupBtn"><i class="fas fa-rotate"></i> Top Up Demo Account</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- history -->
+        <div class="card">
+          <b class="font-head" style="font-size:16px"><i class="fas fa-receipt" style="color:var(--gold)"></i> Transaction History</b>
+          <div class="mt-2" id="txList"><span class="skeleton" style="width:100%;height:120px"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/qrcode.js"></script>
+  <script>
+    document.addEventListener('bb:ready', async () => {
+      if (!BB.user) { location.href = '/login?next=' + encodeURIComponent('/funding'); return; }
+      let data = null, selAsset = 'USDT', selWdAsset = 'USDT';
+      const METHODS = [
+        { key: 'USDT', name: 'Tether USD', net: 'TRC-20 (Tron network)', img: '/assets/img/coins/tether.png', min: 10 },
+        { key: 'BTC', name: 'Bitcoin', net: 'Bitcoin network', img: '/assets/img/coins/bitcoin.png', min: 0.001 },
+        { key: 'ETH', name: 'Ethereum', net: 'ERC-20 (Ethereum network)', img: '/assets/img/coins/ethereum.png', min: 0.005 },
+        { key: 'SOL', name: 'Solana', net: 'Solana network', img: '/assets/img/coins/solana.png', min: 0.01 },
+        { key: 'BNB', name: 'BNB', net: 'BEP-20 (BNB Smart Chain)', img: '/assets/img/coins/binancecoin.png', min: 0.005 },
+        { key: 'XRP', name: 'XRP', net: 'XRP Ledger', img: '/assets/img/coins/ripple.png', min: 5 },
+        { key: 'LTC', name: 'Litecoin', net: 'Litecoin network', img: '/assets/img/coins/litecoin.png', min: 0.05 },
+        { key: 'DOGE', name: 'Dogecoin', net: 'Dogecoin network', img: '/assets/img/coins/dogecoin.png', min: 20 },
+        { key: 'TRX', name: 'Tron', net: 'Tron network', img: '/assets/img/coins/tron.png', min: 50 }
+      ];
+
+      function drawQR(text) {
+        const box = $('#qrBox');
+        try {
+          const qr = qrcode(0, 'M');
+          qr.addData(text);
+          qr.make();
+          const n = qr.getModuleCount();
+          const cell = 6, quiet = 2;
+          const size = (n + quiet * 2) * cell;
+          let svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+          svg += `<rect width="${size}" height="${size}" fill="#fff"/>`;
+          for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+            if (qr.isDark(y, x)) svg += `<rect x="${(x + quiet) * cell}" y="${(y + quiet) * cell}" width="${cell}" height="${cell}" fill="#140a06"/>`;
+          }
+          svg += '</svg>';
+          box.innerHTML = svg;
+        } catch (e) { box.innerHTML = '<div class="skeleton" style="width:120px;height:120px;margin:0 auto"></div>'; }
+      }
+
+      async function refresh() {
+        const r = await BB.api('/api/funding/summary', { silent: true });
+        if (!r.ok) return;
+        data = r;
+        $('#fundBals').innerHTML = `
+          <div class="card"><div class="bc-label" style="font-family:var(--font-head);font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-dim)"><i class="fas fa-bolt"></i> Live Free Balance</div>
+            <div class="bc-value" style="font-family:var(--font-head);font-size:26px;font-weight:700;margin:8px 0 3px;color:var(--green-bright)">${BB.fmtUSD(r.live.free)}</div>
+            <div style="font-size:12.5px;color:var(--ink-soft)" class="font-head">${BB.fmtUSD(r.live.marginUsed)} margin · ${BB.fmtUSD(r.live.inCopy || 0)} copying · equity ${BB.fmtUSD(r.live.equity)}</div></div>
+          <div class="card"><div class="bc-label" style="font-family:var(--font-head);font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-dim)"><i class="fas fa-flask"></i> Demo Free Balance</div>
+            <div class="bc-value" style="font-family:var(--font-head);font-size:26px;font-weight:700;margin:8px 0 3px;color:var(--sky)">${BB.fmtUSD(r.demo.free)}</div>
+            <div style="font-size:12.5px;color:var(--ink-soft)" class="font-head">practice account · instant top-up</div></div>
+          <div class="card"><div class="bc-label" style="font-family:var(--font-head);font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-dim)"><i class="fas fa-shield-halved"></i> KYC Status</div>
+            <div style="margin:10px 0 6px"><span class="kyc-pill ${r.kycStatus}">${r.kycStatus.replace('_', ' ').toUpperCase()}</span></div>
+            <div style="font-size:12.5px;color:var(--ink-soft)" class="font-head">${r.kycStatus === 'approved' ? 'withdrawals unlocked' : 'required for live trading &amp; withdrawals'}</div></div>`;
+
+        // deposit methods (coins without a configured address are marked unavailable)
+        const configured = k => !!String(data.addresses[k] || '').trim();
+        $('#methods').innerHTML = METHODS.map(m => `
+          <div class="method ${m.key === selAsset && configured(m.key) ? 'selected' : ''}" data-m="${m.key}" style="${configured(m.key) ? '' : 'opacity:.55'}">
+            <img src="${m.img}" alt="${m.key}"><div><b>${m.name} (${m.key})</b><small>${m.net}</small></div>
+            ${configured(m.key)
+              ? `<i class="fas fa-circle-check" style="margin-left:auto;color:${m.key === selAsset ? 'var(--gold)' : 'transparent'}"></i>`
+              : '<span class="badge badge-gray" style="margin-left:auto">Soon</span>'}
+          </div>`).join('');
+        if (!configured(selAsset)) selAsset = METHODS.map(m => m.key).find(configured) || 'USDT';
+        $$('#methods .method').forEach(el => el.addEventListener('click', () => {
+          if (!configured(el.dataset.m)) return BB.toast('This coin is not yet available for deposits — coming soon.', 'error');
+          selAsset = el.dataset.m;
+          $$('#methods .method').forEach(x => x.classList.remove('selected'));
+          el.classList.add('selected');
+          updateAddr();
+        }));
+
+        // withdraw methods (only coins with a configured address)
+        const wConfigured = k => !!String(data.addresses[k] || '').trim();
+        $('#wdMethods').innerHTML = METHODS.map(m => `
+          <div class="method ${m.key === selWdAsset && wConfigured(m.key) ? 'selected' : ''}" data-w="${m.key}" style="${wConfigured(m.key) ? '' : 'opacity:.55'}">
+            <img src="${m.img}" alt="${m.key}"><div><b>${m.name} (${m.key})</b><small>withdraw on ${m.net.replace(' (', ' · ').replace(')', '')}</small></div>
+            ${wConfigured(m.key)
+              ? `<i class="fas fa-circle-check" style="margin-left:auto;color:${m.key === selWdAsset ? 'var(--gold)' : 'transparent'}"></i>`
+              : '<span class="badge badge-gray" style="margin-left:auto">Soon</span>'}
+          </div>`).join('');
+        if (!wConfigured(selWdAsset)) selWdAsset = METHODS.map(m => m.key).find(wConfigured) || 'USDT';
+        $$('#wdMethods .method').forEach(el => el.addEventListener('click', () => {
+          if (!wConfigured(el.dataset.w)) return BB.toast('This coin is not yet available for withdrawals — coming soon.', 'error');
+          selWdAsset = el.dataset.w;
+          $$('#wdMethods .method').forEach(x => x.classList.remove('selected'));
+          el.classList.add('selected');
+        }));
+
+        $('#wdAvail').innerHTML = `Available for withdrawal: <b>$${(r.live.free || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</b> (live free balance)`;
+
+        // kyc lock
+        $('#wdKycLock').style.display = r.kycStatus === 'approved' ? 'none' : 'block';
+        $('#wdForm').style.opacity = r.kycStatus === 'approved' ? '1' : '.45';
+        $('#wdForm').style.pointerEvents = r.kycStatus === 'approved' ? 'auto' : 'none';
+
+        // tx list
+        $('#txList').innerHTML = r.transactions.length ? r.transactions.map(t => `
+          <div class="mini-quote" style="border-bottom:1px dashed var(--line);padding:11px 2px">
+            <i class="fas ${t.type === 'deposit' ? 'fa-arrow-down' : t.type === 'withdraw' ? 'fa-arrow-up' : t.type === 'adjust' ? 'fa-sliders' : 'fa-flask'}" style="color:var(--gold);width:26px;text-align:center"></i>
+            <div><div class="mq-name">${t.type.replace('_', ' ').toUpperCase()} · ${t.asset}</div>
+            <div class="mq-sub">${BB.fmtTime(t.createdAt)}${t.adminNote ? ' · ' + BB.esc(t.adminNote) : ''}</div></div>
+            <div class="mq-right"><div class="mq-price">${t.type === 'withdraw' ? '−' : '+'}${BB.fmtUSD(t.amountUsd)}</div>
+            <div><span class="badge ${t.status === 'completed' ? 'badge-green' : t.status === 'pending' ? 'badge-gold' : 'badge-red'}">${t.status.toUpperCase()}</span></div></div>
+          </div>`).join('') : '<div class="empty-state"><i class="fas fa-receipt"></i>No transactions yet.</div>';
+
+        updateAddr();
+      }
+
+      const DEP_INFO = {
+        USDT: { network: 'TRON (TRC-20)', min: 10, mins: '2–5 minutes', conf: '19 network confirmations', note: 'USDT on TRC-20 only. Do NOT send via ERC-20, BEP-20 or any other network.' },
+        BTC:  { network: 'Bitcoin (BTC)', min: 50, mins: '10–60 minutes', conf: '2 block confirmations', note: 'Bitcoin native network only. Do not send BCH or other forks.' },
+        ETH:  { network: 'Ethereum (ERC-20)', min: 20, mins: '2–15 minutes', conf: '12 block confirmations', note: 'ETH on ERC-20 only. Do NOT send via Arbitrum, Base or other L2 networks.' },
+        SOL:  { network: 'Solana (SOL)', min: 10, mins: '1–5 minutes', conf: '32 confirmations (finalized)', note: 'SOL on the Solana network only. Do not send SPL tokens to this address.' },
+        BNB:  { network: 'BNB Smart Chain (BEP-20)', min: 10, mins: '1–5 minutes', conf: '15 block confirmations', note: 'BNB on BEP-20 only. Do NOT send via ERC-20 or any other network.' },
+        XRP:  { network: 'XRP Ledger', min: 10, mins: '2–5 minutes', conf: 'ledger confirmations', note: 'XRP on the XRP Ledger only. Contact support before your first XRP deposit if a destination tag is required.' },
+        LTC:  { network: 'Litecoin (LTC)', min: 10, mins: '2–10 minutes', conf: '6 block confirmations', note: 'Litecoin native network only. Do not send via MWEB.' },
+        DOGE: { network: 'Dogecoin (DOGE)', min: 10, mins: '5–15 minutes', conf: '12 block confirmations', note: 'DOGE on the Dogecoin network only.' },
+        TRX:  { network: 'Tron (TRX)', min: 10, mins: '1–5 minutes', conf: '19 network confirmations', note: 'TRX native (TRC-10) on the Tron network only. Do not send TRC-20 tokens unless stated.' }
+      };
+      function updateAddr() {
+        const addr = data ? (data.addresses[selAsset] || '') : '';
+        const ready = !!addr.trim();
+        $('#addrText').textContent = ready ? addr : 'Not yet configured — contact support';
+        $('#assetName').textContent = selAsset;
+        $('#qrLabel').textContent = ready ? selAsset + ' deposit address' : 'QR unavailable';
+        if (ready) drawQR(addr); else $('#qrBox').innerHTML = '<i class="fas fa-hourglass-half" style="font-size:34px;color:var(--ink-dim);margin:28px auto"></i>';
+        const i = DEP_INFO[selAsset];
+        if (i) {
+          $('#depGuide').innerHTML = `
+            <div style="flex:1">
+              <b class="font-head" style="font-size:13px"><i class="fas fa-circle-info" style="color:var(--green-deep)"></i> ${selAsset} deposit instructions</b>
+              <div class="muted small" style="margin-top:5px;line-height:1.7">
+                Network: <b>${i.network}</b> · Min deposit: <b>$${i.min}</b> · Arrival: <b>${i.mins}</b> (${i.conf})<br>
+                <span style="color:var(--red)">⚠ ${i.note}</span>
+              </div>
+            </div>`;
+        }
+      }
+
+      $('#copyAddr').addEventListener('click', () => {
+        navigator.clipboard.writeText($('#addrText').textContent).then(() => BB.toast('Address copied to clipboard 📋', 'success'));
+      });
+
+      $$('#fundTabs .tab-btn').forEach(b => b.addEventListener('click', () => {
+        $$('#fundTabs .tab-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const t = b.dataset.ft;
+        $('#paneDeposit').style.display = t === 'deposit' ? 'block' : 'none';
+        $('#paneWithdraw').style.display = t === 'withdraw' ? 'block' : 'none';
+        $('#paneDemo').style.display = t === 'demo' ? 'block' : 'none';
+      }));
+
+      // ---- deposit proof upload ----
+      let proofData = null; // {mime, name, data}
+      $('#proofZone').addEventListener('click', () => $('#proofFile').click());
+      $('#proofZone').addEventListener('dragover', e => { e.preventDefault(); $('#proofZone').classList.add('drag'); });
+      $('#proofZone').addEventListener('dragleave', () => $('#proofZone').classList.remove('drag'));
+      $('#proofZone').addEventListener('drop', e => {
+        e.preventDefault(); $('#proofZone').classList.remove('drag');
+        if (e.dataTransfer.files[0]) readProof(e.dataTransfer.files[0]);
+      });
+      $('#proofFile').addEventListener('change', e => { if (e.target.files[0]) readProof(e.target.files[0]); });
+      function readProof(file) {
+        if (file.size > 5 * 1024 * 1024) return BB.toast('File must be under 5MB', 'error');
+        const okTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+        if (!okTypes.includes(file.type)) return BB.toast('Upload a JPG, PNG, WEBP image or PDF', 'error');
+        const fr = new FileReader();
+        fr.onload = () => {
+          proofData = { mime: file.type, name: file.name, data: String(fr.result).split(',')[1] || '' };
+          $('#proofPrev').innerHTML = `
+            <div class="doc-preview">
+              ${file.type === 'application/pdf' ? '<i class="fas fa-file-pdf" style="font-size:30px;color:var(--red)"></i>'
+                : `<img src="${fr.result}" alt="proof preview">`}
+              <div><div class="dp-name">${BB.esc(file.name)}</div><small>${(file.size / 1024).toFixed(0)} KB · ready to submit</small></div>
+              <button id="proofDel" title="Remove"><i class="fas fa-trash"></i></button>
+            </div>`;
+          $('#proofDel').addEventListener('click', () => { proofData = null; $('#proofPrev').innerHTML = ''; $('#proofFile').value = ''; });
+        };
+        fr.readAsDataURL(file);
+      }
+
+      $('#depBtn').addEventListener('click', async () => {
+        const btn = $('#depBtn'); btn.disabled = true;
+        if (!proofData) { btn.disabled = false; return BB.toast('Please upload your payment screenshot or receipt', 'error'); }
+        const r = await BB.api('/api/funding/deposit', {
+          method: 'POST',
+          body: { asset: selAsset, amountUsd: parseFloat($('#depAmount').value), txid: $('#depTxid').value.trim(), proof: proofData }
+        });
+        btn.disabled = false;
+        if (r.ok) {
+          BB.toast(r.message, 'success');
+          $('#depAmount').value = ''; $('#depTxid').value = '';
+          proofData = null; $('#proofPrev').innerHTML = ''; $('#proofFile').value = '';
+          refresh();
+        } else BB.toast(r.error, 'error');
+      });
+
+      $('#wdBtn').addEventListener('click', async () => {
+        const btn = $('#wdBtn'); btn.disabled = true;
+        const r = await BB.api('/api/funding/withdraw', {
+          method: 'POST',
+          body: { asset: selWdAsset, amountUsd: parseFloat($('#wdAmount').value), address: $('#wdAddress').value.trim() }
+        });
+        btn.disabled = false;
+        if (r.ok) { BB.toast(r.message, 'success'); $('#wdAmount').value = ''; $('#wdAddress').value = ''; refresh(); }
+        else BB.toast(r.error, 'error');
+      });
+
+      $('#topupBtn').addEventListener('click', async () => {
+        const r = await BB.api('/api/funding/demo-topup', { method: 'POST', body: {} });
+        if (r.ok) { BB.toast(r.message, 'success'); refresh(); } else BB.toast(r.error, 'error');
+      });
+
+      refresh();
+      setInterval(refresh, 20000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Legal &amp; Policies — The Blockchain Bullhorn</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <style>
+    .legal-layout { display: grid; grid-template-columns: 260px 1fr; gap: 26px; align-items: start; }
+    .legal-nav a { display: block; padding: 10px 14px; border-radius: 10px; color: var(--ink-soft); font-family: var(--font-head); font-size: 14px; font-weight: 700; border: 1px solid transparent; }
+    .legal-nav a:hover { color: var(--ink); background: rgba(27,169,75,.08); }
+    .legal-nav a.active { color: var(--green-deep); background: rgba(27,169,75,.12); border-color: rgba(27,169,75,.4); }
+    .legal-body h2 { font-size: 22px; margin: 26px 0 10px; }
+    .legal-body h2:first-child { margin-top: 0; }
+    .legal-body p, .legal-body li { color: var(--ink-soft); font-size: 14.5px; margin-bottom: 10px; }
+    .legal-body ul { padding-left: 22px; }
+    @media (max-width: 800px) { .legal-layout { grid-template-columns: 1fr; } .legal-nav { display: flex; flex-wrap: wrap; gap: 6px; } }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <section class="page-hero" style="padding-bottom:26px">
+    <div class="container">
+      <div class="crumbs"><a href="/">Home</a> · Legal &amp; Policies</div>
+      <h1>Legal &amp; Policies</h1>
+      <p>Policies governing the Blockchain Bullhorn platform, products and community.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container legal-layout">
+      <nav class="legal-nav card" id="legalNav" style="padding:12px">
+        <a href="?p=terms" data-p="terms">Terms &amp; Conditions</a>
+        <a href="?p=purchase" data-p="purchase">Fulfillment, Refund &amp; Purchase Policy</a>
+        <a href="?p=disclaimer" data-p="disclaimer">Disclaimer</a>
+        <a href="?p=affiliate" data-p="affiliate">Affiliate Disclaimer</a>
+        <a href="?p=gdpr" data-p="gdpr">GDPR Privacy Policy</a>
+        <a href="?p=cookie" data-p="cookie">Cookie Policy</a>
+        <a href="?p=coaching" data-p="coaching">Coaching Terms of Service</a>
+      </nav>
+      <div class="card legal-body" id="legalBody" style="padding:34px"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script>
+    const POLICIES = {
+      terms: { title: 'Terms & Conditions', updated: 'January 1st, 2026', html: `
+        <h2>1. General Overview</h2>
+        <p>Blockchain Bullhorn is a U.S.-based digital education platform providing instant-access cryptocurrency learning resources. Our products include downloadable ebooks, digital video courses, trading tools and access to demo/live trading features for educational practice. These Terms govern the relationship between you (the customer) and Blockchain Bullhorn — a Power of Publish Company.</p>
+        <h2>2. Products &amp; Services</h2>
+        <ul>
+          <li><b>The Crypto Cheat Guide</b> — downloadable PDF ebook containing strategies for portfolio building, risk protection and passive income. Immediate download at checkout; lifetime access.</li>
+          <li><b>Super Simple Crypto Course</b> — beginner-friendly video training. Available immediately inside your account after purchase and setup; 24/7 access indefinitely unless a refund is issued.</li>
+          <li><b>CMF Crypto Compounding Engine &amp; platform tools</b> — trade planning and simulation resources for educational use.</li>
+        </ul>
+        <h2>3. Payment Terms</h2>
+        <p>All prices are listed in U.S. Dollars (USD). Payments are collected in full at the time of purchase via secure checkout (Stripe / PayPal: Visa, Mastercard, American Express, Discover). We do not support split payments or invoicing.</p>
+        <h2>4. Refund Policy</h2>
+        <ul>
+          <li><b>The Crypto Cheat Guide:</b> 30-day money-back guarantee, no questions asked.</li>
+          <li><b>Super Simple Crypto Course:</b> refunds within 30 days if 25% or less of the course has been completed. Upon refund, all access is revoked.</li>
+        </ul>
+        <p>To request a refund, submit a written request via our <a href="/contact">contact channels</a>.</p>
+        <h2>5. Delivery &amp; Fulfillment</h2>
+        <p>All products are digitally delivered — no physical shipment is involved. Your account and purchases are on record forever.</p>
+        <h2>6. Trading Platform Terms</h2>
+        <p>The demo trading environment uses virtual funds for practice and carries no financial risk or value. The live trading features are provided for educational execution practice against live market data and are subject to KYC verification. Trading cryptocurrency and other assets involves substantial risk of loss; you are solely responsible for your decisions and outcomes.</p>
+        <h2>7. Account Security</h2>
+        <p>You are responsible for safeguarding your login credentials. We will never ask for your password. Accounts engaging in fraud or abuse may be suspended.</p>` },
+      purchase: { title: 'Fulfillment, Refund & Purchase Policy', updated: 'May 7th, 2026', html: `
+        <h2>What We Sell</h2>
+        <p>Blockchain Bullhorn offers digital crypto education products to help individuals confidently navigate the world of cryptocurrency:</p>
+        <ul>
+          <li><b>The Crypto Cheat Guide</b> — instantly downloadable PDF teaching how to protect and organize your crypto portfolio, build passive income strategies, avoid common pitfalls and 10 must-know crypto mistakes. (This guide does not teach charting, trends, or active trading.)</li>
+          <li><b>Super Simple Crypto</b> — self-paced digital video course: wallets, exchanges, market concepts, real-world tools, portfolio building.</li>
+        </ul>
+        <h2>Purchase Currency &amp; Payment Methods</h2>
+        <p>All products are priced and billed in USD. We accept major credit and debit cards (Visa, Mastercard, Discover, American Express) via Stripe and PayPal. Checkout pages are protected by AES-256-bit security encryption.</p>
+        <h2>Fulfillment &amp; Delivery</h2>
+        <p>All products are digitally fulfilled. The Crypto Cheat Guide is available for instant download upon checkout; Super Simple Crypto is available 24/7 inside your account dashboard. No physical shipping is involved. Access is indefinite unless revoked due to an approved refund.</p>
+        <h2>Refund &amp; Cancellation</h2>
+        <ul>
+          <li><b>The Crypto Cheat Guide:</b> 30-day money-back guarantee, no questions asked — email support@blockchainbullhorn.com.</li>
+          <li><b>Super Simple Crypto:</b> 30-day money-back guarantee if 10% or less of the course has been completed.</li>
+        </ul>
+        <h2>Questions?</h2>
+        <p>Email <a href="mailto:support@blockchainbullhorn.com">support@blockchainbullhorn.com</a> with your order details and we'll take care of you.</p>` },
+      disclaimer: { title: 'Disclaimer', updated: 'January 1st, 2026', html: `
+        <h2>No Financial or Investment Advice</h2>
+        <p>The information provided by Blockchain Bullhorn ("we," "us," or "our") on this website and any associated platforms is for educational and informational purposes only. It does not constitute financial, investment, legal, or professional advice. All content — including articles, ebooks, courses, spreadsheets, coaching services and the trading platform — is intended for general educational purposes. We do not provide investment recommendations or financial advisory services. Any reliance on the information provided is at your own risk. Consult a licensed financial professional before making investment decisions.</p>
+        <h2>No Guarantees &amp; Risk Acknowledgment</h2>
+        <p>Cryptocurrency markets are highly volatile and speculative. There are no guarantees of profitability or financial success, and past performance does not indicate future results. By using this website and engaging with our content, you acknowledge that you alone are responsible for any financial decisions you make.</p>
+        <h2>Limitation of Liability</h2>
+        <p>Blockchain Bullhorn, its affiliates, and team members are not liable for any losses, damages, or adverse outcomes resulting from your use of our content, services, or third-party links. Your participation in the crypto market is at your own risk.</p>
+        <h2>Changes</h2>
+        <p>We reserve the right to update this Disclaimer at any time without prior notice.</p>
+        <h2>Contact</h2>
+        <p>Email: support@blockchainbullhorn.com · By mail: 650 Ponce De Leon Ave Ste. 300 #1282, Atlanta, GA 30308</p>` },
+      affiliate: { title: 'Affiliate Disclaimer', updated: '', html: `
+        <p>At Blockchain Bullhorn, we believe in full transparency. Some of the links on our website are affiliate links, meaning we may earn a small commission if you make a purchase through them — at no extra cost to you.</p>
+        <p>We only promote products, services, and tools that we trust and believe add value to our audience (including partners such as TradingView, Tangem, Blofin, Coinbase and Bitunix). These commissions help support our work, allowing us to continue providing free educational content and resources.</p>
+        <p>Our recommendations are based on personal experience and thorough research, but should not be considered financial or investment advice. Always do your own due diligence before making any purchasing decisions.</p>
+        <h2>Contact</h2>
+        <p>Email: support@blockchainbullhorn.com · By mail: 650 Ponce De Leon Ave Ste. 300 #1282, Atlanta, GA 30308</p>` },
+      gdpr: { title: 'GDPR Privacy Policy', updated: '', html: `
+        <h2>1. Who We Are</h2>
+        <p>Blockchain Bullhorn ("we," "us") operates www.blockchainbullhorn.com. For GDPR purposes, we act as the data controller for personal data collected through this site.</p>
+        <h2>2. Data We Collect</h2>
+        <ul>
+          <li><b>Account data:</b> name, email, country, date of birth and phone number provided at registration.</li>
+          <li><b>KYC documents:</b> identity documents you voluntarily submit for live-trading verification — stored securely, visible only to compliance staff.</li>
+          <li><b>Usage data:</b> pages visited, features used, trading activity (demo and live) within the platform.</li>
+          <li><b>Communications:</b> support chats, emails and newsletter subscriptions.</li>
+        </ul>
+        <h2>3. Legal Basis</h2>
+        <p>We process personal data based on: performance of a contract (delivering purchased products and platform features), legitimate interests (security, fraud prevention, service improvement), consent (marketing emails, cookies), and legal compliance.</p>
+        <h2>4. Your Rights</h2>
+        <p>Under GDPR you have the right to access, rectify, export, restrict or erase your personal data, and to withdraw consent at any time. Email <a href="mailto:support@blockchainbullhorn.com">support@blockchainbullhorn.com</a> to exercise these rights. We respond within 30 days.</p>
+        <h2>5. Data Retention &amp; Security</h2>
+        <p>Account and purchase records are retained for as long as your account is active (and as required for tax/compliance purposes). KYC documents are retained per regulatory obligations. Data is stored with access controls and encryption in transit.</p>
+        <h2>6. Children</h2>
+        <p>Our services are not directed at anyone under 18.</p>
+        <h2>7. Contact</h2>
+        <p>Email: support@blockchainbullhorn.com · Mail: 650 Ponce De Leon Ave Ste. 300 #1282, Atlanta, GA 30308</p>` },
+      cookie: { title: 'Cookie Policy', updated: '', html: `
+        <h2>How We Use Cookies</h2>
+        <p>Blockchain Bullhorn uses a minimal set of cookies and similar technologies to keep the platform working and secure:</p>
+        <ul>
+          <li><b>Session cookie (bb_session):</b> keeps you logged in. Strictly necessary.</li>
+          <li><b>Chat identity cookie (bb_chat):</b> remembers your support conversation. Strictly necessary.</li>
+          <li><b>Mode preference (bb_mode):</b> remembers your demo/live toggle. Functional.</li>
+        </ul>
+        <p>We do not run third-party advertising or tracking cookies. Optional third-party services (such as Smartsupp live chat, if enabled) may set their own cookies when loaded — governed by their respective policies.</p>
+        <h2>Managing Cookies</h2>
+        <p>You can clear or block cookies in your browser settings; the platform may not function fully without the strictly necessary cookies above.</p>` },
+      coaching: { title: 'Coaching Terms of Service', updated: 'August 2026', html: `
+        <h2>1. Educational Nature</h2>
+        <p>The Blockchain Bullhorn™ Elite Mentorship and all coaching services are educational in nature. They are NOT financial advice, NOT a signals service, and NOT a copy-trading program. No financial results or outcomes are guaranteed. Markets involve risk, and results vary based on experience, implementation, effort and market conditions.</p>
+        <h2>2. The Mentorship Process</h2>
+        <p>Elite Mentorship is structured around implementation: Session One (2-hour private strategy &amp; diagnostic), an implementation period, Session Two (60-minute execution review) and Session Three (60-minute optimization), culminating in your personal Trader Blueprint and continuation roadmap.</p>
+        <h2>3. Eligibility &amp; Application</h2>
+        <p>All applicants must complete an application. Submission does not guarantee acceptance. Mentorship capacity is intentionally limited; accepted applicants are invited to enroll. Coaching is for individuals who are coachable, decisive and ready to implement.</p>
+        <h2>4. Scheduling &amp; Cancellation</h2>
+        <p>Sessions are scheduled directly with the mentor. Rescheduling requires at least 48 hours' notice. Unused sessions expire at the conclusion of the defined mentorship window.</p>
+        <h2>5. Investment &amp; Refunds</h2>
+        <p>The Elite Mentorship investment is $10,000, payable in full at enrollment. Because mentorship spots are limited and materials are disclosed, the engagement is non-refundable once Session One has commenced, except as required by law.</p>
+        <h2>6. Confidentiality</h2>
+        <p>Both parties agree to keep session content, frameworks and personal information confidential.</p>
+        <h2>7. Contact</h2>
+        <p>Questions about these Coaching Terms: support@blockchainbullhorn.com</p>` }
+    };
+    document.addEventListener('bb:ready', () => {
+      const p = new URLSearchParams(location.search).get('p') || 'terms';
+      const pol = POLICIES[p] || POLICIES.terms;
+      $('#legalBody').innerHTML = `
+        <h2 style="color:var(--gold)">${pol.title}</h2>
+        ${pol.updated ? `<p class="muted small" style="font-family:var(--font-head)">Last updated: ${pol.updated}</p>` : ''}
+        ${pol.html}`;
+      $$('#legalNav a').forEach(a => a.classList.toggle('active', a.dataset.p === p));
+      $$('#legalNav a').forEach(a => a.addEventListener('click', e => {
+        e.preventDefault();
+        history.pushState(null, '', '/legal?p=' + a.dataset.p);
+        $('#legalBody').innerHTML = `<h2 style="color:var(--gold)">${POLICIES[a.dataset.p].title}</h2>
+          ${POLICIES[a.dataset.p].updated ? `<p class="muted small" style="font-family:var(--font-head)">Last updated: ${POLICIES[a.dataset.p].updated}</p>` : ''}
+          ${POLICIES[a.dataset.p].html}`;
+        $$('#legalNav a').forEach(x => x.classList.toggle('active', x === a));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }));
+    });
+  </script>
+</body>
+</html>

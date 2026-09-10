@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KYC Verification — The Blockchain Bullhorn</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <section class="section-tight">
+    <div class="container" style="max-width:720px">
+      <div class="page-hero" style="padding-bottom:18px">
+        <div class="crumbs"><a href="/">Home</a> · <a href="/dashboard">Dashboard</a> · KYC</div>
+        <h1 style="font-size:clamp(24px,3.4vw,34px)">Identity Verification (KYC)</h1>
+        <p>Manual verification by our compliance team — required for live trading and withdrawals. Usually completed within 24 hours.</p>
+      </div>
+
+      <div class="card" style="padding:32px">
+        <div id="kycStatusBox"><span class="skeleton" style="width:100%;height:80px"></span></div>
+        <div id="kycForm">
+          <div class="field">
+            <label>ID document type</label>
+            <select class="input" id="idType">
+              <option value="passport">Passport (recommended)</option>
+              <option value="drivers_license">Driver's License</option>
+              <option value="national_id">National ID Card</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>1 · Front side of your document</label>
+            <div class="dropzone" id="dzFront">
+              <i class="fas fa-id-card"></i>
+              <b>Upload ID front</b>
+              <small>All four corners visible · JPG, PNG, WEBP or PDF · max 5MB</small>
+              <input type="file" id="fFront" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
+            </div>
+            <div id="prevFront"></div>
+          </div>
+          <div class="field">
+            <label>2 · Selfie holding your document</label>
+            <div class="dropzone" id="dzSelfie">
+              <i class="fas fa-face-smile"></i>
+              <b>Upload selfie with ID</b>
+              <small>Hold the ID next to your face — no glare, face fully visible</small>
+              <input type="file" id="fSelfie" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
+            </div>
+            <div id="prevSelfie"></div>
+          </div>
+          <div class="card" style="background:rgba(0,71,194,.1);border-color:rgba(46,145,252,.25);font-size:13px;margin-bottom:18px">
+            <b class="font-head"><i class="fas fa-lock" style="color:var(--sky)"></i> Your data is protected</b>
+            <p class="muted" style="font-size:12.5px;margin-top:6px">Documents are stored securely, visible only to our compliance team, and never shared with third parties. See our <a href="/legal?p=gdpr">Privacy Policy</a>.</p>
+          </div>
+          <button class="btn btn-gold btn-lg btn-block" id="kycSubmit"><i class="fas fa-paper-plane"></i> Submit for Verification</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script>
+    document.addEventListener('bb:ready', async () => {
+      if (!BB.user) { location.href = '/login?next=' + encodeURIComponent('/kyc'); return; }
+      const docs = { front: null, selfie: null };
+      let status = null;
+
+      function renderStatus(kyc) {
+        status = kyc ? kyc.status : 'not_submitted';
+        const box = $('#kycStatusBox');
+        const form = $('#kycForm');
+        if (status === 'pending') {
+          box.innerHTML = `<div class="card" style="background:rgba(211,168,119,.16);border-color:rgba(169,125,75,.45)">
+            <div class="flex-between"><div>
+            <span class="badge badge-gold"><i class="fas fa-hourglass-half"></i> UNDER REVIEW</span>
+            <h3 style="margin-top:12px">Documents received ${kyc ? BB.timeAgo(kyc.submittedAt) : ''}</h3>
+            <p class="muted small mt-1">Our compliance team verifies every application manually — most finish within 24 hours. You'll see the result here and on your dashboard.</p>
+            </div><i class="fas fa-user-shield" style="font-size:40px;color:var(--gold)"></i></div></div>`;
+          form.style.display = 'none';
+        } else if (status === 'approved') {
+          box.innerHTML = `<div class="card" style="background:rgba(27,169,75,.12);border-color:rgba(27,169,75,.45)">
+            <div class="flex-between"><div>
+            <span class="badge badge-green"><i class="fas fa-check-double"></i> VERIFIED</span>
+            <h3 style="margin-top:12px">Identity confirmed ✅</h3>
+            <p class="muted small mt-1">Live trading and withdrawals are unlocked on your account.</p>
+            </div><i class="fas fa-shield-halved" style="font-size:40px;color:var(--green-bright)"></i></div>
+            <div class="mt-2"><a href="/trade" class="btn btn-green"><i class="fas fa-bolt"></i> Start Live Trading</a></div></div>`;
+          form.style.display = 'none';
+        } else if (status === 'rejected') {
+          box.innerHTML = `<div class="card" style="background:var(--red-dim);border-color:rgba(255,82,104,.35)">
+            <div class="flex-between"><div>
+            <span class="badge badge-red"><i class="fas fa-triangle-exclamation"></i> REJECTED</span>
+            <h3 style="margin-top:12px">We couldn't verify your documents</h3>
+            <p class="muted small mt-1">Reason: <b>${BB.esc(kyc.reason || 'Document quality')}</b>. Please fix the issue and resubmit below.</p>
+            </div><i class="fas fa-rotate" style="font-size:40px;color:var(--red)"></i></div></div>`;
+          form.style.display = 'block';
+        } else {
+          box.innerHTML = '';
+          form.style.display = 'block';
+        }
+      }
+
+      const r = await BB.api('/api/kyc/status', { silent: true });
+      renderStatus(r.kyc);
+
+      function hookDrop(zoneId, inputId, key, prevId) {
+        const zone = $(zoneId), input = $(inputId), prev = $(prevId);
+        zone.addEventListener('click', () => input.click());
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+        zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); });
+        input.addEventListener('change', () => input.files[0] && handle(input.files[0]));
+        function handle(file) {
+          if (!['image/jpeg', 'image/png', 'image/webp', 'application/pdf'].includes(file.type)) return BB.toast('Only JPG, PNG, WEBP or PDF allowed', 'error');
+          if (file.size > 5 * 1024 * 1024) return BB.toast('Max file size is 5MB', 'error');
+          const rd = new FileReader();
+          rd.onload = () => {
+            docs[key] = { kind: key, mime: file.type, name: file.name, data: rd.result.split(',')[1] };
+            prev.innerHTML = `<div class="doc-preview">
+              ${file.type.startsWith('image/') ? `<img src="${rd.result}">` : '<i class="fas fa-file-pdf" style="font-size:34px;color:var(--gold)"></i>'}
+              <div><div class="dp-name">${BB.esc(file.name)}</div><small>${(file.size / 1024).toFixed(0)} KB</small></div>
+              <button type="button"><i class="fas fa-trash"></i></button></div>`;
+            prev.querySelector('button').addEventListener('click', () => { docs[key] = null; prev.innerHTML = ''; });
+          };
+          rd.readAsDataURL(file);
+        }
+      }
+      hookDrop('#dzFront', '#fFront', 'front', '#prevFront');
+      hookDrop('#dzSelfie', '#fSelfie', 'selfie', '#prevSelfie');
+
+      $('#kycSubmit').addEventListener('click', async () => {
+        if (!docs.front || !docs.selfie) return BB.toast('Please upload both the ID front and the selfie.', 'error');
+        const btn = $('#kycSubmit');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting…';
+        const r = await BB.api('/api/kyc/submit', {
+          method: 'POST',
+          body: { idType: $('#idType').value, docs: [docs.front, docs.selfie] }
+        });
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Verification';
+        if (r.ok) {
+          BB.toast(r.message, 'success');
+          const s = await BB.api('/api/kyc/status', { silent: true });
+          renderStatus(s.kyc);
+        } else BB.toast(r.error, 'error');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Trading Terminal — The Blockchain Bullhorn</title>
+  <meta name="description" content="Trade crypto, stocks, indices and real-world assets with live prices. Demo and live modes, leverage, TP/SL and real-time P/L.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <style>
+    .trade-layout { display: grid; grid-template-columns: 250px 1fr 320px; gap: 16px; align-items: start; }
+    .asset-list { max-height: 560px; overflow-y: auto; }
+    .asset-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: background .15s; }
+    .asset-row:hover { background: rgba(27,169,75,.07); }
+    .asset-row.selected { background: rgba(27,169,75,.12); outline: 1px solid rgba(27,169,75,.45); }
+    .asset-row b { font-family: var(--font-head); font-size: 13.5px; display: block; line-height: 1.15; }
+    .asset-row small { color: var(--ink-dim); font-size: 11px; }
+    .asset-row .ar-price { margin-left: auto; text-align: right; }
+    .asset-row .ar-price b { color: var(--ink); font-size: 12.5px; }
+    .chart-panel { background: var(--card-solid); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+    .chart-head { display: flex; align-items: center; gap: 14px; padding: 14px 18px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .big-price { font-family: var(--font-head); font-size: 26px; font-weight: 700; }
+    .tf-btn { font-family: var(--font-head); font-size: 12px; font-weight: 700; background: none; border: 1px solid var(--line); color: var(--ink-soft); border-radius: 7px; padding: 5px 11px; cursor: pointer; }
+    .tf-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+    .chart-box { height: 420px; position: relative; }
+    .mode-switch { display: flex; background: var(--bg-soft); border-radius: 12px; padding: 4px; border: 1px solid var(--line); }
+    .mode-switch button { flex: 1; border: none; background: none; color: var(--ink-soft); font-family: var(--font-head); font-weight: 700; font-size: 13px; padding: 9px 12px; border-radius: 9px; cursor: pointer; transition: all .2s; }
+    .mode-switch button.active-demo { background: linear-gradient(135deg,#0053e2,#2E91FC); color: #fff; }
+    .mode-switch button.active-live { background: var(--green); color: #fff; }
+    .side-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .side-tabs button { padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-soft); color: var(--ink-soft); font-family: var(--font-head); font-weight: 700; font-size: 15px; cursor: pointer; }
+    .side-tabs button.buy.active { background: var(--green); color: #fff; border-color: transparent; }
+    .side-tabs button.sell.active { background: var(--red); color: #fff; border-color: transparent; }
+    .lev-slider { width: 100%; accent-color: var(--green); }
+    .order-summary { background: var(--bg-soft); border-radius: 10px; padding: 12px 14px; font-size: 12.5px; font-family: var(--font-head); }
+    .order-summary div { display: flex; justify-content: space-between; padding: 3px 0; color: var(--ink-soft); }
+    .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+    .pos-card { background: #fff; border: 1px solid var(--line-soft); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow-soft); }
+    .pos-card .pc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .pos-card .row { display: flex; justify-content: space-between; font-size: 12.5px; font-family: var(--font-head); padding: 2.5px 0; color: var(--ink-soft); }
+    .pnl-big { font-family: var(--font-head); font-weight: 700; font-size: 19px; }
+    .kyc-lock { text-align: center; padding: 34px 18px; }
+    @media (max-width: 1200px) { .trade-layout { grid-template-columns: 1fr; } .asset-list { max-height: 260px; } .chart-box { height: 340px; } }
+  </style>
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <section class="section-tight">
+    <div class="container-wide">
+      <!-- top bar -->
+      <div class="flex-between mb-2">
+        <div class="crumbs" style="margin:0"><a href="/">Home</a> · <a href="/markets">Markets</a> · Trading Terminal</div>
+        <div class="mode-switch" style="min-width:250px">
+          <button id="modeDemo" class="active-demo"><i class="fas fa-flask"></i> DEMO</button>
+          <button id="modeLive"><i class="fas fa-bolt"></i> LIVE</button>
+        </div>
+      </div>
+
+      <div class="alert alert-info" id="demoBanner" style="display:flex;align-items:center;gap:10px">
+        <i class="fas fa-flask" style="font-size:17px"></i>
+        <span><b>Demo Mode</b> — practice with $10,000 virtual funds. Switch to LIVE (KYC required) when you're ready.</span>
+        <button class="btn btn-outline btn-sm" id="resetDemoBtn" style="margin-left:auto"><i class="fas fa-rotate"></i> Reset Demo</button>
+      </div>
+
+      <div class="trade-layout">
+        <!-- asset list + market feed -->
+        <div>
+          <div class="card" style="padding:14px;margin-bottom:16px">
+            <input class="input" id="assetSearch" placeholder="Search asset…" style="margin-bottom:10px;padding:9px 12px">
+            <div class="tab-bar" id="assetCats" style="margin-bottom:10px">
+              <button class="tab-btn active" data-cat="crypto">Crypto</button>
+              <button class="tab-btn" data-cat="stocks">Stocks</button>
+              <button class="tab-btn" data-cat="rwa">RWA</button>
+              <button class="tab-btn" data-cat="indices">Idx</button>
+            </div>
+            <div class="asset-list" id="assetList"><div class="skeleton" style="height:300px"></div></div>
+          </div>
+          <!-- CoinGecko-style live feed -->
+          <div class="card" style="padding:14px">
+            <div class="flex-between" style="margin-bottom:10px">
+              <b class="font-head" style="font-size:13px;letter-spacing:1px;text-transform:uppercase"><i class="fas fa-bolt" style="color:var(--gold)"></i> Live Market Feed</b>
+              <a href="/markets" class="muted small">All →</a>
+            </div>
+            <div id="feedList"><span class="skeleton" style="width:100%;height:200px"></span></div>
+          </div>
+        </div>
+
+        <!-- chart -->
+        <div>
+        <div class="chart-panel">
+          <div class="chart-head">
+            <div class="asset-cell" id="headAsset"></div>
+            <div>
+              <div class="big-price" id="headPrice">—</div>
+              <div id="headChg" class="num" style="font-size:13px">—</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+              <div style="display:flex;gap:4px" id="indBar" title="Indicators">
+                <button class="tf-btn" data-ind="ema">EMA</button>
+                <button class="tf-btn" data-ind="bb">BB</button>
+                <button class="tf-btn" data-ind="rsi">RSI</button>
+                <button class="tf-btn" data-ind="macd">MACD</button>
+              </div>
+              <div style="display:flex;gap:6px" id="tfBar">
+                <button class="tf-btn" data-tf="1D">1D</button>
+                <button class="tf-btn active" data-tf="1W">1W</button>
+                <button class="tf-btn" data-tf="1M">1M</button>
+                <button class="tf-btn" data-tf="3M">3M</button>
+                <button class="tf-btn" data-tf="1Y">1Y</button>
+              </div>
+              <button class="tf-btn" id="alertBell" title="Set price alert for this asset"><i class="fas fa-bell"></i> Alert</button>
+            </div>
+          </div>
+          <div class="chart-box"><canvas id="chartCv"></canvas></div>
+          </div>
+          <!-- Official TradingView chart -->
+          <div class="chart-panel" style="padding:0;margin-top:16px">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px">
+              <img src="/assets/img/icons/partner-tradingview.png" style="width:22px;height:22px;border-radius:5px" alt="TradingView">
+              <b class="font-head" style="font-size:14px">Official TradingView Chart — <span id="tvSymLabel" style="color:var(--gold)"></span></b>
+              <span class="badge badge-blue" style="margin-left:auto">Advanced</span>
+            </div>
+            <div id="tvWidget" style="height:440px;position:relative;background:#131722">
+              <div id="tvFallback" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa4b2;font-family:var(--font-head);font-size:13px;text-align:center;padding:20px;z-index:2">
+                Connecting to TradingView…<br><small style="color:#6f5f4e">Requires internet — the built-in chart above always works offline.</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- order form -->
+        <div class="card" id="orderPanel">
+          <div class="flex-between mb-2">
+            <b class="font-head" style="font-size:15px">Place Order</b>
+            <span class="badge badge-gold" id="walletBadge">—</span>
+          </div>
+          <div class="side-tabs">
+            <button class="buy active" id="sideBuy">Buy / Long</button>
+            <button class="sell" id="sideSell">Sell / Short</button>
+          </div>
+          <div class="tab-bar" style="margin-bottom:14px">
+            <button class="tab-btn active" data-ot="market" style="flex:1;text-align:center">Market</button>
+            <button class="tab-btn" data-ot="limit" style="flex:1;text-align:center">Limit</button>
+          </div>
+          <div class="field" id="limitField" style="display:none">
+            <label>Limit price (USD)</label>
+            <input class="input num" id="limitPrice" type="number" step="any" placeholder="0.00">
+          </div>
+          <div class="field">
+            <label>Amount (USD)</label>
+            <input class="input num" id="orderAmount" type="number" step="any" min="10" placeholder="Min. $10">
+            <div class="hint" id="qtyHint">≈ 0 units</div>
+          </div>
+          <div class="field">
+            <label>Leverage: <b id="levVal" style="color:var(--gold)">1×</b></label>
+            <input type="range" class="lev-slider" id="levSlider" min="1" max="20" value="1">
+            <div style="display:flex;justify-content:space-between" class="muted small"><span>1×</span><span id="levMax">20×</span></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Take profit <small class="muted">(optional)</small></label><input class="input num" id="tpInput" type="number" step="any" placeholder="TP price"></div>
+            <div class="field"><label>Stop loss <small class="muted">(optional)</small></label><input class="input num" id="slInput" type="number" step="any" placeholder="SL price"></div>
+          </div>
+          <div class="order-summary mb-2">
+            <div><span>Order value</span><b id="sumNotional">$0.00</b></div>
+            <div><span>Margin required</span><b id="sumMargin">$0.00</b></div>
+            <div><span>Est. fee (0.1%)</span><b id="sumFee">$0.00</b></div>
+            <div><span>Liquidation ≈</span><b id="sumLiq">—</b></div>
+          </div>
+          <button class="btn btn-green btn-block btn-lg" id="placeBtn"><i class="fas fa-bolt"></i> Buy / Long</button>
+          <p class="muted small text-center mt-1">By trading you accept the <a href="/legal?p=disclaimer">Risk Disclosure</a>. Live trading requires KYC.</p>
+        </div>
+      </div>
+
+      <!-- positions / orders / history -->
+      <div class="mt-2">
+        <div class="tab-bar" id="bookTabs">
+          <button class="tab-btn active" data-bt="positions">Open Positions (<span id="cntPos">0</span>)</button>
+          <button class="tab-btn" data-bt="orders">Open Orders (<span id="cntOrd">0</span>)</button>
+          <button class="tab-btn" data-bt="history">Trade History</button>
+        </div>
+        <div id="bookPositions" class="pos-grid"></div>
+        <div id="bookOrders" style="display:none"></div>
+        <div id="bookHistory" style="display:none"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script src="/assets/js/chart.js?v=6"></script>
+  <script>
+    document.addEventListener('bb:ready', async () => {
+      if (!BB.user) {
+        const next = encodeURIComponent(location.pathname + location.search);
+        location.href = `/login?next=${next}&msg=trade`;
+        return;
+      }
+      let assets = [], asset = null, tf = '1W', cat = 'crypto', aquery = '';
+      let side = 'buy', otype = 'market', mode = 'demo';
+      let state = null;
+      const params = new URLSearchParams(location.search);
+      let selectedId = params.get('asset');
+      const chart = new CandleChart($('#chartCv'));
+
+      // ---------- mode ----------
+      function setMode(m) {
+        mode = m;
+        $('#modeDemo').className = m === 'demo' ? 'active-demo' : '';
+        $('#modeLive').className = m === 'live' ? 'active-live' : '';
+        $('#demoBanner').style.display = m === 'demo' ? 'flex' : 'none';
+        document.cookie = 'bb_mode=' + m + '; path=/; max-age=31536000; samesite=lax';
+        refreshState();
+      }
+      $('#modeDemo').addEventListener('click', () => setMode('demo'));
+      $('#modeLive').addEventListener('click', () => setMode('live'));
+      $('#resetDemoBtn').addEventListener('click', async () => {
+        if (!confirm('Reset your demo account to $10,000 and close all demo positions?')) return;
+        const r = await BB.api('/api/trading/reset-demo', { method: 'POST', body: {} });
+        if (r.ok) { BB.toast(r.message, 'success'); refreshAll(); }
+      });
+
+      // ---------- TradingView widget ----------
+      const TV_MAP = {
+        BTC: 'BINANCE:BTCUSDT', ETH: 'BINANCE:ETHUSDT', BNB: 'BINANCE:BNBUSDT', SOL: 'BINANCE:SOLUSDT',
+        XRP: 'BINANCE:XRPUSDT', ADA: 'BINANCE:ADAUSDT', DOGE: 'BINANCE:DOGEUSDT', AVAX: 'BINANCE:AVAXUSDT',
+        DOT: 'BINANCE:DOTUSDT', LINK: 'BINANCE:LINKUSDT', LTC: 'BINANCE:LTCUSDT', TRX: 'BINANCE:TRXUSDT',
+        POL: 'BINANCE:POLUSDT', UNI: 'BINANCE:UNIUSDT', SHIB: 'BINANCE:SHIBUSDT', BCH: 'BINANCE:BCHUSDT',
+        NEAR: 'BINANCE:NEARUSDT', APT: 'BINANCE:APTUSDT', ARB: 'BINANCE:ARBUSDT', OP: 'BINANCE:OPUSDT',
+        SUI: 'BINANCE:SUIUSDT', PAXG: 'BINANCE:PAXGUSDT', XAUT: 'TVC:GOLD',
+        AAPL: 'NASDAQ:AAPL', MSFT: 'NASDAQ:MSFT', GOOGL: 'NASDAQ:GOOGL', AMZN: 'NASDAQ:AMZN', NVDA: 'NASDAQ:NVDA',
+        TSLA: 'NASDAQ:TSLA', META: 'NASDAQ:META', NFLX: 'NASDAQ:NFLX', AMD: 'NASDAQ:AMD', INTC: 'NASDAQ:INTC',
+        ORCL: 'NYSE:ORCL', CRM: 'NYSE:CRM', JPM: 'NYSE:JPM', V: 'NYSE:V', MA: 'NYSE:MA', KO: 'NYSE:KO',
+        PEP: 'NASDAQ:PEP', DIS: 'NYSE:DIS', NKE: 'NYSE:NKE', BA: 'NYSE:BA', XOM: 'NYSE:XOM', CVX: 'NYSE:CVX',
+        JNJ: 'NYSE:JNJ', PG: 'NYSE:PG', WMT: 'NYSE:WMT', COST: 'NASDAQ:COST',
+        XAU: 'TVC:GOLD', XAG: 'TVC:SILVER', XPT: 'TVC:PLATINUM', XPD: 'TVC:PALLADIUM', HG: 'COMEX:HG1!',
+        WTI: 'TVC:USOIL', BRENT: 'TVC:UKOIL', NG: 'NYMEX:NG1!',
+        SPX: 'SP:SPX', NDX: 'NASDAQ:NDX', DJI: 'DJ:DJI', RUT: 'TVC:RUT'
+      };
+      function loadTV(a) {
+        const sym = TV_MAP[a.symbol] || 'BINANCE:BTCUSDT';
+        $('#tvSymLabel').textContent = sym.split(':')[1] + ' · ' + a.symbol;
+        const box = $('#tvWidget');
+        box.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa4b2;font-family:var(--font-head);font-size:13px;text-align:center;padding:20px;z-index:2" id="tvFallback">Connecting to TradingView…</div>';
+        const cfg = JSON.stringify({
+          "autosize": true, "symbol": sym, "interval": "240", "timezone": "Etc/UTC",
+          "theme": "dark", "style": "1", "locale": "en", "backgroundColor": "rgba(19,23,34,1)",
+          "gridColor": "rgba(211,168,119,0.06)", "hide_side_toolbar": false,
+          "allow_symbol_change": false, "save_image": false,
+          "studies": ["STD;EMA", "STD;RSI"],
+          "support_host": "https://www.tradingview.com"
+        });
+        const script = document.createElement('script');
+        script.src = 'https://s.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+        script.async = true;
+        script.innerHTML = cfg;
+        script.onerror = () => { const f = $('#tvFallback'); if (f) f.innerHTML = 'TradingView could not load (offline or blocked).<br><small style="color:#6f5f4e">Use the built-in chart above — same live data.</small>'; };
+        const holder = document.createElement('div');
+        holder.className = 'tradingview-widget-container';
+        holder.style.height = '100%';
+        const inner = document.createElement('div');
+        inner.className = 'tradingview-widget-container__widget';
+        inner.style.height = '100%';
+        holder.appendChild(inner);
+        holder.appendChild(script);
+        box.appendChild(holder);
+        setTimeout(() => { const f = $('#tvFallback'); if (f && !holder.querySelector('iframe')) f.innerHTML = 'TradingView could not load (offline or blocked).<br><small style="color:#6f5f4e">Use the built-in chart above — same live data.</small>'; else if (f) f.remove(); }, 6000);
+      }
+
+      // ---------- CoinGecko-style live feed ----------
+      function renderFeed() {
+        const box = $('#feedList'); if (!box || !assets.length) return;
+        const feed = assets.filter(a => a.price != null).sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0)).slice(0, 14);
+        box.innerHTML = feed.map(a => `
+          <div class="mini-quote" data-asset="${a.id}" style="cursor:pointer;padding:8px 2px">
+            ${BB.assetIcon(a, 24)}
+            <div><div class="mq-name" style="font-size:13px">${BB.esc(a.symbol)}</div></div>
+            <div class="mq-right"><div class="mq-price" style="font-size:12.5px">$${BB.fmtPrice(a.price)}</div>
+            <div class="mq-chg ${BB.chgClass(a.changePct)}" style="font-size:11.5px">${BB.chgIcon(a.changePct)} ${BB.fmtPct(a.changePct)}</div></div>
+          </div>`).join('');
+        $$('#feedList .mini-quote').forEach(el => el.addEventListener('click', () => selectAsset(el.dataset.asset)));
+      }
+
+      // ---------- asset list ----------
+      function renderAssetList() {
+        let list = assets.filter(a => a.price != null);
+        if (cat) list = list.filter(a => a.category === cat);
+        if (aquery) { const q = aquery.toLowerCase(); list = list.filter(a => a.name.toLowerCase().includes(q) || a.symbol.toLowerCase().includes(q)); }
+        $('#assetList').innerHTML = list.map(a => `
+          <div class="asset-row ${asset && asset.id === a.id ? 'selected' : ''}" data-asset="${a.id}">
+            ${BB.assetIcon(a, 26)}
+            <div><b>${BB.esc(a.symbol)}</b><small>${BB.esc(a.name.slice(0, 16))}</small></div>
+            <div class="ar-price"><b class="${BB.chgClass(a.changePct)}">${BB.fmtPct(a.changePct)}</b><small class="num">$${BB.fmtPrice(a.price)}</small></div>
+          </div>`).join('') || '<div class="empty-state">No assets</div>';
+        $$('#assetList .asset-row').forEach(r => r.addEventListener('click', () => selectAsset(r.dataset.asset)));
+      }
+
+      async function selectAsset(id, keepTf) {
+        asset = assets.find(a => a.id === id) || assets.find(a => a.price != null);
+        if (!asset) return;
+        if (!keepTf) tf = tf;
+        renderAssetList();
+        renderHead();
+        loadTV(asset);
+        renderFeed();
+        await loadChart();
+        updateQty();
+        updateSummary();
+        history.replaceState(null, '', '/trade?asset=' + asset.id);
+      }
+
+      function renderHead() {
+        if (!asset) return;
+        $('#headAsset').innerHTML = `${BB.assetIcon(asset, 34)}<div><b style="font-size:15px">${BB.esc(asset.name)}</b><span>${BB.esc(asset.symbol)} · ${asset.category.toUpperCase()}</span></div>`;
+        $('#headPrice').textContent = '$' + BB.fmtPrice(asset.price);
+        $('#headChg').innerHTML = `<span class="${BB.chgClass(asset.changePct)}">${BB.chgIcon(asset.changePct)} ${BB.fmtPct(asset.changePct)} · 24h</span>`;
+        $('#levSlider').max = asset.maxLeverage || 1;
+        $('#levMax').textContent = (asset.maxLeverage || 1) + '×';
+        if (+$('#levSlider').value > +$('#levSlider').max) $('#levSlider').value = $('#levSlider').max;
+      }
+
+      async function loadChart() {
+        if (!asset) return;
+        const r = await BB.api(`/api/markets/candles?asset=${encodeURIComponent(asset.id)}&range=${tf}`, { silent: true });
+        if (r.candles) chart.setData(r.candles);
+      }
+
+      // ---------- prices live ----------
+      async function refreshPrices() {
+        const r = await BB.api('/api/markets', { silent: true });
+        if (!r.assets) return;
+        assets = r.assets;
+        if (!asset) await selectAsset(selectedId && assets.find(a => a.id === selectedId) ? selectedId : (assets.find(a => a.id === 'cg-bitcoin') || assets[0]).id, true);
+        else {
+          const fresh = assets.find(a => a.id === asset.id);
+          if (fresh) { const old = asset.price; asset = fresh; if (old !== fresh.price) renderHead(); }
+        }
+        renderAssetList();
+        renderFeed();
+        updateQty();
+      }
+
+      // ---------- order form ----------
+      function updateQty() {
+        const amt = parseFloat($('#orderAmount').value) || 0;
+        const px = otype === 'limit' ? (parseFloat($('#limitPrice').value) || (asset ? asset.price : 0)) : (asset ? asset.price : 0);
+        const qty = px ? amt / px : 0;
+        $('#qtyHint').textContent = `≈ ${qty ? qty.toFixed(px >= 100 ? 4 : 6) : '0'} ${asset ? asset.symbol : ''} units`;
+        updateSummary();
+      }
+      function updateSummary() {
+        const amt = parseFloat($('#orderAmount').value) || 0;
+        const lev = +$('#levSlider').value || 1;
+        $('#levVal').textContent = lev + '×';
+        const margin = amt / lev;
+        const fee = amt * 0.001;
+        $('#sumNotional').textContent = BB.fmtUSD(amt);
+        $('#sumMargin').textContent = BB.fmtUSD(margin);
+        $('#sumFee').textContent = BB.fmtUSD(fee);
+        const px = otype === 'limit' ? (parseFloat($('#limitPrice').value) || (asset ? asset.price : 0)) : (asset ? asset.price : 0);
+        const liq = side === 'buy' ? px * (1 - 0.9 / lev) : px * (1 + 0.9 / lev);
+        $('#sumLiq').textContent = px ? '$' + BB.fmtPrice(liq) : '—';
+      }
+      $('#orderAmount').addEventListener('input', updateQty);
+      $('#limitPrice').addEventListener('input', updateQty);
+      $('#levSlider').addEventListener('input', updateSummary);
+      $('#sideBuy').addEventListener('click', () => setSide('buy'));
+      $('#sideSell').addEventListener('click', () => setSide('sell'));
+      function setSide(s) {
+        side = s;
+        $('#sideBuy').className = 'buy' + (s === 'buy' ? ' active' : '');
+        $('#sideSell').className = 'sell' + (s === 'sell' ? ' active' : '');
+        const btn = $('#placeBtn');
+        if (s === 'buy') { btn.className = 'btn btn-green btn-block btn-lg'; btn.innerHTML = '<i class="fas fa-bolt"></i> Buy / Long'; }
+        else { btn.className = 'btn btn-danger btn-block btn-lg'; btn.innerHTML = '<i class="fas fa-bolt"></i> Sell / Short'; }
+        updateSummary();
+      }
+      $$('#orderPanel [data-ot]').forEach(b => b.addEventListener('click', () => {
+        $$('#orderPanel [data-ot]').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        otype = b.dataset.ot;
+        $('#limitField').style.display = otype === 'limit' ? 'block' : 'none';
+        if (otype === 'limit' && asset) $('#limitPrice').value = asset.price >= 1000 ? asset.price.toFixed(2) : asset.price.toFixed(6);
+        updateQty();
+      }));
+
+      $('#placeBtn').addEventListener('click', async () => {
+        if (!asset) return;
+        const body = {
+          assetId: asset.id, side, type: otype, mode,
+          notional: parseFloat($('#orderAmount').value),
+          leverage: +$('#levSlider').value,
+          tp: parseFloat($('#tpInput').value) || null,
+          sl: parseFloat($('#slInput').value) || null,
+          limitPrice: parseFloat($('#limitPrice').value) || null
+        };
+        const btn = $('#placeBtn');
+        btn.disabled = true;
+        const r = await BB.api('/api/trading/order', { method: 'POST', body });
+        btn.disabled = false;
+        if (r.ok) {
+          BB.toast(r.message + (r.order ? ' ✓' : ' — filled @ $' + r.position.entry), 'success');
+          $('#orderAmount').value = ''; $('#tpInput').value = ''; $('#slInput').value = '';
+          updateQty();
+          refreshState(); refreshAll();
+        } else BB.toast(r.error, 'error');
+      });
+
+      // ---------- state / books ----------
+      async function refreshState() {
+        const r = await BB.api('/api/trading/state', { silent: true });
+        if (!r.ok) return;
+        state = r;
+        $('#walletBadge').innerHTML = `<i class="fas fa-wallet"></i> ${mode.toUpperCase()} ${BB.fmtUSD(r.equity.free)} free`;
+        $('#cntPos').textContent = r.positions.length;
+        $('#cntOrd').textContent = r.orders.length;
+        renderPositions(r.positions);
+        renderOrders(r.orders);
+        renderHistory(r.recentTrades);
+        if (mode === 'live' && BB.user && BB.user.kycStatus !== 'approved') renderKycLock();
+      }
+
+      function renderKycLock() {
+        $('#orderPanel').innerHTML = `
+          <div class="kyc-lock">
+            <i class="fas fa-lock" style="font-size:34px;color:var(--gold);margin-bottom:14px"></i>
+            <h3 style="margin-bottom:8px">Live Trading Requires KYC</h3>
+            <p class="muted small" style="margin-bottom:18px">Complete manual identity verification to unlock live trading and withdrawals. It takes about 2 minutes to submit.</p>
+            <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+              <a class="btn btn-gold" href="/kyc"><i class="fas fa-id-card"></i> Complete KYC</a>
+              <a class="btn btn-outline" href="#" id="lockDemo"><i class="fas fa-flask"></i> Use Demo</a>
+            </div>
+          </div>`;
+        const d = $('#lockDemo');
+        if (d) d.addEventListener('click', e => { e.preventDefault(); location.href = '/trade'; });
+      }
+
+      function renderPositions(ps) {
+        const box = $('#bookPositions');
+        if (!ps.length) { box.innerHTML = '<div class="card empty-state" style="grid-column:1/-1"><i class="fas fa-folder-open"></i>No open positions. Place your first order above!</div>'; return; }
+        box.innerHTML = ps.map(p => `
+          <div class="pos-card">
+            <div class="pc-top">
+              <div class="asset-cell" style="gap:8px">${BB.assetIcon(p, 24)}<div><b style="font-size:13.5px">${BB.esc(p.symbol)}</b><span>${p.side === 'buy' ? 'LONG' : 'SHORT'} · ${p.leverage}× · ${p.mode.toUpperCase()}</span></div></div>
+              <div style="display:flex;gap:5px">
+                <button class="btn btn-outline btn-sm" data-edit="${p.id}" title="Take-profit / Stop-loss / Trailing"><i class="fas fa-sliders"></i></button>
+                <button class="btn btn-danger btn-sm" data-close="${p.id}">Close</button>
+              </div>
+            </div>
+            <div class="row"><span>Size</span><b class="num">${p.qty.toFixed(6)}</b></div>
+            <div class="row"><span>Entry</span><b class="num">$${BB.fmtPrice(p.entry)}</b></div>
+            <div class="row"><span>Mark</span><b class="num">$${BB.fmtPrice(p.currentPrice)}</b></div>
+            <div class="row"><span>TP / SL</span><b class="num muted">${p.tp ? '$' + BB.fmtPrice(p.tp) : '—'} / ${p.sl ? '$' + BB.fmtPrice(p.sl) : '—'}${p.trailPct ? ` <span class="badge badge-green" style="margin-left:4px">TRAIL ${p.trailPct}%</span>` : ''}</b></div>
+            <div class="row"><span>Liq. price</span><b class="num muted">$${BB.fmtPrice(p.liquidationPrice)}</b></div>
+            <div class="row" style="border-top:1px dashed var(--line);margin-top:6px;padding-top:8px;align-items:center">
+              <span>P/L</span>
+              <span class="pnl-big ${p.pnl >= 0 ? 'up' : 'down'}">${p.pnl >= 0 ? '+' : ''}${BB.fmtUSD(p.pnl)} (${p.pnlPct >= 0 ? '+' : ''}${p.pnlPct.toFixed(1)}%)</span>
+            </div>
+          </div>`).join('');
+        $$('[data-close]').forEach(b => b.addEventListener('click', async () => {
+          const r = await BB.api('/api/trading/close', { method: 'POST', body: { positionId: b.dataset.close } });
+          if (r.ok) {
+            BB.toast(`Position closed — P/L ${r.pnl >= 0 ? '+' : ''}${BB.fmtUSD(r.pnl)}${r.liquidated ? ' (LIQUIDATED)' : ''}`, r.pnl >= 0 ? 'success' : 'error');
+            refreshAll();
+          } else BB.toast(r.error, 'error');
+        }));
+        $$('[data-edit]').forEach(b => b.addEventListener('click', () => {
+          const p = ps.find(x => x.id === b.dataset.edit);
+          if (p) openModifyModal(p);
+        }));
+      }
+
+      function openModifyModal(p) {
+        const bd = BB.modal(`Manage ${p.symbol} — ${p.side === 'buy' ? 'LONG' : 'SHORT'} ${p.leverage}×`, `
+          <div class="form-row">
+            <div class="field"><label>Take-profit ($)</label><input class="input" id="mdTp" type="number" step="any" min="0" value="${p.tp || ''}" placeholder="optional"></div>
+            <div class="field"><label>Stop-loss ($)</label><input class="input" id="mdSl" type="number" step="any" min="0" value="${p.sl || ''}" placeholder="optional"></div>
+          </div>
+          <div class="field"><label>Trailing stop (%) — follows the price automatically</label>
+            <input class="input" id="mdTrail" type="number" step="any" min="0" max="50" value="${p.trailPct || ''}" placeholder="0 = off">
+            <div class="hint">Example: 2.5% keeps the stop 2.5% behind the best price reached. Clears your fixed stop once it passes it.</div></div>
+          <button class="btn btn-green btn-block" id="mdSave"><i class="fas fa-check"></i> Save Changes</button>`);
+        $('#mdSave', bd).addEventListener('click', async () => {
+          const r = await BB.api('/api/trading/modify', { method: 'POST', body: {
+            positionId: p.id, tp: $('#mdTp', bd).value, sl: $('#mdSl', bd).value, trailPct: $('#mdTrail', bd).value } });
+          if (r.ok) { bd.remove(); BB.toast('Position updated — TP/SL/trailing saved', 'success'); refreshAll(); }
+          else BB.toast(r.error, 'error');
+        });
+      }
+
+      function renderOrders(os) {
+        const box = $('#bookOrders');
+        if (!os.length) { box.innerHTML = '<div class="card empty-state"><i class="fas fa-clock"></i>No open orders.</div>'; return; }
+        box.innerHTML = `<div class="table-wrap"><table class="dt"><thead><tr><th>Asset</th><th>Side</th><th>Type</th><th>Limit price</th><th>Amount</th><th>Leverage</th><th>Placed</th><th></th></tr></thead><tbody>
+          ${os.map(o => `<tr><td><b class="font-head">${BB.esc(o.symbol)}</b></td>
+            <td><span class="badge ${o.side === 'buy' ? 'badge-green' : 'badge-red'}">${o.side.toUpperCase()}</span></td>
+            <td class="muted">${o.type}</td><td class="num">$${BB.fmtPrice(o.limitPrice)}</td>
+            <td class="num">${BB.fmtUSD(o.notional)}</td><td class="num">${o.leverage}×</td>
+            <td class="muted small">${BB.timeAgo(o.createdAt)}</td>
+            <td><button class="btn btn-outline btn-sm" data-cancel="${o.id}">Cancel</button></td></tr>`).join('')}
+        </tbody></table></div>`;
+        $$('[data-cancel]').forEach(b => b.addEventListener('click', async () => {
+          const r = await BB.api('/api/trading/cancel', { method: 'POST', body: { orderId: b.dataset.cancel } });
+          if (r.ok) { BB.toast('Order cancelled', 'success'); refreshState(); } else BB.toast(r.error, 'error');
+        }));
+      }
+
+      function renderHistory(ts) {
+        const box = $('#bookHistory');
+        if (!ts.length) { box.innerHTML = '<div class="card empty-state"><i class="fas fa-clock-rotate-left"></i>No trades yet.</div>'; return; }
+        box.innerHTML = `<div class="table-wrap"><table class="dt"><thead><tr><th>Time</th><th>Asset</th><th>Action</th><th>Side</th><th>Price</th><th>Size (USD)</th><th>Fee</th><th>Realized P/L</th></tr></thead><tbody>
+          ${ts.map(t => `<tr><td class="muted small">${BB.fmtTime(t.at)}</td>
+            <td><b class="font-head">${BB.esc(t.symbol)}</b></td>
+            <td><span class="badge ${t.action === 'open' ? 'badge-blue' : t.liquidated ? 'badge-red' : 'badge-gold'}">${t.action === 'open' ? 'OPENED' : t.liquidated ? 'LIQUIDATED' : (t.reason || 'CLOSED').toUpperCase()}</span></td>
+            <td class="${t.side === 'buy' ? 'up' : 'down'}">${t.side.toUpperCase()}</td>
+            <td class="num">$${BB.fmtPrice(t.price)}</td><td class="num">${BB.fmtUSD(t.notional)}</td>
+            <td class="num muted">${BB.fmtUSD(t.fee)}</td>
+            <td class="num" style="font-weight:700">${t.action === 'open' ? '—' : `<span class="${t.pnl >= 0 ? 'up' : 'down'}">${t.pnl >= 0 ? '+' : ''}${BB.fmtUSD(t.pnl)}</span>`}</td></tr>`).join('')}
+        </tbody></table></div>`;
+      }
+
+      // tabs
+      $$('#bookTabs .tab-btn').forEach(b => b.addEventListener('click', () => {
+        $$('#bookTabs .tab-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        const t = b.dataset.bt;
+        $('#bookPositions').style.display = t === 'positions' ? 'grid' : 'none';
+        $('#bookOrders').style.display = t === 'orders' ? 'block' : 'none';
+        $('#bookHistory').style.display = t === 'history' ? 'block' : 'none';
+      }));
+      $$('#tfBar .tf-btn').forEach(b => b.addEventListener('click', async () => {
+        $$('#tfBar .tf-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active'); tf = b.dataset.tf; await loadChart();
+      }));
+      // indicator toggles (EMA / BB / RSI / MACD)
+      $$('#indBar .tf-btn').forEach(b => b.addEventListener('click', () => {
+        b.classList.toggle('active');
+        const k = b.dataset.ind;
+        chart.setIndicators({ [k]: b.classList.contains('active') });
+      }));
+      // price alert for the selected asset
+      $('#alertBell').addEventListener('click', () => {
+        if (!BB.user) return BB.toast('Log in to set alerts', 'error');
+        const a = asset;
+        if (!a) return;
+        const bd = BB.modal(`Price Alert — ${BB.esc(a.symbol)}`, `
+          <p class="muted small">Current price: <b class="num">$${BB.fmtPrice(a.price)}</b></p>
+          <div style="display:flex;gap:8px">
+            <select class="input" id="alDir" style="width:110px"><option value="above">Rises above</option><option value="below">Falls below</option></select>
+            <input class="input" id="alPrice" type="number" step="any" min="0" value="${a.price}" placeholder="Target price">
+          </div>
+          <button class="btn btn-green btn-block mt-2" id="alGo"><i class="fas fa-bell"></i> Set Alert</button>
+          <p class="muted small mt-1">You'll see a notification on your dashboard — and a browser notification if allowed.</p>`);
+        $('#alGo', bd).addEventListener('click', async () => {
+          const r = await BB.api('/api/alerts', { method: 'POST', body: { assetId: a.id, dir: $('#alDir', bd).value, price: parseFloat($('#alPrice', bd).value) } });
+          if (r.ok) { bd.remove(); BB.toast(r.message, 'success'); } else BB.toast(r.error, 'error');
+        });
+      });
+      $$('#assetCats .tab-btn').forEach(b => b.addEventListener('click', () => {
+        $$('#assetCats .tab-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active'); cat = b.dataset.cat; renderAssetList();
+      }));
+      $('#assetSearch').addEventListener('input', e => { aquery = e.target.value.trim(); renderAssetList(); });
+
+      function refreshAll() { refreshPrices(); refreshState(); loadChart(); }
+
+      // boot
+      setMode('demo');
+      refreshPrices().then(() => { if (selectedId) selectAsset(selectedId, true); });
+      refreshState();
+      setInterval(refreshPrices, 15000);
+      setInterval(refreshState, 12000);
+      setInterval(loadChart, 60000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log In — The Blockchain Bullhorn</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <div class="auth-wrap">
+    <div class="auth-art">
+      <img src="/assets/img/brand/login-art.jpg" alt="Blockchain Bullhorn">
+      <div class="auth-art-caption">
+        <span class="eyebrow">The Blockchain Bullhorn</span>
+        <h2>Welcome back to the herd 🐂</h2>
+        <p>Pick up where you left off — your demo portfolio, live positions and the Crypto Ready Report are waiting.</p>
+      </div>
+    </div>
+    <div class="auth-form-side">
+      <div class="auth-box">
+        <h1>Welcome Back</h1>
+        <p class="sub">Log in to access your dashboard, spreadsheets, trading terminal and courses.</p>
+        <div class="alert alert-error" id="loginAlert"></div>
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="email">Email</label>
+            <input class="input" type="email" id="email" placeholder="you@example.com" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <div class="pw-wrap">
+              <input class="input" type="password" id="password" placeholder="Your password" autocomplete="current-password" required>
+              <button type="button" class="pw-eye" id="pwEye" aria-label="Show password"><i class="fas fa-eye"></i></button>
+            </div>
+          </div>
+          <div class="flex-between mb-2">
+            <label class="checkline"><input type="checkbox" id="remember" checked> Remember me</label>
+            <a href="/forgot-password" style="font-family:var(--font-head);font-size:13.5px">Forgot password?</a>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" id="loginBtn" type="submit"><i class="fas fa-right-to-bracket"></i> Log In</button>
+        </form>
+
+        <!-- 2FA step (shown when the account has TOTP enabled) -->
+        <div id="totpStep" style="display:none">
+          <div class="alert alert-info" style="display:block">
+            <i class="fas fa-shield-halved"></i> Two-factor authentication is enabled on <b id="totpEmail"></b>. Enter the 6-digit code from your authenticator app.
+          </div>
+          <div class="field">
+            <label for="totpCode">Authenticator code</label>
+            <input class="input" id="totpCode" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="text-align:center;font-family:var(--font-head);font-size:22px;letter-spacing:8px">
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" id="totpBtn"><i class="fas fa-key"></i> Verify &amp; Log In</button>
+          <button class="btn btn-outline btn-sm btn-block mt-1" id="totpBack">Use a different account</button>
+        </div>
+
+        <div class="auth-alt">New to Blockchain Bullhorn? <a href="/signup"><b>Create your free account</b></a> — includes $10,000 demo funds.</div>
+        <div class="alert alert-info mt-2" style="display:block">
+          <i class="fas fa-shield-halved"></i> We never ask for your password or seed phrase by chat, DM or email. See the <a href="/avoid-scams">Fraud Alert</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script>
+    document.addEventListener('bb:ready', async () => {
+      if (BB.user) { location.href = '/dashboard'; return; }
+      $('#pwEye').addEventListener('click', () => {
+        const i = $('#password');
+        i.type = i.type === 'password' ? 'text' : 'password';
+        $('#pwEye').innerHTML = i.type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+      });
+      $('#loginForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const alertEl = $('#loginAlert');
+        alertEl.classList.remove('show');
+        const btn = $('#loginBtn');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Logging in…';
+        const r = await BB.api('/api/auth/login', {
+          method: 'POST',
+          body: { email: $('#email').value, password: $('#password').value }
+        });
+        if (r.totpRequired) {
+          window._totpChallenge = r.challenge;
+          $('#totpEmail').textContent = r.email || '';
+          $('#loginForm').style.display = 'none';
+          $('#totpStep').style.display = 'block';
+          $('#totpCode').focus();
+          btn.disabled = false; btn.innerHTML = '<i class="fas fa-right-to-bracket"></i> Log In';
+          return;
+        }
+        if (r.ok) {
+          BB.toast('Welcome back! 🐂', 'success');
+          const next = new URLSearchParams(location.search).get('next') || '/dashboard';
+          location.href = next;
+        } else {
+          alertEl.textContent = r.error || 'Login failed';
+          alertEl.classList.add('show');
+          btn.disabled = false; btn.innerHTML = '<i class="fas fa-right-to-bracket"></i> Log In';
+        }
+      });
+
+      // ---- 2FA verification ----
+      async function submitTotp() {
+        const b = $('#totpBtn');
+        b.disabled = true; b.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying…';
+        const r = await BB.api('/api/auth/login-2fa', {
+          method: 'POST',
+          body: { challenge: window._totpChallenge, code: $('#totpCode').value.trim() }
+        });
+        if (r.ok) {
+          BB.toast('Welcome back! 🐂', 'success');
+          const next = new URLSearchParams(location.search).get('next') || '/dashboard';
+          location.href = next;
+        } else {
+          BB.toast(r.error || 'Invalid code', 'error');
+          b.disabled = false; b.innerHTML = '<i class="fas fa-key"></i> Verify & Log In';
+          $('#totpCode').select();
+        }
+      }
+      $('#totpBtn').addEventListener('click', submitTotp);
+      $('#totpCode').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submitTotp(); } });
+      $('#totpBack').addEventListener('click', () => {
+        $('#totpStep').style.display = 'none';
+        $('#loginForm').style.display = 'block';
+        $('#totpCode').value = '';
+      });
+    });
+  </script>
+</body>
+</html>

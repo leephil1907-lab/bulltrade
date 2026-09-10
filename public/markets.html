@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn</title>
+  <meta name="description" content="Live market prices for 60+ assets: crypto, stocks, real-world assets (gold, silver, oil), tokenized gold and indices. Real branding, real-time data.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <section class="page-hero">
+    <div class="container">
+      <div class="crumbs"><a href="/">Home</a> · Markets</div>
+      <h1>The Market Session</h1>
+      <p>Live prices across crypto, stocks, real-world assets and indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset to trade it.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container-wide">
+      <!-- top movers -->
+      <div class="grid grid-2 mb-2" id="moversWrap">
+        <div class="card"><h4 style="color:var(--green-bright);font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px"><i class="fas fa-rocket"></i> Top Gainers</h4><div id="gainersBox"><span class="skeleton" style="width:90%;height:20px"></span></div></div>
+        <div class="card"><h4 style="color:var(--red);font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px"><i class="fas fa-arrow-trend-down"></i> Top Losers</h4><div id="losersBox"><span class="skeleton" style="width:90%;height:20px"></span></div></div>
+      </div>
+
+      <div class="flex-between mb-2">
+        <div class="tab-bar" id="mktTabs" style="margin-bottom:0">
+          <button class="tab-btn active" data-cat="all"><i class="fas fa-globe"></i> All</button>
+          <button class="tab-btn" data-cat="watch"><i class="fas fa-star" style="color:var(--gold-deep)"></i> My Watchlist</button>
+          <button class="tab-btn" data-cat="crypto"><i class="fas fa-coins"></i> Crypto</button>
+          <button class="tab-btn" data-cat="stocks"><i class="fas fa-building"></i> Stocks</button>
+          <button class="tab-btn" data-cat="rwa"><i class="fas fa-gem"></i> RWA &amp; Commodities</button>
+          <button class="tab-btn" data-cat="indices"><i class="fas fa-chart-column"></i> Indices</button>
+        </div>
+        <div style="position:relative;min-width:230px">
+          <input class="input" id="mktSearch" placeholder="Search assets… (e.g. BTC, Apple, gold)" style="padding:10px 14px;padding-left:38px">
+          <i class="fas fa-magnifying-glass" style="position:absolute;left:14px;top:12px;color:var(--ink-dim)"></i>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="dt">
+          <thead>
+            <tr>
+              <th style="cursor:pointer" id="sortRank">#</th>
+              <th title="Watchlist"></th>
+              <th style="cursor:pointer" id="sortName">Asset</th>
+              <th style="cursor:pointer" id="sortPrice">Price</th>
+              <th style="cursor:pointer" id="sortChg">24h %</th>
+              <th>24h Range</th>
+              <th>Trend</th>
+              <th style="cursor:pointer" id="sortCap">Market Cap / Volume</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="mktBody">
+            <tr><td colspan="9" style="padding:40px"><span class="skeleton" style="width:100%;height:26px"></span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted small mt-1"><i class="fas fa-satellite-dish"></i> Live data via CoinGecko &amp; Yahoo Finance · auto-refreshes every 20 seconds · <span id="mktUpdated">loading…</span></p>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script>
+    document.addEventListener('bb:ready', () => {
+      let assets = [], cat = 'all', query = '', sortKey = 'rank', sortDir = 1, prevPrices = {};
+
+      function movers() {
+        const withP = assets.filter(a => a.price != null && a.changePct != null);
+        const sorted = withP.slice().sort((a, b) => b.changePct - a.changePct);
+        const row = a => `<div class="mini-quote" data-asset="${a.id}" style="cursor:pointer">
+          ${BB.assetIcon(a, 26)}
+          <div><div class="mq-name">${BB.esc(a.symbol)}</div><div class="mq-sub">${BB.esc(a.name.slice(0, 18))}</div></div>
+          <div class="mq-right"><div class="mq-price">$${BB.fmtPrice(a.price)}</div>
+          <div class="mq-chg ${BB.chgClass(a.changePct)}">${BB.chgIcon(a.changePct)} ${BB.fmtPct(a.changePct)}</div></div></div>`;
+        $('#gainersBox').innerHTML = sorted.slice(0, 4).map(row).join('');
+        $('#losersBox').innerHTML = sorted.slice(-4).reverse().map(row).join('');
+        $$('#moversWrap .mini-quote').forEach(el => el.addEventListener('click', () => location.href = '/trade?asset=' + el.dataset.asset));
+      }
+
+      function render() {
+        const tb = $('#mktBody');
+        let list = assets.filter(a => a.price != null);
+        if (cat === 'watch') list = list.filter(a => (BB._watch || []).includes(a.id));
+        else if (cat !== 'all') list = list.filter(a => a.category === cat);
+        if (query) {
+          const q = query.toLowerCase();
+          list = list.filter(a => a.name.toLowerCase().includes(q) || a.symbol.toLowerCase().includes(q));
+        }
+        const cmp = {
+          rank: (a, b) => (b.marketCap || 0) - (a.marketCap || 0),
+          name: (a, b) => a.name.localeCompare(b.name),
+          price: (a, b) => a.price - b.price,
+          chg: (a, b) => (a.changePct || 0) - (b.changePct || 0),
+          cap: (a, b) => Math.max(b.marketCap || 0, b.volume24h || 0) - Math.max(a.marketCap || 0, a.volume24h || 0)
+        }[sortKey];
+        list.sort((a, b) => cmp(a, b) * sortDir);
+
+        let i = 0;
+        tb.innerHTML = list.map(a => {
+          i++;
+          const flash = prevPrices[a.id] != null && prevPrices[a.id] !== a.price ? (a.price > prevPrices[a.id] ? 'flash-up' : 'flash-down') : '';
+          const range = a.high24h && a.low24h ? ((a.price - a.low24h) / ((a.high24h - a.low24h) || 1) * 100) : null;
+          const starred = (BB._watch || []).includes(a.id);
+          return `<tr class="${flash}" data-asset="${a.id}" style="cursor:pointer">
+            <td class="muted num">${i}</td>
+            <td style="padding-right:2px"><i class="fas fa-star star-btn ${starred ? 'starred' : ''}" data-star="${a.id}" title="${starred ? 'Remove from' : 'Add to'} watchlist" style="cursor:pointer;color:${starred ? 'var(--gold-deep)' : 'var(--line)'}"></i></td>
+            <td><div class="asset-cell">${BB.assetIcon(a)}<div><b>${BB.esc(a.name)}</b><span>${BB.esc(a.symbol)}${a.tag ? ' · ' + a.tag : ''}</span></div></div></td>
+            <td class="num" style="font-weight:700">$${BB.fmtPrice(a.price)}</td>
+            <td class="num ${BB.chgClass(a.changePct)}" style="font-weight:700">${BB.chgIcon(a.changePct)} ${BB.fmtPct(a.changePct)}</td>
+            <td>${range != null ? `<div style="min-width:110px"><div class="muted small num" style="display:flex;justify-content:space-between"><span>$${BB.fmtPrice(a.low24h)}</span><span>$${BB.fmtPrice(a.high24h)}</span></div>
+              <div style="height:4px;background:var(--brown-700);border-radius:3px;margin-top:4px"><div style="height:100%;width:${Math.max(2, Math.min(100, range))}%;background:linear-gradient(90deg,var(--gold),var(--green-bright));border-radius:3px"></div></div></div>` : '—'}</td>
+            <td>${BB.sparkline(a.spark)}</td>
+            <td class="num muted">${a.marketCap ? '$' + (a.marketCap / 1e9).toFixed(2) + 'B' : a.volume24h ? '$' + (a.volume24h / 1e6).toFixed(1) + 'M vol' : '—'}</td>
+            <td><a class="btn btn-ghost btn-sm" href="/trade?asset=${a.id}"><i class="fas fa-bolt"></i> Trade</a></td>
+          </tr>`;
+        }).join('') || `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-magnifying-glass"></i>No assets match "${BB.esc(query)}"</div></td></tr>`;
+        list.forEach(a => prevPrices[a.id] = a.price);
+        $$('#mktBody tr[data-asset]').forEach(tr => tr.addEventListener('click', e => {
+          if (e.target.closest('a, .star-btn')) return;
+          location.href = '/trade?asset=' + tr.dataset.asset;
+        }));
+        $$('#mktBody .star-btn').forEach(st => st.addEventListener('click', async e => {
+          e.stopPropagation();
+          if (!BB.user) return BB.toast('Log in to save your watchlist', 'error');
+          const r = await BB.api('/api/watchlist/toggle', { method: 'POST', body: { assetId: st.dataset.star } });
+          if (r.ok) { BB._watch = r.watchlist; render(); BB.toast(r.added ? 'Added to watchlist ★' : 'Removed from watchlist'); }
+        }));
+      }
+
+      async function refresh() {
+        if (BB.user && BB._watch === undefined) {
+          const me = await BB.api('/api/auth/me', { silent: true });
+          BB._watch = me.watchlist || [];
+        }
+        const r = await BB.api('/api/markets', { silent: true });
+        if (!r.assets) return;
+        assets = r.assets;
+        movers();
+        render();
+        $('#mktUpdated').textContent = 'updated ' + BB.timeAgo(r.updated) + (r.error ? ' · (retrying feed)' : '');
+      }
+
+      $$('#mktTabs .tab-btn').forEach(b => b.addEventListener('click', () => {
+        $$('#mktTabs .tab-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active'); cat = b.dataset.cat; render();
+      }));
+      $('#mktSearch').addEventListener('input', e => { query = e.target.value.trim(); render(); });
+      [['#sortRank','rank'],['#sortName','name'],['#sortPrice','price'],['#sortChg','chg'],['#sortCap','cap']].forEach(([id, key]) => {
+        $(id).addEventListener('click', () => {
+          if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+          render();
+        });
+      });
+
+      refresh();
+      setInterval(refresh, 20000);
+    });
+  </script>
+</body>
+</html>

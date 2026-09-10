@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Runtime data — NEVER commit (contains DB, JWT secret, KYC uploads, deposit proofs)
+data/
+
+# Environment / secrets
+.env
+
+# Internal session notes
+SESSION.md
+
+# Logs
+*.log
+npm-debug.log*

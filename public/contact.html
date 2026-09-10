@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contact — The Blockchain Bullhorn</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+</head>
+<body>
+  <header class="site-header" id="site-header"></header>
+  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+  <section class="page-hero">
+    <div class="container">
+      <div class="crumbs"><a href="/">Home</a> · Contact</div>
+      <h1>Let's Connect</h1>
+      <p>If you have questions about your purchase, account access, or any of our digital products — I'm here to help.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="container" style="max-width:980px">
+      <div class="grid grid-2">
+        <div class="card reveal">
+          <img class="face" src="/assets/img/brand/contact-art.jpg" alt="Blockchain Bullhorn support" style="border-radius:12px;margin-bottom:18px">
+          <h3>Email Support</h3>
+          <p class="muted">Before reaching out, please review the links at the bottom of the website — they cover product delivery, refund eligibility, privacy, FAQs, disclaimers, fraud alerts and subscription cancellations.</p>
+          <div class="mt-2">
+            <a class="btn btn-gold btn-block" href="mailto:support@blockchainbullhorn.com"><i class="fas fa-envelope"></i> support@blockchainbullhorn.com</a>
+            <button class="btn btn-primary btn-block mt-1" id="chatCta"><i class="fas fa-comment-dots"></i> Chat With Us Live</button>
+          </div>
+          <p class="muted small mt-2">Include your email used at purchase, date of purchase, and any transaction ID — it helps us help you faster.</p>
+        </div>
+        <div class="card reveal reveal-d1">
+          <h3>Get Social</h3>
+          <p class="muted">Follow for daily tips, inspiration and live sessions.</p>
+          <div class="mt-2" style="display:flex;gap:12px;flex-wrap:wrap">
+            <a class="btn btn-outline" href="https://www.tiktok.com/@blockchainbullhorn" target="_blank" rel="noopener" title="TikTok — Official Crypto Account" style="font-size:19px;padding:12px 18px"><i class="fab fa-tiktok"></i> <span class="badge badge-blue" style="margin-left:6px">Official Crypto</span></a>
+            <a class="btn btn-outline" href="https://www.tiktok.com/@powerofpublish" target="_blank" rel="noopener" title="TikTok — Power of Publish" style="font-size:19px;padding:12px 18px"><i class="fab fa-tiktok"></i> <span class="badge badge-blue" style="margin-left:6px">1.3M+ Followers</span></a>
+            <a class="btn btn-outline" href="https://www.instagram.com/blockchainbullhorn" target="_blank" rel="noopener" title="Instagram" style="font-size:19px;padding:12px 18px"><i class="fab fa-instagram"></i></a>
+            <a class="btn btn-outline" href="https://x.com/Blockchainbhorn" target="_blank" rel="noopener" title="X (Twitter)" style="font-size:19px;padding:12px 18px"><i class="fab fa-x-twitter"></i></a>
+            <a class="btn btn-outline" href="https://www.youtube.com/@blockchainbullhorn" target="_blank" rel="noopener" title="YouTube" style="font-size:19px;padding:12px 18px"><i class="fab fa-youtube"></i></a>
+          </div>
+          <p class="muted small mt-1">Live sessions every week, 7–8PM EST.</p>
+          <div class="footer-fraud mt-2">⚠️ <b>Remember:</b> We never DM first. Anyone messaging you "from Calvin" is a scammer. <a href="/avoid-scams" style="color:#ffd7de;text-decoration:underline">Verify official accounts</a>.</div>
+        </div>
+      </div>
+
+      <div class="card mt-2 reveal">
+        <h3><i class="fas fa-bullhorn" style="color:var(--gold)"></i> Don't Forget To GRAB Somethin'</h3>
+        <div class="grid grid-3 mt-2">
+          <div class="card"><b class="font-head">Super Simple Crypto System</b><p class="small muted mt-1">The proven video series — now public.</p><b class="font-head" style="color:var(--green-bright)">$497</b></div>
+          <div class="card"><b class="font-head">The Crypto Cheat Guide</b><p class="small muted mt-1">From basics to strategic mastery.</p><b class="font-head" style="color:var(--green-bright)">$27</b></div>
+          <div class="card"><b class="font-head">Combo Pack</b><p class="small muted mt-1">eBook + audio, learn on-the-go.</p><b class="font-head" style="color:var(--green-bright)">$47</b></div>
+        </div>
+        <a href="/store" class="btn btn-primary mt-2">Visit the Store</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer" id="site-footer"></footer>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script>
+    document.addEventListener('bb:ready', () => {
+      $('#chatCta').addEventListener('click', () => {
+        const l = document.querySelector('.chat-launcher');
+        if (l) l.click();
+      });
+    });
+  </script>
+</body>
+</html>

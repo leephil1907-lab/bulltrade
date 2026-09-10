@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Console — Blockchain Bullhorn</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
+  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fontawesome.css">
+  <link rel="stylesheet" href="/assets/css/main.css?v=6">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=6">
+</head>
+<body class="admin-body">
+
+  <!-- ============ LOGIN GATE ============ -->
+  <div class="admin-login-wrap" id="adminLogin" style="display:none">
+    <div class="card" style="padding:40px;max-width:420px;width:100%">
+      <div class="text-center mb-2">
+        <img src="/assets/img/brand/logo.png" alt="" style="width:64px;height:64px;border-radius:16px;margin:0 auto 16px">
+        <h1 style="font-size:24px">Admin Console</h1>
+        <p class="muted small">Blockchain Bullhorn back office — authorized staff only.</p>
+      </div>
+      <div class="alert alert-error" id="admAlert"></div>
+      <form id="admLoginForm">
+        <div class="field"><label>Email</label><input class="input" type="email" id="admEmail" autocomplete="username"></div>
+        <div class="field"><label>Password</label><input class="input" type="password" id="admPw" autocomplete="current-password"></div>
+        <button class="btn btn-primary btn-block btn-lg" type="submit"><i class="fas fa-shield-halved"></i> Sign In</button>
+      </form>
+      <p class="muted small text-center mt-2"><a href="/">← Back to website</a></p>
+    </div>
+  </div>
+
+  <!-- ============ CONSOLE ============ -->
+  <div class="admin-shell" id="adminShell" style="display:none">
+    <aside class="admin-side">
+      <a class="brand" href="/" style="text-decoration:none">
+        <img src="/assets/img/brand/logo.png" alt="" style="width:40px;height:40px;border-radius:10px">
+        <div class="brand-name" style="font-size:15px">Blockchain <span>Bullhorn</span><small>Admin Console</small></div>
+      </a>
+      <nav id="admNav">
+        <a data-view="overview" class="active"><i class="fas fa-gauge-high"></i> Overview</a>
+        <a data-view="users"><i class="fas fa-users"></i> Users <span class="cnt" id="cntUsers" style="display:none"></span></a>
+        <a data-view="kyc"><i class="fas fa-id-card"></i> KYC Review <span class="cnt" id="cntKyc" style="display:none"></span></a>
+        <a data-view="txs"><i class="fas fa-money-bill-transfer"></i> Transactions <span class="cnt" id="cntTx" style="display:none"></span></a>
+        <a data-view="positions"><i class="fas fa-layer-group"></i> Positions &amp; Trades</a>
+        <a data-view="community"><i class="fas fa-people-group"></i> Community Apps <span class="cnt" id="cntCommunity" style="display:none"></span></a>
+        <a data-view="copy"><i class="fas fa-users-rectangle"></i> Copy Trading <span class="cnt" id="cntCopy" style="display:none"></span></a>
+        <a data-view="chats"><i class="fas fa-comments"></i> Live Chat <span class="cnt" id="cntChats" style="display:none"></span></a>
+        <a data-view="settings"><i class="fas fa-gear"></i> Settings</a>
+        <a data-view="audit"><i class="fas fa-clipboard-list"></i> Audit Log</a>
+      </nav>
+      <div style="margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--line)">
+        <div class="muted small font-head mb-1" id="admWho">—</div>
+        <button class="btn btn-outline btn-sm btn-block" id="admLogout"><i class="fas fa-arrow-right-from-bracket"></i> Log Out</button>
+        <a class="btn btn-ghost btn-sm btn-block mt-1" href="/"><i class="fas fa-globe"></i> View Site</a>
+      </div>
+    </aside>
+    <main class="admin-main">
+      <div class="admin-top">
+        <div><h1 id="viewTitle">Overview</h1><div class="sub" id="viewSub">Platform health at a glance</div></div>
+        <div class="kpi-row" id="marketKpis"></div>
+      </div>
+      <div id="viewRoot"></div>
+    </main>
+  </div>
+
+  <div class="toast-wrap"></div>
+  <script src="/assets/js/common.js?v=6"></script>
+  <script>
+    'use strict';
+    let VIEW = 'overview';
+    let ME = null;
+    function R(id, scope) { return (scope || document).getElementById(id); }
+
+    async function api(path, opts = {}) {
+      const res = await fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin' }, opts, { body: opts.body ? JSON.stringify(opts.body) : undefined }));
+      let data = {}; try { data = await res.json(); } catch (e) {}
+      data._status = res.status;
+      return data;
+    }
+    function toast(msg, type) { BB.toast(msg, type); }
+
+    // ---------- boot ----------
+    document.addEventListener('bb:ready', async () => {
+      ME = BB.user;
+      if (!ME || ME.role !== 'admin') {
+        R('adminLogin').style.display = 'flex';
+        // hide the public header/footer injected by common.js on admin page
+        const h = R('site-header'), f = R('site-footer');
+        if (h) h.style.display = 'none';
+        if (f) f.style.display = 'none';
+        return;
+      }
+      R('adminShell').style.display = 'grid';
+      const h = R('site-header'), f = R('site-footer');
+      if (h) h.remove(); if (f) f.remove();
+      R('admWho').textContent = ME.email;
+      R('admLogout').addEventListener('click', async () => { await api('/api/auth/logout', { method: 'POST', body: {} }); location.reload(); });
+      $$('#admNav a').forEach(a => a.addEventListener('click', () => switchView(a.dataset.view)));
+      setInterval(refreshCounts, 30000);
+      refreshCounts();
+      switchView('overview');
+    });
+
+    R('admLoginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const r = await api('/api/auth/login', { method: 'POST', body: { email: R('admEmail').value, password: R('admPw').value } });
+      if (r.ok && r.user.role === 'admin') location.reload();
+      else {
+        const a = R('admAlert');
+        a.textContent = r.ok ? 'This account does not have admin access.' : (r.error || 'Login failed');
+        a.classList.add('show');
+      }
+    });
+
+    async function refreshCounts() {
+      const r = await api('/api/admin/overview', { silent: true });
+      if (!r.ok) return;
+      const set = (id, n) => { const el = R(id); el.textContent = n; el.style.display = n > 0 ? 'inline-flex' : 'none'; };
+      set('cntUsers', r.stats.totalUsers);
+      set('cntKyc', r.stats.kycPending);
+      set('cntTx', r.stats.depositsPending + r.stats.withdrawalsPending);
+      set('cntCommunity', r.stats.communityPending);
+      set('cntCopy', r.stats.leaderPending);
+      set('cntChats', r.stats.unreadChats);
+      // market kpis
+      const mk = R('marketKpis');
+      if (mk && r.topGainers.length) {
+        const g = r.topGainers[0], l = r.topLosers[0];
+        mk.innerHTML = `<span class="kpi"><i class="fas fa-signal"></i> Market data: <b>${BB.timeAgo(r.marketUpdated)}</b></span>
+          <span class="kpi">Top: <b class="up">${g.symbol} ${BB.fmtPct(g.changePct)}</b></span>
+          <span class="kpi">Bottom: <b class="down">${l.symbol} ${BB.fmtPct(l.changePct)}</b></span>`;
+      }
+    }
+
+    function switchView(v) {
+      VIEW = v;
+      $$('#admNav a').forEach(a => a.classList.toggle('active', a.dataset.view === v));
+      const titles = {
+        overview: ['Overview', 'Platform health at a glance'],
+        users: ['Users', 'Every registered account — search, inspect, adjust balances, ban/unban'],
+        kyc: ['KYC Review', 'Manually verify identity documents'],
+        txs: ['Transactions', 'Approve or reject deposits and withdrawals'],
+        positions: ['Positions & Trades', 'All open positions and the trade log'],
+        community: ['Community Applications', 'Approve or reject membership requests'],
+        copy: ['Copy Trading', 'Leader applications, active leaders and allocations'],
+        chats: ['Live Chat', 'Reply to website visitors in real time'],
+        settings: ['Settings', 'Smartsupp, announcements, deposit addresses and limits'],
+        audit: ['Audit Log', 'Every admin action, recorded']
+      };
+      R('viewTitle').textContent = titles[v][0];
+      R('viewSub').textContent = titles[v][1];
+      ({ overview: viewOverview, users: viewUsers, kyc: viewKyc, txs: viewTxs, positions: viewPositions, community: viewCommunity, copy: viewCopy, chats: viewChats, settings: viewSettings, audit: viewAudit })[v]();
+    }
+
+    // ---------- views ----------
+    async function viewOverview() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="stat-grid"><div class="stat-c"><span class="skeleton" style="width:110px;height:40px"></span></div></div>';
+      const r = await api('/api/admin/overview');
+      if (!r.ok) return root.innerHTML = '<div class="admin-card">Failed to load.</div>';
+      const s = r.stats;
+      const cards = [
+        ['fa-users', 'Total Users', s.totalUsers], ['fa-user-plus', 'New (7d)', s.newUsersWeek],
+        ['fa-id-card', 'KYC Pending', s.kycPending], ['fa-money-bill-transfer', 'Tx Pending', s.depositsPending + s.withdrawalsPending],
+        ['fa-layer-group', 'Open Positions', s.openPositions], ['fa-right-left', 'Total Trades', s.totalTrades],
+        ['fa-chart-line', 'Volume ($)', s.totalVolume.toLocaleString()], ['fa-wallet', 'Live Equity ($)', s.liveEquity.toLocaleString()],
+        ['fa-people-group', 'Community Pending', s.communityPending], ['fa-users-rectangle', 'Copy Leaders Pending', s.leaderPending],
+        ['fa-link', 'Active Copies', s.copyAllocations], ['fa-comments', 'Unread Chats', s.unreadChats]
+      ];
+      root.innerHTML = `
+        <div class="stat-grid">${cards.map(([i, l, v]) => `<div class="stat-c"><div class="l"><i class="fas ${i}" style="color:var(--gold)"></i> ${l}</div><div class="v">${v}</div></div>`).join('')}</div>
+        <div class="grid grid-2">
+          <div class="admin-card"><h3><i class="fas fa-user-clock" style="color:var(--gold)"></i> Newest Users</h3>
+            <div class="table-wrap" style="border:none"><table class="dt"><thead><tr><th>User</th><th>Joined</th><th>KYC</th><th>Community</th></tr></thead><tbody>
+            ${r.recentUsers.map(u => `<tr style="cursor:pointer" data-user="${u.id}">
+              <td><b class="font-head">${BB.esc(u.name || u.email)}</b><br><small class="muted">${BB.esc(u.email)}</small></td>
+              <td class="muted small">${BB.timeAgo(u.joinedAt)}</td>
+              <td><span class="pill badge ${u.kyc === 'approved' ? 'badge-green' : u.kyc === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.kyc}</span></td>
+              <td class="muted small">${u.joinedAt ? BB.timeAgo(u.joinedAt) : ''}</td></tr>`).join('')}
+            </tbody></table></div></div>
+          <div class="admin-card"><h3><i class="fas fa-arrows-up-down" style="color:var(--gold)"></i> Market Movers (live)</h3>
+            <div class="grid grid-2" style="gap:10px">
+              <div><b class="font-head small" style="color:var(--green-bright)">▲ Gainers</b>
+                ${r.topGainers.map(a => `<div class="flex-between" style="padding:5px 0;border-bottom:1px dashed var(--line)"><span class="font-head small">${a.symbol}</span><b class="small ${BB.chgClass(a.changePct)}">${BB.fmtPct(a.changePct)}</b></div>`).join('')}</div>
+              <div><b class="font-head small" style="color:var(--red)">▼ Losers</b>
+                ${r.topLosers.map(a => `<div class="flex-between" style="padding:5px 0;border-bottom:1px dashed var(--line)"><span class="font-head small">${a.symbol}</span><b class="small ${BB.chgClass(a.changePct)}">${BB.fmtPct(a.changePct)}</b></div>`).join('')}</div>
+            </div></div>
+        </div>`;
+      $$('[data-user]').forEach(tr => tr.addEventListener('click', () => { switchView('users'); setTimeout(() => openUser(tr.dataset.user), 300); }));
+    }
+
+    async function viewUsers() {
+      const root = R('viewRoot');
+      root.innerHTML = `<div class="admin-card">
+        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+          <input class="input" id="uSearch" placeholder="Search by name or email…" style="max-width:320px">
+          <button class="btn btn-primary btn-sm" id="uRefresh"><i class="fas fa-rotate"></i> Refresh</button>
+        </div>
+        <div id="uTable"></div></div>`;
+      const load = async () => {
+        const q = R('uSearch').value.trim();
+        const r = await api('/api/admin/users' + (q ? `?q=${encodeURIComponent(q)}` : ''));
+        if (!r.ok) return;
+        R('uTable').innerHTML = `<div class="table-wrap"><table class="dt"><thead><tr>
+          <th>User</th><th>Country</th><th>Joined</th><th>Last Login</th><th>KYC</th><th>Community</th><th>Leader</th><th>Live Eq</th><th>Demo Eq</th><th>Pos</th><th></th></tr></thead><tbody>
+          ${r.users.map(u => `<tr>
+            <td><b class="font-head">${BB.esc(u.name || '—')}</b><br><small class="muted">${BB.esc(u.email)}</small>${u.banned ? ' <span class="pill badge-red">BANNED</span>' : ''}${u.role === 'admin' ? ' <span class="pill badge-blue">ADMIN</span>' : ''}</td>
+            <td class="muted small">${BB.esc(u.country || '—')}</td>
+            <td class="muted small">${new Date(u.joinedAt).toLocaleDateString()}</td>
+            <td class="muted small">${u.lastLogin ? BB.timeAgo(u.lastLogin) : 'never'}</td>
+            <td><span class="pill badge ${u.kycStatus === 'approved' ? 'badge-green' : u.kycStatus === 'pending' ? 'badge-gold' : u.kycStatus === 'rejected' ? 'badge-red' : 'badge-gray'}">${u.kycStatus.replace('_', ' ')}</span></td>
+            <td><span class="pill badge ${u.communityStatus === 'approved' ? 'badge-green' : u.communityStatus === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.communityStatus}</span></td>
+            <td>${u.copyLeader ? `<span class="pill badge ${u.copyLeader === 'active' ? 'badge-green' : 'badge-gold'}">${u.copyLeader}</span>` : '<span class="muted">—</span>'}</td>
+            <td class="num">$${u.liveEquity.toLocaleString()}</td>
+            <td class="num">$${u.demoEquity.toLocaleString()}</td>
+            <td class="num">${u.positions}</td>
+            <td><button class="btn btn-outline btn-sm" data-open="${u.id}">Manage</button></td></tr>`).join('')}
+        </tbody></table></div>${r.users.length ? '' : '<div class="empty-state">No users found.</div>'}`;
+        $$('[data-open]').forEach(b => b.addEventListener('click', () => openUser(b.dataset.open)));
+      };
+      R('uSearch').addEventListener('input', load);
+      R('uRefresh').addEventListener('click', load);
+      load();
+    }
+
+    async function openUser(userId) {
+      const r = await api(`/api/admin/user?id=${userId}`);
+      if (!r.ok) return toast(r.error, 'error');
+      const u = r.user;
+      const kyc = r.kyc;
+      const bd = BB.modal(`User: ${BB.esc(u.name || u.email)}`, `
+        <div class="kpi-row mb-2">
+          <span class="kpi"><i class="fas fa-envelope"></i> ${BB.esc(u.email)}</span>
+          <span class="kpi"><i class="fas fa-globe"></i> ${BB.esc(u.country || '—')}</span>
+          <span class="kpi"><i class="fas fa-cake-candles"></i> ${BB.esc(u.dob || '—')}</span>
+          <span class="kpi"><i class="fas fa-phone"></i> ${BB.esc(u.phone || '—')}</span>
+          <span class="kpi"><i class="fas fa-graduation-cap"></i> Exp: ${BB.esc(u.experience || '—')}</span>
+          <span class="kpi"><i class="fas fa-sack-dollar"></i> Funds: ${BB.esc(u.sourceOfFunds || '—')}</span>
+          <span class="kpi"><i class="fas fa-gift"></i> Ref: ${BB.esc(u.referralCode)}</span>
+          <span class="kpi"><i class="fas fa-calendar"></i> Joined ${new Date(u.joinedAt).toLocaleDateString()}</span>
+        </div>
+        <div class="grid grid-2 mb-2" style="gap:12px">
+          <div class="card" style="padding:14px"><div class="l muted small font-head">LIVE EQUITY</div><b class="font-head" style="font-size:22px;color:var(--green-bright)">$${r.live.equity.toLocaleString()}</b>
+            <div class="muted small font-head">free $${r.live.free.toLocaleString()} · margin $${r.live.marginUsed.toLocaleString()} · copy $${(r.live.inCopy || 0).toLocaleString()}</div></div>
+          <div class="card" style="padding:14px"><div class="l muted small font-head">DEMO EQUITY</div><b class="font-head" style="font-size:22px;color:var(--sky)">$${r.demo.equity.toLocaleString()}</b>
+            <div class="muted small font-head">free $${r.demo.free.toLocaleString()} · margin $${r.demo.marginUsed.toLocaleString()}</div></div>
+        </div>
+        <h4 class="font-head mb-1" style="font-size:15px"><i class="fas fa-sliders" style="color:var(--gold)"></i> Adjust Balance</h4>
+        <div class="form-row" style="gap:10px">
+          <select class="input" id="adjMode" style="flex:1"><option value="live">Live wallet</option><option value="demo">Demo wallet</option></select>
+          <input class="input num" id="adjAmount" type="number" step="any" placeholder="+/- USD" style="flex:1">
+          <input class="input" id="adjNote" placeholder="Note (reason)" style="flex:1.4">
+        </div>
+        <button class="btn btn-gold btn-sm mt-1" id="adjBtn"><i class="fas fa-check"></i> Apply Adjustment</button>
+
+        <h4 class="font-head mt-3 mb-1" style="font-size:15px"><i class="fas fa-id-card" style="color:var(--gold)"></i> KYC — ${kyc ? kyc.status.toUpperCase() : 'NOT SUBMITTED'}</h4>
+        ${kyc ? `<p class="muted small">${kyc.idType.replace('_', ' ')} · submitted ${BB.timeAgo(kyc.submittedAt)}${kyc.docs ? ' · ' + kyc.docs.length + ' document(s)' : ''}</p>
+          ${kyc.status === 'pending' ? `<div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" id="kycA"><i class="fas fa-check"></i> Approve KYC</button>
+          <button class="btn btn-danger btn-sm" id="kycR"><i class="fas fa-xmark"></i> Reject KYC</button></div>` : ''}
+          ${kyc.docs && kyc.docs.length ? `<div class="grid grid-2 mt-1" style="gap:10px">${kyc.docs.map(d => `
+            <div><div class="muted small font-head mb-1">${d.kind} — ${BB.esc(d.origName)} (${(d.size / 1024).toFixed(0)}KB)</div>
+            ${d.mime.startsWith('image/') ? `<img class="doc-thumb" src="/api/admin/kyc-file?id=${d.id}" alt="${d.kind}">` : `<a class="btn btn-outline btn-sm" href="/api/admin/kyc-file?id=${d.id}" target="_blank"><i class="fas fa-file-pdf"></i> Open PDF</a>`}</div>`).join('')}</div>` : ''}` : '<p class="muted small">No submission yet.</p>'}
+
+        <h4 class="font-head mt-3 mb-1" style="font-size:15px"><i class="fas fa-chart-line" style="color:var(--gold)"></i> Open Positions (${r.positions.length})</h4>
+        <div class="table-wrap"><table class="dt"><thead><tr><th>Asset</th><th>Side</th><th>Mode</th><th>Entry</th><th>Margin</th><th>Lev</th><th>Opened</th></tr></thead><tbody>
+          ${r.positions.map(p => `<tr><td><b class="font-head">${p.symbol}</b>${p.copyOf ? ' <span class="pill badge-blue">COPY</span>' : ''}</td>
+            <td class="${p.side === 'buy' ? 'up' : 'down'}">${p.side}</td><td class="muted small">${p.mode}</td>
+            <td class="num">$${BB.fmtPrice(p.entry)}</td><td class="num">$${p.margin}</td><td class="num">${p.leverage}×</td>
+            <td class="muted small">${BB.timeAgo(p.openedAt)}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">None</td></tr>'}
+        </tbody></table></div>
+
+        <h4 class="font-head mt-3 mb-1" style="font-size:15px"><i class="fas fa-receipt" style="color:var(--gold)"></i> Transactions (${r.transactions.length})</h4>
+        <div class="table-wrap"><table class="dt"><thead><tr><th>Type</th><th>Asset</th><th>Amount</th><th>Status</th><th>When</th><th>TxID / Addr</th></tr></thead><tbody>
+          ${r.transactions.slice(0, 10).map(t => `<tr><td>${t.type}</td><td>${t.asset}</td><td class="num">$${t.amountUsd}</td>
+            <td><span class="pill badge ${t.status === 'completed' ? 'badge-green' : t.status === 'pending' ? 'badge-gold' : 'badge-red'}">${t.status}</span></td>
+            <td class="muted small">${BB.timeAgo(t.createdAt)}</td><td class="muted small" style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${BB.esc(t.txid || t.address || t.note || '')}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">None</td></tr>'}
+        </tbody></table></div>`);
+      // actions
+      R('adjBtn', bd).addEventListener('click', async () => {
+        const amt = parseFloat(R('adjAmount', bd).value);
+        const note = R('adjNote', bd).value;
+        const r2 = await api('/api/admin/balance', { method: 'POST', body: { userId: u.id, mode: R('adjMode', bd).value, amountUsd: amt, note } });
+        if (r2.ok) { toast(r2.message, 'success'); bd.remove(); openUser(userId); } else toast(r2.error, 'error');
+      });
+      const kycA = R('kycA', bd), kycR = R('kycR', bd);
+      if (kycA) kycA.addEventListener('click', async () => {
+        const r2 = await api('/api/admin/kyc', { method: 'POST', body: { userId: u.id, action: 'approve' } });
+        if (r2.ok) { toast(r2.message, 'success'); bd.remove(); openUser(userId); } else toast(r2.error, 'error');
+      });
+      if (kycR) kycR.addEventListener('click', async () => {
+        const reason = prompt('Reason for rejection (shown to the user):') || '';
+        const r2 = await api('/api/admin/kyc', { method: 'POST', body: { userId: u.id, action: 'reject', reason } });
+        if (r2.ok) { toast(r2.message, 'success'); bd.remove(); openUser(userId); } else toast(r2.error, 'error');
+      });
+    }
+
+    async function viewKyc() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="admin-card">Loading KYC queue…</div>';
+      // users list contains kyc status; fetch users then filter
+      const r = await api('/api/admin/users');
+      if (!r.ok) return;
+      const pending = r.users.filter(u => u.kycStatus === 'pending');
+      const done = r.users.filter(u => u.kycStatus === 'approved' || u.kycStatus === 'rejected');
+      root.innerHTML = `
+        <div class="admin-card"><h3><i class="fas fa-hourglass-half" style="color:var(--gold)"></i> Pending Review (${pending.length})</h3>
+          ${pending.length ? `<div class="grid grid-2">${pending.map(u => `
+            <div class="card" style="padding:16px">
+              <div class="flex-between"><div><b class="font-head">${BB.esc(u.name || '—')}</b><br><small class="muted">${BB.esc(u.email)}</small></div>
+              <button class="btn btn-outline btn-sm" data-open="${u.id}">Open Documents</button></div>
+            </div>`).join('')}</div>` : '<div class="empty-state"><i class="fas fa-check"></i>No pending KYC — all caught up!</div>'}
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> Reviewed (${done.length})</h3>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Status</th><th>Live Eq</th><th></th></tr></thead><tbody>
+          ${done.map(u => `<tr><td><b class="font-head">${BB.esc(u.name || u.email)}</b><br><small class="muted">${BB.esc(u.email)}</small></td>
+            <td><span class="pill badge ${u.kycStatus === 'approved' ? 'badge-green' : 'badge-red'}">${u.kycStatus}</span></td>
+            <td class="num">$${u.liveEquity.toLocaleString()}</td>
+            <td><button class="btn btn-outline btn-sm" data-open="${u.id}">Details</button></td></tr>`).join('')}
+          </tbody></table></div></div>`;
+      $$('[data-open]').forEach(b => b.addEventListener('click', () => openUser(b.dataset.open)));
+    }
+
+    async function viewTxs() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="admin-card">Loading transactions…</div>';
+      const r = await api('/api/admin/transactions');
+      if (!r.ok) return;
+      const pending = r.transactions.filter(t => t.status === 'pending');
+      const hist = r.transactions.filter(t => t.status !== 'pending');
+      root.innerHTML = `
+        <div class="admin-card"><h3><i class="fas fa-hourglass-half" style="color:var(--gold)"></i> Pending (${pending.length}) — all actions require manual approval</h3>
+          ${pending.length ? `<div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Type</th><th>Asset</th><th>Amount</th><th>Submitted</th><th>TxID / Address</th><th>Payment proof</th><th>Actions</th></tr></thead><tbody>
+          ${pending.map(t => `<tr>
+            <td><b class="font-head">${BB.esc(t.userName || '')}</b><br><small class="muted">${BB.esc(t.userEmail)}</small></td>
+            <td><span class="pill badge ${t.type === 'deposit' ? 'badge-green' : 'badge-red'}">${t.type}</span></td>
+            <td>${t.asset}</td><td class="num">$${t.amountUsd.toLocaleString()}</td>
+            <td class="muted small">${BB.timeAgo(t.createdAt)}</td>
+            <td class="muted small" style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${BB.esc(t.txid || t.address || '')}">${BB.esc(t.txid || t.address || '')}</td>
+            <td>${t.proof ? `<a href="/api/admin/proof?id=${t.id}" target="_blank" title="Open payment proof"><img src="/api/admin/proof?id=${t.id}" style="width:52px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--line)" onerror="this.outerHTML='<span class=\'badge badge-blue\'><i class=\'fas fa-file-pdf\'></i> PDF</span>'"></a>`
+              : '<span class="badge badge-gray">none</span>'}</td>
+            <td style="white-space:nowrap"><button class="btn btn-green btn-sm" data-txok="${t.id}"><i class="fas fa-check"></i> Approve &amp; Credit</button>
+            <button class="btn btn-danger btn-sm" data-txno="${t.id}"><i class="fas fa-xmark"></i> Reject</button></td></tr>`).join('')}
+          </tbody></table></div>` : '<div class="empty-state"><i class="fas fa-check"></i>Nothing pending.</div>'}
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> History (${hist.length})</h3>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Type</th><th>Asset</th><th>Amount</th><th>Status</th><th>When</th><th>Note</th></tr></thead><tbody>
+          ${hist.slice(0, 60).map(t => `<tr><td><small>${BB.esc(t.userEmail)}</small></td><td>${t.type}</td><td>${t.asset}</td>
+            <td class="num">$${t.amountUsd.toLocaleString()}</td>
+            <td><span class="pill badge ${t.status === 'completed' ? 'badge-green' : 'badge-red'}">${t.status}</span></td>
+            <td class="muted small">${BB.timeAgo(t.createdAt)}</td><td class="muted small">${BB.esc(t.adminNote || t.note || '')}</td></tr>`).join('')}
+          </tbody></table></div></div>`;
+      $$('[data-txok]').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm('Approve this transaction?')) return;
+        const r2 = await api('/api/admin/tx', { method: 'POST', body: { txId: b.dataset.txok, action: 'approve' } });
+        if (r2.ok) { toast(r2.message, 'success'); viewTxs(); refreshCounts(); } else toast(r2.error, 'error');
+      }));
+      $$('[data-txno]').forEach(b => b.addEventListener('click', async () => {
+        const note = prompt('Rejection note (optional):') || '';
+        const r2 = await api('/api/admin/tx', { method: 'POST', body: { txId: b.dataset.txno, action: 'reject', note } });
+        if (r2.ok) { toast(r2.message, 'success'); viewTxs(); refreshCounts(); } else toast(r2.error, 'error');
+      }));
+    }
+
+    async function viewPositions() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="admin-card">Loading books…</div>';
+      const r = await api('/api/admin/positions');
+      if (!r.ok) return;
+      root.innerHTML = `
+        <div class="admin-card"><h3><i class="fas fa-layer-group" style="color:var(--gold)"></i> Open Positions (${r.positions.length})</h3>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Asset</th><th>Side</th><th>Mode</th><th>Entry</th><th>Mark</th><th>Margin</th><th>Lev</th><th>P/L</th><th>Opened</th></tr></thead><tbody>
+          ${r.positions.map(p => `<tr><td><small>${BB.esc(p.userEmail)}</small></td><td><b class="font-head">${p.symbol}</b>${p.copyOf ? ' <span class="pill badge-blue">COPY</span>' : ''}</td>
+            <td class="${p.side === 'buy' ? 'up' : 'down'}">${p.side}</td><td class="muted small">${p.mode}</td>
+            <td class="num">$${BB.fmtPrice(p.entry)}</td><td class="num">$${BB.fmtPrice(p.currentPrice)}</td>
+            <td class="num">$${p.margin}</td><td class="num">${p.leverage}×</td>
+            <td class="num ${p.pnl >= 0 ? 'up' : 'down'}" style="font-weight:700">${p.pnl >= 0 ? '+' : ''}$${p.pnl.toFixed(2)}</td>
+            <td class="muted small">${BB.timeAgo(p.openedAt)}</td></tr>`).join('') || '<tr><td colspan="10" class="muted">No open positions.</td></tr>'}
+          </tbody></table></div></div>
+        <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> Recent Trades (${r.trades.length})</h3>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>Time</th><th>User</th><th>Asset</th><th>Action</th><th>Side</th><th>Price</th><th>Notional</th><th>P/L</th></tr></thead><tbody>
+          ${r.trades.slice(0, 60).map(t => `<tr><td class="muted small">${BB.fmtTime(t.at)}</td><td><small>${BB.esc(t.userEmail)}</small></td>
+            <td><b class="font-head">${t.symbol}</b></td><td>${t.action}${t.reason ? ' (' + t.reason + ')' : ''}</td>
+            <td class="${t.side === 'buy' ? 'up' : 'down'}">${t.side}</td><td class="num">$${BB.fmtPrice(t.price)}</td>
+            <td class="num">$${t.notional.toLocaleString()}</td>
+            <td class="num ${t.pnl >= 0 ? 'up' : 'down'}">${t.action === 'close' ? (t.pnl >= 0 ? '+' : '') + '$' + t.pnl.toFixed(2) : '—'}</td></tr>`).join('')}
+          </tbody></table></div></div>`;
+    }
+
+    async function viewCommunity() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="admin-card">Loading applications…</div>';
+      const r = await api('/api/admin/community-apps');
+      if (!r.ok) return;
+      const pending = r.apps.filter(a => a.status === 'pending');
+      const reviewed = r.apps.filter(a => a.status !== 'pending');
+      root.innerHTML = `
+        <div class="admin-card"><h3><i class="fas fa-hourglass-half" style="color:var(--gold)"></i> Pending Applications (${pending.length})</h3>
+          ${pending.length ? pending.map(a => `
+            <div class="card mb-2" style="padding:18px">
+              <div class="flex-between mb-1">
+                <div><b class="font-head">${BB.esc(a.userName)}</b> <span class="muted small">${BB.esc(a.userEmail)} · ${BB.esc(a.country || '')}</span></div>
+                <span class="pill badge badge-gold">quiz ${a.quizScore}/5 · KYC ${a.kyc}</span>
+              </div>
+              <p class="small" style="color:var(--ink-soft)"><b class="font-head">Experience:</b> ${BB.esc(a.experience)}<br>
+              <b class="font-head">Goals:</b> ${BB.esc(a.goals || '—')}<br>
+              <b class="font-head">Applied:</b> ${BB.timeAgo(a.appliedAt)}</p>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-green btn-sm" data-cmok="${a.id}"><i class="fas fa-check"></i> Approve Member</button>
+                <button class="btn btn-danger btn-sm" data-cmno="${a.id}"><i class="fas fa-xmark"></i> Reject</button>
+              </div>
+            </div>`).join('') : '<div class="empty-state"><i class="fas fa-check"></i>No pending applications.</div>'}
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> Reviewed (${reviewed.length})</h3>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Status</th><th>Quiz</th><th>Applied</th><th>Reviewed</th><th>Reason</th></tr></thead><tbody>
+          ${reviewed.map(a => `<tr><td><small>${BB.esc(a.userName)} — ${BB.esc(a.userEmail)}</small></td>
+            <td><span class="pill badge ${a.status === 'approved' ? 'badge-green' : 'badge-red'}">${a.status}</span></td>
+            <td class="num">${a.quizScore}/5</td><td class="muted small">${BB.timeAgo(a.appliedAt)}</td>
+            <td class="muted small">${a.reviewedAt ? BB.timeAgo(a.reviewedAt) : '—'}</td><td class="muted small">${BB.esc(a.reason || '')}</td></tr>`).join('')}
+          </tbody></table></div></div>`;
+      $$('[data-cmok]').forEach(b => b.addEventListener('click', async () => {
+        const r2 = await api('/api/admin/community-app', { method: 'POST', body: { appId: b.dataset.cmok, action: 'approve' } });
+        if (r2.ok) { toast(r2.message, 'success'); viewCommunity(); refreshCounts(); } else toast(r2.error, 'error');
+      }));
+      $$('[data-cmno]').forEach(b => b.addEventListener('click', async () => {
+        const reason = prompt('Rejection reason (shown to user):') || '';
+        const r2 = await api('/api/admin/community-app', { method: 'POST', body: { appId: b.dataset.cmno, action: 'reject', reason } });
+        if (r2.ok) { toast(r2.message, 'success'); viewCommunity(); refreshCounts(); } else toast(r2.error, 'error');
+      }));
+    }
+
+    async function viewCopy() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="admin-card">Loading copy trading…</div>';
+      const r = await api('/api/admin/copy');
+      if (!r.ok) return;
+      const pending = r.leaders.filter(l => l.status === 'pending');
+      const others = r.leaders.filter(l => l.status !== 'pending');
+      root.innerHTML = `
+        <div class="admin-card"><h3><i class="fas fa-hourglass-half" style="color:var(--gold)"></i> Leader Applications (${pending.length})</h3>
+          ${pending.length ? pending.map(l => `
+            <div class="card mb-2" style="padding:18px">
+              <div class="flex-between mb-1"><div><b class="font-head">${BB.esc(l.userName)}</b> <span class="muted small">${BB.esc(l.userEmail)}</span></div>
+              <span class="pill badge badge-gold">${l.style}</span></div>
+              <p class="small" style="color:var(--ink-soft)"><b class="font-head">${BB.esc(l.title)}</b><br>${BB.esc(l.description)}</p>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-green btn-sm" data-clok="${l.id}"><i class="fas fa-check"></i> Approve Leader</button>
+                <button class="btn btn-danger btn-sm" data-clno="${l.id}"><i class="fas fa-xmark"></i> Reject</button>
+              </div>
+            </div>`).join('') : '<div class="empty-state"><i class="fas fa-check"></i>No pending applications.</div>'}
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-users-rectangle" style="color:var(--gold)"></i> Leaders (${others.length})</h3>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>Leader</th><th>Strategy</th><th>Status</th><th>Copiers</th><th>Trades</th><th>Win rate</th><th>Realized</th><th>Actions</th></tr></thead><tbody>
+          ${others.map(l => `<tr><td><b class="font-head">${BB.esc(l.userName)}</b><br><small class="muted">${BB.esc(l.userEmail)}</small></td>
+            <td class="small">${BB.esc(l.title)}</td>
+            <td><span class="pill badge ${l.status === 'active' ? 'badge-green' : 'badge-gray'}">${l.status}</span></td>
+            <td class="num">${l.stats.copiers}</td><td class="num">${l.stats.demo.trades}</td>
+            <td class="num">${l.stats.demo.winRate != null ? l.stats.demo.winRate + '%' : '—'}</td>
+            <td class="num ${l.stats.demo.realized >= 0 ? 'up' : 'down'}">$${l.stats.demo.realized.toLocaleString()}</td>
+            <td style="white-space:nowrap">${l.status === 'active' ? `<button class="btn btn-outline btn-sm" data-cls="${l.id}">Suspend</button>` : `<button class="btn btn-green btn-sm" data-cla="${l.id}">Activate</button>`}</td></tr>`).join('')}
+          </tbody></table></div></div>
+        <div class="admin-card"><h3><i class="fas fa-link" style="color:var(--gold)"></i> Active Allocations (${r.allocations.length})</h3>
+          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Leader</th><th>Mode</th><th>Allocated</th><th>Current cash</th><th>Started</th></tr></thead><tbody>
+          ${r.allocations.map(a => `<tr><td><small>${BB.esc(a.userEmail)}</small></td><td><small>${BB.esc(a.leaderName)}</small></td>
+            <td><span class="pill badge ${a.mode === 'live' ? 'badge-green' : 'badge-blue'}">${a.mode}</span></td>
+            <td class="num">$${a.allocated.toLocaleString()}</td><td class="num">$${a.equity.toLocaleString()}</td>
+            <td class="muted small">${BB.timeAgo(a.startedAt)}</td></tr>`).join('') || '<tr><td colspan="6" class="muted">No active allocations.</td></tr>'}
+          </tbody></table></div></div>`;
+      const act = async (leaderId, action) => {
+        const r2 = await api('/api/admin/copy-leader', { method: 'POST', body: { leaderId, action } });
+        if (r2.ok) { toast(r2.message, 'success'); viewCopy(); refreshCounts(); } else toast(r2.error, 'error');
+      };
+      $$('[data-clok]').forEach(b => b.addEventListener('click', () => act(b.dataset.clok, 'approve')));
+      $$('[data-clno]').forEach(b => b.addEventListener('click', () => act(b.dataset.clno, 'reject')));
+      $$('[data-cls]').forEach(b => b.addEventListener('click', () => act(b.dataset.cls, 'suspend')));
+      $$('[data-cla]').forEach(b => b.addEventListener('click', () => act(b.dataset.cla, 'activate')));
+    }
+
+    async function viewChats() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="admin-card">Loading conversations…</div>';
+      const r = await api('/api/admin/chats');
+      if (!r.ok) return;
+      root.innerHTML = `<div class="chat-admin-layout">
+        <div class="admin-card" style="margin:0"><h3><i class="fas fa-comments" style="color:var(--gold)"></i> Conversations (${r.chats.length})</h3>
+          <div style="max-height:520px;overflow-y:auto">
+          ${r.chats.map(c => `<div class="chat-list-item" data-chat="${c.id}">
+            <div class="flex-between"><b class="font-head small">${BB.esc(c.name || 'Guest')}</b>
+            ${c.unread ? `<span class="pill badge badge-red">${c.unread} new</span>` : ''}</div>
+            <div class="muted small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${BB.esc(c.lastText || '—')}</div>
+            <small class="muted" style="font-family:var(--font-head)">${BB.timeAgo(c.lastMsgAt)} · ${c.email || 'guest'}</small>
+          </div>`).join('') || '<div class="empty-state">No conversations yet.</div>'}
+          </div></div>
+        <div class="admin-card" style="margin:0"><h3 id="chatThreadTitle"><i class="fas fa-reply" style="color:var(--gold)"></i> Select a conversation</h3>
+          <div class="chat-thread" id="admThread"><div class="empty-state"><i class="fas fa-comments"></i>Pick a conversation on the left.</div></div>
+          <div class="chat-input-bar" style="background:var(--card-solid);border-top:1px solid var(--line)">
+            <input id="admChatInput" placeholder="Type your reply…" style="background:#fff;border-color:var(--line);color:var(--ink)" maxlength="2000">
+            <button id="admChatSend"><i class="fas fa-paper-plane"></i></button>
+          </div></div>
+      </div>`;
+      let active = null;
+      const open = async id => {
+        active = id;
+        $$('[data-chat]').forEach(el => el.classList.toggle('active', el.dataset.chat === id));
+        const r2 = await api(`/api/admin/chat-messages?id=${id}`);
+        if (!r2.ok) return;
+        R('chatThreadTitle').innerHTML = `<i class="fas fa-reply" style="color:var(--gold)"></i> ${BB.esc(r2.conv.name)} ${r2.conv.email ? '<small class="muted">' + BB.esc(r2.conv.email) + '</small>' : ''}`;
+        R('admThread').innerHTML = r2.messages.map(m => `
+          <div class="chat-msg from-${m.from === 'admin' ? 'admin' : m.from === 'bot' ? 'bot' : 'user'}">
+            ${BB.esc(m.text)}<span class="msg-meta">${m.from === 'admin' ? (m.adminName || 'Admin') : m.from === 'bot' ? 'Assistant' : 'User'} · ${new Date(m.at).toLocaleTimeString()}</span>
+          </div>`).join('');
+        R('admThread').scrollTop = 999999;
+      };
+      $$('[data-chat]').forEach(el => el.addEventListener('click', () => open(el.dataset.chat)));
+      const send = async () => {
+        if (!active) return;
+        const inp = R('admChatInput'); const text = inp.value.trim(); if (!text) return;
+        inp.value = '';
+        await api('/api/admin/chat-reply', { method: 'POST', body: { convId: active, text } });
+        open(active);
+      };
+      R('admChatSend').addEventListener('click', send);
+      R('admChatInput').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+    }
+
+    async function viewSettings() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="admin-card">Loading settings…</div>';
+      const r = await api('/api/admin/settings');
+      if (!r.ok) return;
+      const s = r.settings;
+      root.innerHTML = `<div class="grid grid-2">
+        <div class="admin-card"><h3><i class="fas fa-comment-dots" style="color:var(--gold)"></i> Live Chat (Smartsupp)</h3>
+          <p class="muted small mb-2">Paste your Smartsupp KEY to activate the official Smartsupp chat on the website (it replaces the built-in widget). Leave empty to use the built-in Blockchain Bullhorn chat with the logo avatar.</p>
+          <div class="field"><label>Smartsupp key</label><input class="input" id="setSmartsupp" value="${BB.esc(s.smartsuppKey)}" placeholder="e.g. a1b2c3d4e5f6…"></div>
+          <div class="field"><label>Announcement bar</label>
+            <div class="checkline mb-1"><input type="checkbox" id="setAnnOn" ${s.announcement.enabled ? 'checked' : ''}> <span>Enabled</span></div>
+            <input class="input" id="setAnnText" value="${BB.esc(s.announcement.text)}" placeholder="e.g. 🔥 New: Copy Trading is live!">
+          </div>
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-coins" style="color:var(--gold)"></i> Crypto Deposit Addresses</h3>
+          ${Object.keys(s.depositAddresses).map(k => `<div class="field"><label>${k} address</label><input class="input addr-in" data-coin="${k}" value="${BB.esc(s.depositAddresses[k])}"></div>`).join('')}
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-sliders" style="color:var(--gold)"></i> Limits</h3>
+          <div class="form-row">
+            <div class="field"><label>Min deposit ($)</label><input class="input num" id="setMinDep" type="number" value="${s.minDeposit}"></div>
+            <div class="field"><label>Min withdrawal ($)</label><input class="input num" id="setMinWd" type="number" value="${s.minWithdraw}"></div>
+          </div>
+          <div class="field"><label>Demo starting balance ($)</label><input class="input num" id="setDemoBal" type="number" value="${s.demoStartBalance}"></div>
+          <div class="field"><label>Support email</label><input class="input" id="setSupport" value="${BB.esc(s.supportEmail)}"></div>
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-trophy" style="color:var(--gold)"></i> Weekly Demo Contest</h3>
+          <div class="checkline mb-1"><input type="checkbox" id="setContestOn" ${s.contest && s.contest.enabled !== false ? 'checked' : ''}> <span>Contest enabled (visible on dashboards)</span></div>
+          <div class="field"><label>Prize description</label><input class="input" id="setContestPrize" value="${BB.esc((s.contest && s.contest.prize) || '')}" placeholder="🥇 1st: $200 live credit · 🥈 2nd: $100 · 🥉 3rd: $50"></div>
+          <p class="muted small">Standings = demo ROI for the current week (Mon UTC), min 3 closed trades. Runs automatically.</p>
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-envelope" style="color:var(--gold)"></i> Email Notifications (SMTP)</h3>
+          <p class="muted small mb-2">Transactional emails: KYC results, deposits/withdrawals, new-device alerts, 2FA changes. Uses your own SMTP account (Gmail, Brevo, SES…). Without SMTP, emails are journaled but not sent.</p>
+          <div class="form-row">
+            <div class="field"><label>SMTP host</label><input class="input" id="setSmtpHost" value="${BB.esc((s.smtp && s.smtp.host) || '')}" placeholder="smtp.example.com"></div>
+            <div class="field"><label>Port</label><input class="input num" id="setSmtpPort" type="number" value="${(s.smtp && s.smtp.port) || 587}"></div>
+          </div>
+          <div class="form-row">
+            <div class="field"><label>Username</label><input class="input" id="setSmtpUser" value="${BB.esc((s.smtp && s.smtp.user) || '')}"></div>
+            <div class="field"><label>Password / API key</label><input class="input" id="setSmtpPass" type="password" value="${BB.esc((s.smtp && s.smtp.pass) || '')}"></div>
+          </div>
+          <div class="field"><label>From address</label><input class="input" id="setSmtpFrom" value="${BB.esc((s.smtp && s.smtp.from) || '')}" placeholder="no-reply@blockchainbullhorn.com"></div>
+          <button class="btn btn-outline btn-sm" id="testEmailBtn"><i class="fas fa-paper-plane"></i> Send Test Email</button>
+        </div>
+        <div class="admin-card"><h3><i class="fas fa-lock" style="color:var(--gold)"></i> Security</h3>
+          <p class="muted small">Sessions use signed JWTs (HS256) with a server-side secret stored outside the public web root — never exposed to browsers. All admin actions are recorded in the <a href="#" id="auditLink">audit log</a>.</p>
+        </div>
+      </div>
+      <div class="admin-card"><h3><i class="fas fa-outbox" style="color:var(--gold)"></i> Email Outbox (latest 20)</h3>
+        <div class="table-wrap" style="box-shadow:none"><table class="dt" style="min-width:0"><thead><tr><th>When</th><th>To</th><th>Subject</th><th>Status</th></tr></thead><tbody id="emailOutbox"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody></table></div>
+      </div>
+      <button class="btn btn-gold btn-lg" id="saveSettings"><i class="fas fa-floppy-disk"></i> Save All Settings</button>`;
+      R('auditLink').addEventListener('click', e => { e.preventDefault(); switchView('audit'); });
+      R('saveSettings').addEventListener('click', async () => {
+        const body = {
+          settings: {
+            smartsuppKey: R('setSmartsupp').value,
+            announcement: { enabled: R('setAnnOn').checked, text: R('setAnnText').value },
+            depositAddresses: {}, minDeposit: R('setMinDep').value, minWithdraw: R('setMinWd').value,
+            demoStartBalance: R('setDemoBal').value, supportEmail: R('setSupport').value,
+            contest: { enabled: R('setContestOn').checked, prize: R('setContestPrize').value },
+            smtp: { host: R('setSmtpHost').value, port: R('setSmtpPort').value, user: R('setSmtpUser').value, pass: R('setSmtpPass').value, from: R('setSmtpFrom').value }
+          }
+        };
+        $$('.addr-in').forEach(i => body.settings.depositAddresses[i.dataset.coin] = i.value);
+        const r2 = await api('/api/admin/settings', { method: 'POST', body });
+        if (r2.ok) toast(r2.message, 'success'); else toast(r2.error, 'error');
+      });
+      R('testEmailBtn').addEventListener('click', async () => {
+        // save first so the test uses the entered credentials
+        R('saveSettings').click();
+        const to = prompt('Send test email to:', ME.email);
+        if (!to) return;
+        const r3 = await api('/api/admin/test-email', { method: 'POST', body: { to } });
+        if (r3.ok) toast(r3.message, 'success'); else toast(r3.error, 'error');
+        loadOutbox();
+      });
+      async function loadOutbox() {
+        const r4 = await api('/api/admin/emails');
+        if (!r4.ok) return;
+        R('emailOutbox').innerHTML = r4.emails.slice(0, 20).map(e => `
+          <tr><td class="small">${BB.timeAgo(e.at)}</td><td class="small">${BB.esc(e.to)}</td><td class="small" style="white-space:normal">${BB.esc(e.subject)}</td>
+          <td><span class="pill badge ${e.status === 'sent' ? 'badge-green' : e.status === 'failed' ? 'badge-red' : 'badge-gray'}">${e.status.toUpperCase()}</span></td></tr>`).join('') || '<tr><td colspan="4" class="muted">No emails yet.</td></tr>';
+      }
+      loadOutbox();
+    }
+
+    async function viewAudit() {
+      const root = R('viewRoot');
+      root.innerHTML = '<div class="admin-card">Loading audit log…</div>';
+      const r = await api('/api/admin/audit');
+      if (!r.ok) return;
+      root.innerHTML = `<div class="admin-card"><h3><i class="fas fa-clipboard-list" style="color:var(--gold)"></i> Admin Audit Log (${r.audit.length})</h3>
+        <div class="table-wrap"><table class="dt"><thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Detail</th></tr></thead><tbody>
+        ${r.audit.map(a => `<tr><td class="muted small">${BB.fmtTime(a.at)}</td><td><small>${BB.esc(a.adminEmail)}</small></td>
+          <td><span class="pill badge badge-gold">${a.action}</span></td><td class="muted small">${BB.esc(a.target || '—')}</td>
+          <td class="muted small">${BB.esc(a.detail || '')}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No entries yet.</td></tr>'}
+        </tbody></table></div></div>`;
+    }
+
+  </script>
+</body>
+</html>
