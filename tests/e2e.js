@@ -418,6 +418,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
     const cjs = await res.text();
     ok('i18n dictionary present (7 languages)', cjs.includes('const I18N') && cjs.includes('Español') && cjs.includes('हिन्दी') && cjs.includes('Deutsch'));
     ok('globe picker UI present', cjs.includes('globeBtn') && cjs.includes('data-lang') && cjs.includes('data-cur'));
+    ok('language→currency smart pairing + manual override', cjs.includes('const LANG_CUR') && /fr:\s*'EUR'/.test(cjs) && cjs.includes('bbCurSet'), 'pairing');
     ok('currency symbols + formatters converted', cjs.includes('BB.sym()') && cjs.includes("NGN: { f: '🇳🇬'") === false || cjs.includes('NGN'), 'sym');
   }
 

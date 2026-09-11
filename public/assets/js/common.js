@@ -34,11 +34,21 @@ window.BB = {
   setLang(l) {
     BB.lang = l; localStorage.setItem('bbLang', l);
     document.documentElement.lang = l;
+    // smart pairing: switch to the locale's default currency on first pick —
+    // the user can always override it afterwards (the override then sticks)
+    if (!localStorage.getItem('bbCurSet')) {
+      const def = LANG_CUR[l] || 'USD';
+      if (def !== BB.cur) {
+        BB.setCur(def, false);
+        BB.toast(`💰 Display currency set to ${CURS[def].f} ${def} — you can change it in the same menu`, 'success');
+      }
+    }
     renderHeader(); renderFooter(); renderAnnouncement();
     BB.applyLang(); PWA.refreshBannerText();
   },
-  setCur(c) {
+  setCur(c, explicit = true) {
     BB.cur = c; localStorage.setItem('bbCur', c);
+    if (explicit) localStorage.setItem('bbCurSet', '1'); // manual choice always wins from now on
     BB.fx.rate = (BB.fx.rates && BB.fx.rates[c]) || 1;
     BB.applyUsd();
     document.dispatchEvent(new CustomEvent('bb:fx'));
@@ -263,6 +273,9 @@ const CURS = {
   PHP: { f: '🇵🇭', n: 'Philippine Peso', s: '₱', d: 2 }
 };
 
+// sensible default currency per language (used only until the user picks one manually)
+const LANG_CUR = { en: 'USD', es: 'EUR', fr: 'EUR', pt: 'EUR', de: 'EUR', zh: 'CNY', hi: 'INR' };
+
 const I18N = {
   en: {
     'nav.markets': 'Markets', 'nav.trading': 'Trading', 'nav.bots': 'Trading Bots', 'nav.community': 'Community',
@@ -282,7 +295,7 @@ const I18N = {
     'hero.stat1': 'TikTok Community', 'hero.stat2': 'Power of Publish Family', 'hero.stat3': 'Live-Tracked Assets', 'hero.stat4': 'Markets & Support',
     'auth.welcomeBack': 'Welcome Back', 'auth.signupTitle': 'Join the Blockchain Bullhorn',
     'pwa.installTitle': 'Get the Blockchain Bullhorn app', 'pwa.installSub': 'Fast, full-screen, works offline', 'pwa.installGo': 'Install',
-    'globe.note': 'Prices are shown in your selected currency for convenience — accounts and trading are held in USD.'
+    'globe.note': 'Language and currency are independent — combine freely (e.g. Français + Naira). Prices display in your chosen currency; accounts and trading stay in USD.'
   },
   es: {
     'nav.markets': 'Mercados', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidad',
@@ -302,7 +315,7 @@ const I18N = {
     'hero.stat1': 'Comunidad de TikTok', 'hero.stat2': 'Familia Power of Publish', 'hero.stat3': 'Activos en vivo', 'hero.stat4': 'Mercados y soporte 24/7',
     'auth.welcomeBack': 'Bienvenido de nuevo', 'auth.signupTitle': 'Únete al Blockchain Bullhorn',
     'pwa.installTitle': 'Consigue la app Blockchain Bullhorn', 'pwa.installSub': 'Rápida, a pantalla completa, funciona sin conexión', 'pwa.installGo': 'Instalar',
-    'globe.note': 'Los precios se muestran en tu moneda seleccionada por comodidad — las cuentas y el trading se mantienen en USD.'
+    'globe.note': 'El idioma y la moneda son independientes: combínalos libremente (p. ej. Français + Naira). Los precios se muestran en tu moneda elegida; las cuentas y el trading se mantienen en USD.'
   },
   fr: {
     'nav.markets': 'Marchés', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Communauté',
@@ -322,7 +335,7 @@ const I18N = {
     'hero.stat1': 'Communauté TikTok', 'hero.stat2': 'Famille Power of Publish', 'hero.stat3': 'Actifs suivis en direct', 'hero.stat4': 'Marchés & support 24/7',
     'auth.welcomeBack': 'Bon retour', 'auth.signupTitle': 'Rejoignez le Blockchain Bullhorn',
     'pwa.installTitle': "Obtenez l'app Blockchain Bullhorn", 'pwa.installSub': 'Rapide, plein écran, fonctionne hors ligne', 'pwa.installGo': 'Installer',
-    'globe.note': 'Les prix sont affichés dans la devise choisie pour votre confort — les comptes et le trading sont conservés en USD.'
+    'globe.note': 'La langue et la devise sont indépendantes — combinez librement (ex. Français + Naira). Les prix s\'affichent dans la devise choisie ; les comptes et le trading restent en USD.'
   },
   pt: {
     'nav.markets': 'Mercados', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidade',
@@ -342,7 +355,7 @@ const I18N = {
     'hero.stat1': 'Comunidade TikTok', 'hero.stat2': 'Família Power of Publish', 'hero.stat3': 'Ativos ao vivo', 'hero.stat4': 'Mercados e suporte 24/7',
     'auth.welcomeBack': 'Bem-vindo de volta', 'auth.signupTitle': 'Junte-se ao Blockchain Bullhorn',
     'pwa.installTitle': 'Baixe o app Blockchain Bullhorn', 'pwa.installSub': 'Rápido, tela cheia, funciona offline', 'pwa.installGo': 'Instalar',
-    'globe.note': 'Os preços são exibidos na moeda escolhida por conveniência — as contas e o trading são mantidos em USD.'
+    'globe.note': 'Idioma e moeda são independentes — combine livremente (ex. Français + Naira). Os preços são exibidos na moeda escolhida; as contas e o trading permanecem em USD.'
   },
   de: {
     'nav.markets': 'Märkte', 'nav.trading': 'Trading', 'nav.bots': 'Trading-Bots', 'nav.community': 'Community',
@@ -362,7 +375,7 @@ const I18N = {
     'hero.stat1': 'TikTok-Community', 'hero.stat2': 'Power of Publish Familie', 'hero.stat3': 'Live-verfolgte Assets', 'hero.stat4': 'Märkte & Support 24/7',
     'auth.welcomeBack': 'Willkommen zurück', 'auth.signupTitle': 'Werde Teil des Blockchain Bullhorn',
     'pwa.installTitle': 'Hol dir die Blockchain Bullhorn App', 'pwa.installSub': 'Schnell, im Vollbild, funktioniert offline', 'pwa.installGo': 'Installieren',
-    'globe.note': 'Preise werden zur Bequemlichkeit in deiner gewählten Währung angezeigt — Konten und Trading laufen in USD.'
+    'globe.note': 'Sprache und Währung sind unabhängig — frei kombinierbar (z. B. Français + Naira). Preise werden in der gewählten Währung angezeigt; Konten und Trading bleiben in USD.'
   },
   zh: {
     'nav.markets': '市场', 'nav.trading': '交易', 'nav.bots': '交易机器人', 'nav.community': '社区',
@@ -382,7 +395,7 @@ const I18N = {
     'hero.stat1': 'TikTok 社区', 'hero.stat2': 'Power of Publish 家族', 'hero.stat3': '实时追踪资产', 'hero.stat4': '市场与支持 24/7',
     'auth.welcomeBack': '欢迎回来', 'auth.signupTitle': '加入 Blockchain Bullhorn',
     'pwa.installTitle': '获取 Blockchain Bullhorn 应用', 'pwa.installSub': '快速、全屏、离线可用', 'pwa.installGo': '安装',
-    'globe.note': '价格以您选择的货币显示以便参考 — 账户与交易以美元（USD）结算。'
+    'globe.note': '语言与货币相互独立，可自由组合（如 Français + Naira）。价格以所选货币显示；账户与交易以美元（USD）结算。'
   },
   hi: {
     'nav.markets': 'बाज़ार', 'nav.trading': 'ट्रेडिंग', 'nav.bots': 'ट्रेडिंग बॉट्स', 'nav.community': 'कम्युनिटी',
@@ -402,7 +415,7 @@ const I18N = {
     'hero.stat1': 'TikTok कम्युनिटी', 'hero.stat2': 'Power of Publish परिवार', 'hero.stat3': 'लाइव-ट्रैक किए एसेट', 'hero.stat4': 'मार्केट और सहायता 24/7',
     'auth.welcomeBack': 'वापसी पर स्वागत है', 'auth.signupTitle': 'Blockchain Bullhorn से जुड़ें',
     'pwa.installTitle': 'Blockchain Bullhorn ऐप पाएं', 'pwa.installSub': 'तेज़, फ़ुल-स्क्रीन, ऑफ़लाइन काम करता है', 'pwa.installGo': 'इंस्टॉल करें',
-    'globe.note': 'कीमतें आपकी चुनी हुई मुद्रा में सुविधा के लिए दिखाई जाती हैं — खाते और ट्रेडिंग USD में रखे जाते हैं।'
+    'globe.note': 'भाषा और मुद्रा स्वतंत्र हैं — ज़रूरत के अनुसार जोड़ें (जैसे Français + Naira)। कीमतें आपकी चुनी मुद्रा में दिखती हैं; खाते और ट्रेडिंग USD में रहते हैं।'
   }
 };
 
