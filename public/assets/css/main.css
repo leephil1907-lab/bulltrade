@@ -768,8 +768,7 @@ html { scroll-behavior: smooth; }
 .gm-flag { font-size: 17px; line-height: 1; }
 .gm-item small { color: var(--ink-dim); font-size: 11px; margin-left: 2px; }
 .gm-note { font-size: 11px; color: var(--ink-dim); line-height: 1.5; padding: 8px 10px; border-top: 1px solid var(--line-soft); margin-top: 6px; }
-.gm-search { margin: 4px 6px 6px; width: calc(100% - 12px); padding: 8px 12px; font-size: 13px; border-radius: 8px; }
-.gm-countries { max-height: 200px; overflow-y: auto; border-bottom: 1px solid var(--line-soft); margin-bottom: 4px; }
+
 @media (max-width: 720px) {
   .globe-menu { right: -6px; width: min(280px, 92vw); }
 }

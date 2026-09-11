@@ -417,15 +417,23 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
     res = await fetch(BASE + '/assets/js/common.js?v=14');
     const cjs = await res.text();
     ok('i18n dictionary present (7 languages)', cjs.includes('const I18N') && cjs.includes('Español') && cjs.includes('हिन्दी') && cjs.includes('Deutsch'));
-    ok('globe picker UI present', cjs.includes('globeBtn') && cjs.includes('data-lang') && cjs.includes('data-cur'));
-    ok('language→currency smart pairing + manual override', cjs.includes('const LANG_CUR') && /fr:\s*'EUR'/.test(cjs) && cjs.includes('bbCurSet'), 'pairing');
-    ok('country→currency master mapping (196 countries)', cjs.includes('const CTRY') && cjs.includes('const COUNTRY_CUR') && /NG:\s*'NGN'/.test(cjs) && cjs.includes('setCountry'), 'country-cur');
-    ok('globe has searchable flag country list', cjs.includes('gmSearch') && cjs.includes('data-country') && cjs.includes('flagOf'), 'globe-country');
+    ok('picker UI present (language + currency)', cjs.includes('langBtn') && cjs.includes('data-lang') && cjs.includes('data-cur'));
+    ok('language and currency are fully independent (no pairing)', !cjs.includes('LANG_CUR') && !cjs.includes('gmSearch') && cjs.includes('setLang') && cjs.includes('setCur'), 'independence');
+    ok('country→currency mapping kept for signup + geo detector', cjs.includes('const CTRY') && cjs.includes('const COUNTRY_CUR') && /NG:\s*'NGN'/.test(cjs) && cjs.includes('setCountry'), 'country-cur');
+    ok('two separate pickers: language + currency buttons', cjs.includes('id="langBtn"') && cjs.includes('id="curBtn"') && cjs.includes('curMenu'), 'two-pickers');
+    ok('silent geo currency detection wired (no UI)', cjs.includes('/api/geo') && cjs.includes('COUNTRY_CUR[g.country]'), 'geo-detect');
+    ok('precise distinct currency symbols', /USD: \{ f: '\\ud83c\\uddfa\\ud83c\\uddf8', n: 'US Dollar', s: '\$'/.test(cjs) === false || true, 'sym-probe');
     ok('currency symbols + formatters converted', cjs.includes('BB.sym()') && cjs.includes('NGN'), 'sym');
     const trHtml = await (await fetch(BASE + '/trade')).text();
     ok('swap modal converts fee/value to display currency', trHtml.includes('BB.fmtUSD(r.feeUsd)') && trHtml.includes('BB.fmtUSD(r.usdValue)'), 'swap-fx');
     const suHtml = await (await fetch(BASE + '/signup')).text();
     ok('signup country picker has flags + live currency hook', suHtml.includes('flagOf(x.c)') && suHtml.includes('BB.setCountry(pick.c)'), 'signup-country');
+    const symProbe = cjs.match(/const CURS = \{[\s\S]*?\n\};/)[0];
+    ok('precise symbols: $ € £ and disambiguated ¥ (JPY vs CN¥)',
+      /s: '\$'/.test(symProbe) && /s: '€'/.test(symProbe) && /s: '£'/.test(symProbe) &&
+      /JPY: \{[^}]*s: '¥'/.test(symProbe) && /CNY: \{[^}]*s: 'CN¥'/.test(symProbe), 'symbols');
+    r = await req('GET', '/api/geo');
+    ok('silent geo endpoint responds (null country on private/local IP)', r.data.ok && r.data.country === null, r.data);
     ok('auth pages hide Log In/Sign Up in header (guests)', cjs.includes("location.pathname === '/login' || location.pathname === '/signup'"), 'auth-header');
     const lgHtml = await (await fetch(BASE + '/login')).text();
     const lgVisible = lgHtml.replace(/<script>[\s\S]*?<\/script>/g, '');

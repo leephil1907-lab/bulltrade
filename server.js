@@ -861,6 +861,29 @@ api['GET /api/settings/public'] = async (req, res) => {
 };
 
 // ---- admin ----
+// ---- silent visitor geo-detection (country only; used once to pick a display currency) ----
+api['GET /api/geo'] = async (req, res) => {
+  const crypto = require('crypto');
+  const rawIp = String((req.headers['x-forwarded-for'] || '').split(',')[0] || req.socket.remoteAddress || '').trim();
+  const priv = !rawIp || /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|::1|localhost|0\.0\.0\.0)/.test(rawIp);
+  const ipKey = priv ? 'local' : crypto.createHash('sha256').update(rawIp).digest('hex').slice(0, 20); // privacy: hash, never store raw IPs
+  if (priv) return ok(res, { country: null });
+  const s = D.db().settings || (D.db().settings = {});
+  const cache = s.geoCache || (s.geoCache = {});
+  const hit = cache[ipKey];
+  if (hit && Date.now() - hit.at < 30 * 86400000) return ok(res, { country: hit.c || null });
+  try {
+    const r = await fetch('https://ipwho.is/' + encodeURIComponent(rawIp), { headers: { accept: 'application/json' } });
+    const j = await r.json();
+    const cc = (j && j.success && j.country_code && String(j.country_code).toUpperCase()) || null;
+    cache[ipKey] = { c: cc, at: Date.now() }; s.geoCache = cache; D.save();
+    return ok(res, { country: cc });
+  } catch (e) {
+    cache[ipKey] = { c: null, at: Date.now() - 25 * 86400000 }; s.geoCache = cache; D.save(); // short negative cache
+    return ok(res, { country: null });
+  }
+};
+
 // ---- FX rates (display-currency conversion; accounts are held in USD) ----
 const FX_SEED = { USD: 1, EUR: 0.90, GBP: 0.78, CAD: 1.37, AUD: 1.52, JPY: 150, CNY: 7.15, INR: 88, NGN: 1550, ZAR: 18.2, BRL: 5.45, MXN: 18.4, AED: 3.67, SAR: 3.75, TRY: 42, CHF: 0.88, KES: 129, GHS: 15.5, PHP: 58 };
 api['GET /api/fx'] = async (req, res) => {
