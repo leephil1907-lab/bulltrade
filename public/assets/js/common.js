@@ -585,7 +585,10 @@ function renderHeaderActions() {
       location.href = '/';
     });
   } else {
-    el.innerHTML = `
+    // on the login/signup pages the auth buttons are redundant — the user is
+    // already there; show only the globe (country/language/currency)
+    const onAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+    el.innerHTML = onAuthPage ? GLOBE : `
       ${GLOBE}
       <a href="/login" class="btn btn-outline btn-sm" data-i18n="hdr.login">Log In</a>
       <a href="/signup" class="btn btn-primary btn-sm"><i class="fas fa-bolt"></i> <span data-i18n="hdr.signup">Sign Up Free</span></a>`;

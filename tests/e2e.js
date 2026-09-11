@@ -426,6 +426,11 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
     ok('swap modal converts fee/value to display currency', trHtml.includes('BB.fmtUSD(r.feeUsd)') && trHtml.includes('BB.fmtUSD(r.usdValue)'), 'swap-fx');
     const suHtml = await (await fetch(BASE + '/signup')).text();
     ok('signup country picker has flags + live currency hook', suHtml.includes('flagOf(x.c)') && suHtml.includes('BB.setCountry(pick.c)'), 'signup-country');
+    ok('auth pages hide Log In/Sign Up in header (guests)', cjs.includes("location.pathname === '/login' || location.pathname === '/signup'"), 'auth-header');
+    const lgHtml = await (await fetch(BASE + '/login')).text();
+    const lgVisible = lgHtml.replace(/<script>[\s\S]*?<\/script>/g, '');
+    const wbCount = (lgVisible.match(/welcome back/gi) || []).length;
+    ok('login page shows "Welcome Back" exactly once (visible text)', wbCount === 1, wbCount);
   }
 
   // ========== PWA + WEB PUSH ==========
