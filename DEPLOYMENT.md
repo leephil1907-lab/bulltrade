@@ -182,3 +182,10 @@ every 20s), and Admin → Trading Bots shows key requests, allocations and per-b
 - The platform's one runtime dependency (`web-push`) is declared in package.json AND **vendored at `vendor/node_modules/`** (17 packages, ~0.5MB) — `lib/push.js` requires node_modules first and falls back to the vendored copy, so deploys work even when the host runs no `npm install` (Render services created before dependencies existed may have an empty build command). If you ever set a Build Command in Render, use `npm install` — either path works.
 - If keys are missing or web-push is not installed, `/api/push/config` returns `ready:false` and the UI degrades gracefully — nothing else breaks.
 - **iOS/iPadOS**: web push works only when the site is installed to the home screen (an OS limitation); the UI explains this to iOS users automatically.
+
+## 27. SEO is deliberately GLOBAL (no country targeting)
+- The site carries **zero geo signals**: no `geo.region`/`geo.placename` meta, no `og:locale`, no hreflang, no country names in titles/descriptions. The signup country dropdown is the full A–Z world list with a neutral "Select country…" placeholder — it is not geo-targeting.
+- Homepage has **Organization JSON-LD** (`sameAs` → TikTok/Instagram/X/YouTube) — country-neutral structured data that helps global brand recognition in search. If the domain changes, update the absolute `og:*`, JSON-LD and sitemap URLs (one-line sed).
+- **Google Search Console**: when the property is added, leave *International Targeting → Country* **unset** (this is the default) — "unlisted" means worldwide. Do NOT select a target country. Skip Google Business Profile unless a local presence is specifically wanted (it is a local-SEO tool).
+- Marketing keywords should be worldwide ("best demo trading app", "how to trade gold online", "crypto trading for beginners") rather than any single country.
+- Future multi-language: only add `hreflang` + translated pages when non-English audiences justify it.
