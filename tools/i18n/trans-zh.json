@@ -610,5 +610,16 @@
  "<i class=\"fas fa-layer-group\" style=\"color:var(--gold)\"></i> Open Positions (<span id=\"cntPos\">0</span>)": "<i class=\"fas fa-layer-group\" style=\"color:var(--gold)\"></i> 当前持仓（<span id=\"cntPos\">0</span>）",
  "<i class=\"fas fa-circle-info\"></i> Deposits are verified manually by our admin team — your live wallet is credited once the transaction is confirmed on-chain. Minimum <b><span data-usd=\"50\">$50</span></b> value.": "<i class=\"fas fa-circle-info\"></i> 入金由我们的管理团队人工核实——链上交易确认后即计入你的实盘钱包。最低 <b><span data-usd=\"50\">$50</span></b> 等值。",
  "<i class=\"fas fa-book-open\"></i> Progress: <b id=\"academyProgress\">0%</b>": "<i class=\"fas fa-book-open\"></i> 进度：<b id=\"academyProgress\">0%</b>",
- "you@example.com": "你@example.com"
+ "you@example.com": "你@example.com",
+ " Verify Later": " 稍后验证",
+ " Deposits require <a href=\"/kyc\">KYC verification</a> — verify once to unlock deposits, withdrawals, live trading and bots.": " 充值需要<a href=\"/kyc\">KYC 认证</a>——验证一次即可解锁充值、提现、实盘交易和机器人。",
+ " Trading bots require <a href=\"/kyc\">KYC verification</a> — verify once to unlock bots, live trading, deposits and withdrawals.": " 交易机器人需要<a href=\"/kyc\">KYC 认证</a>——验证一次即可解锁机器人、实盘交易、充值和提现。",
+ "Verify to Unlock": "验证以解锁",
+ "KYC verification required before bots can trade": "机器人交易前需要完成 KYC 认证",
+ "Live Trading Requires KYC": "实盘交易需要 KYC 认证",
+ "Complete manual identity verification to unlock live trading and withdrawals. It takes about 2 minutes to submit.": "完成人工身份认证即可解锁实盘交易和提现。提交大约需要 2 分钟。",
+ "Complete KYC": "完成 KYC 认证",
+ "Use Demo": "使用模拟盘",
+ "Live prices across <b style=\"color:var(--gold)\">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.": "<b style=\"color:var(--gold)\">160+ 资产</b>实时行情——加密货币、股票、实物资产与全球指数——数据来自 CoinGecko &amp; Yahoo Finance。点击任意资产查看实时详情，或在下方 TradingView 官方图表中跟踪。",
+ "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "解锁<b>实盘交易、交易机器人、充值和提现</b>需要完成认证。你可以现在跳过——<b>稍后验证</b>——之后随时在控制台完成。模拟交易立即可用。"
 }

@@ -119,7 +119,7 @@
  "Live Market Feed": "लाइव मार्केट फ़ीड",
  "All →": "सभी →",
  "Alert": "अलर्ट",
- "Official TradingView Chart — <span id=\"tvSymLabel\" style=\"color:var(--gold)\"></span>": "आधिकारिक TradingView चार्ट — <span id=\"tvSymLabel\" style=\"color:var(--gold)\"></span>",
+ "Official TradingView Chart — <span id=\"tvSymLabel\" style=\"color:var(--gold)\"></span>": "TradingView का आधिकारिक चार्ट — <span id=\"tvSymLabel\" style=\"color:var(--gold)\"></span>",
  "Advanced": "एडवांस्ड",
  "Connecting to TradingView…<br/><small style=\"color:#6f5f4e\">Requires internet — the built-in chart above always works offline.</small>": "TradingView से कनेक्ट हो रहा है…<br/><small style=\"color:#6f5f4e\">इंटरनेट ज़रूरी — ऊपर वाला बिल्ट-इन चार्ट हमेशा ऑफ़लाइन चलता है।</small>",
  "Place Order": "ऑर्डर लगाएँ",
@@ -610,5 +610,16 @@
  "<i class=\"fas fa-layer-group\" style=\"color:var(--gold)\"></i> Open Positions (<span id=\"cntPos\">0</span>)": "<i class=\"fas fa-layer-group\" style=\"color:var(--gold)\"></i> ओपन पोज़िशन्स (<span id=\"cntPos\">0</span>)",
  "<i class=\"fas fa-circle-info\"></i> Deposits are verified manually by our admin team — your live wallet is credited once the transaction is confirmed on-chain. Minimum <b><span data-usd=\"50\">$50</span></b> value.": "<i class=\"fas fa-circle-info\"></i> डिपॉज़िट हमारी एडमिन टीम मैन्युअली वेरिफाई करती है — ऑन-चेन कन्फ़र्म होते ही आपका लाइव वॉलेट क्रेडिट हो जाता है। न्यूनतम <b><span data-usd=\"50\">$50</span></b> वैल्यू।",
  "<i class=\"fas fa-book-open\"></i> Progress: <b id=\"academyProgress\">0%</b>": "<i class=\"fas fa-book-open\"></i> प्रगति: <b id=\"academyProgress\">0%</b>",
- "you@example.com": "आप@example.com"
+ "you@example.com": "आप@example.com",
+ " Verify Later": " बाद में सत्यापित करें",
+ " Deposits require <a href=\"/kyc\">KYC verification</a> — verify once to unlock deposits, withdrawals, live trading and bots.": " डिपॉज़िट के लिए <a href=\"/kyc\">KYC वेरिफिकेशन</a> ज़रूरी है — एक बार सत्यापित करें और डिपॉज़िट, निकासी, लाइव ट्रेडिंग और बॉट्स अनलॉक करें।",
+ " Trading bots require <a href=\"/kyc\">KYC verification</a> — verify once to unlock bots, live trading, deposits and withdrawals.": " ट्रेडिंग बॉट्स के लिए <a href=\"/kyc\">KYC वेरिफिकेशन</a> ज़रूरी है — एक बार सत्यापित करें और बॉट्स, लाइव ट्रेडिंग, डिपॉज़िट और निकासी अनलॉक करें।",
+ "Verify to Unlock": "अनलॉक करने के लिए सत्यापित करें",
+ "KYC verification required before bots can trade": "बॉट्स के ट्रेड करने से पहले KYC वेरिफिकेशन ज़रूरी है",
+ "Live Trading Requires KYC": "लाइव ट्रेडिंग के लिए KYC ज़रूरी है",
+ "Complete manual identity verification to unlock live trading and withdrawals. It takes about 2 minutes to submit.": "लाइव ट्रेडिंग और निकासी अनलॉक करने के लिए मैन्युअल पहचान सत्यापन पूरा करें। जमा करने में लगभग 2 मिनट लगते हैं।",
+ "Complete KYC": "KYC पूरा करें",
+ "Use Demo": "डेमो इस्तेमाल करें",
+ "Live prices across <b style=\"color:var(--gold)\">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.": "<b style=\"color:var(--gold)\">160+ एसेट्स</b> के लाइव प्राइस — क्रिप्टो, स्टॉक्स, रियल-वर्ल्ड एसेट्स और ग्लोबल इंडाइसेस — CoinGecko &amp; Yahoo Finance से स्ट्रीम होते हैं। लाइव व्यू के लिए किसी भी एसेट पर टैप करें, या नीचे दिए गए आधिकारिक TradingView चार्ट पर उसे फ़ॉलो करें।",
+ "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "<b>लाइव ट्रेडिंग, ट्रेडिंग बॉट्स, डिपॉज़िट और निकासी</b> अनलॉक करने के लिए ज़रूरी। आप इसे अभी छोड़ सकते हैं — <b>बाद में सत्यापित करें</b> — और अपने डैशबोर्ड से कभी भी पूरा कर सकते हैं। डेमो ट्रेडिंग तुरंत उपलब्ध है।"
 }

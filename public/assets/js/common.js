@@ -203,11 +203,35 @@ window.BB = {
     const icons = {
       'rwa-xau': '🥇', 'rwa-xag': '🥈', 'rwa-xpt': '⚪', 'rwa-xpd': '🔘', 'rwa-hg': '🔶',
       'rwa-wti': '🛢️', 'rwa-brent': '⛽', 'rwa-ng': '🔥',
-      'idx-spx': '📊', 'idx-ndx': '📈', 'idx-dji': '🏛️', 'idx-rut': '📉'
+      'rwa-wheat': '🌾', 'rwa-corn': '🌽', 'rwa-soy': '🫘', 'rwa-coffee': '☕',
+      'idx-spx': '📊', 'idx-ndx': '📈', 'idx-dji': '🏛️', 'idx-rut': '📉',
+      'idx-ftse': '🏦', 'idx-dax': '🇩🇪', 'idx-cac': '🇫🇷', 'idx-nikkei': '🇯🇵',
+      'idx-hsi': '🇭🇰', 'idx-nifty': '🇮🇳', 'idx-asx': '🇦🇺', 'idx-vix': '🌪️'
     };
     return `<div class="a-icon" style="width:${size}px;height:${size}px">${icons[a.icon] || '💠'}</div>`;
   }
 };
+
+// graceful fallback when an asset logo file is missing (newly added coins/stocks):
+// swap the broken <img> for a deterministic colored letter avatar
+window.addEventListener('error', e => {
+  const t = e.target;
+  if (!t || t.tagName !== 'IMG' || !t.classList || !t.classList.contains('a-logo') || t.dataset.fbk) return;
+  t.dataset.fbk = '1';
+  const sym = (t.alt || '?').toUpperCase();
+  const d = document.createElement('div');
+  d.className = 'a-icon';
+  d.textContent = sym.slice(0, 4);
+  d.style.width = t.style.width || '30px';
+  d.style.height = t.style.height || '30px';
+  let h = 0; for (const ch of sym) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  d.style.background = `hsl(${h},42%,90%)`;
+  d.style.borderColor = `hsl(${h},42%,72%)`;
+  d.style.color = `hsl(${h},55%,28%)`;
+  d.style.fontWeight = '700';
+  if (sym.length > 2) d.style.fontSize = '10px';
+  t.replaceWith(d);
+}, true);
 
 // ---------- page transitions & progress bar ----------
 const Motion = {

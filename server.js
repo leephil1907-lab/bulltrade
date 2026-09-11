@@ -78,9 +78,20 @@ function requireUser(req, res, cookies, optional) {
   return user;
 }
 function requireAdmin(req, res, cookies) {
-  const user = Auth.userFromRequest(req, cookies);
-  if (!user || user.role !== 'admin') { fail(res, 403, 'Admin access required.'); return null; }
+  const user = Auth.userFromRequest(req, cookies);  if (!user || user.role !== 'admin') { fail(res, 403, 'Admin access required.'); return null; }
   return user;
+}
+
+// KYC gate — accounts can be created and browsed without verification (Verify Later),
+// but live trading, trading bots and money transactions stay locked until approved
+function kycApproved(user) {
+  const k = D.find('kyc', x => x.userId === user.id);
+  return !!k && k.status === 'approved';
+}
+function requireKyc(res, user, what) {
+  if (kycApproved(user)) return true;
+  fail(res, 403, `KYC verification is required before you can ${what}. Verify your identity once — it takes about 2 minutes — and live trading, bots and transactions unlock.`, { kycRequired: true });
+  return false;
 }
 
 // ---- auth ----
@@ -490,6 +501,7 @@ api['POST /api/funding/deposit'] = async (req, res, body, cookies) => {
     const buf = Buffer.from(String(p.data), 'base64');
     if (!buf || buf.length < 100) return fail(res, 400, 'The uploaded proof file appears to be empty.');
     if (buf.length > PROOF_MAX) return fail(res, 400, 'Proof file must be under 5MB.');
+    if (!requireKyc(res, user, 'submit deposits')) return;
     try {
       const dir = path.join(D.UPLOAD_DIR, user.id);
       fs.mkdirSync(dir, { recursive: true });
@@ -561,8 +573,7 @@ api['GET /api/store/purchases'] = (req, res, body, cookies) => {
 
 api['POST /api/funding/withdraw'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies); if (!user) return;
-  const kyc = D.find('kyc', k => k.userId === user.id);
-  if (!kyc || kyc.status !== 'approved') return fail(res, 403, 'KYC verification is required for withdrawals.');
+  if (!requireKyc(res, user, 'make withdrawals')) return;
   const amount = Number(body.amountUsd);
   const asset = String(body.asset || '');
   const address = String(body.address || '').trim();
@@ -793,6 +804,7 @@ api['POST /api/bots/request-key'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies); if (!user) return;
   const leader = D.find('copy_leaders', l => l.id === String(body.botId || '') && l.bot && l.status === 'active');
   if (!leader) return fail(res, 404, 'Trading bot not found.');
+  if (!requireKyc(res, user, 'use trading bots')) return;
   const liveEq = trading.equity(user.id, 'live').equity;
   if (liveEq < leader.minBalance) {
     return fail(res, 400, `This bot requires a minimum live portfolio balance of $${leader.minBalance.toLocaleString()}. Your live portfolio is currently $${liveEq.toLocaleString()}.`);
@@ -812,6 +824,7 @@ api['POST /api/bots/activate'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies); if (!user) return;
   const leader = D.find('copy_leaders', l => l.id === String(body.botId || '') && l.bot && l.status === 'active');
   if (!leader) return fail(res, 404, 'Trading bot not found.');
+  if (!requireKyc(res, user, 'use trading bots')) return;
   const req_ = D.find('bot_requests', r => r.userId === user.id && r.leaderId === leader.id && r.status === 'approved');
   if (!req_ || !req_.key) return fail(res, 400, 'No approved connection key for this bot. Request a key first — it is issued after admin approval.');
   if (String(body.key || '').trim().toUpperCase() !== req_.key.toUpperCase()) return fail(res, 400, 'Invalid connection key. Check the key issued to you and try again.');

@@ -60,6 +60,7 @@
 </div>
 <!-- ============ DEPOSIT ============ -->
 <div id="paneDeposit">
+<div class="alert alert-error" id="depKycLock" style="display:none"><i class="fas fa-lock"></i><span data-i18n-html="fun.h25"> Deposits require <a href="/kyc">KYC verification</a> — verify once to unlock deposits, withdrawals, live trading and bots.</span></div>
 <div class="alert alert-info" data-i18n-html="fun.h3" style="display:block"><i class="fas fa-circle-info"></i> Deposits are verified manually by our admin team — your live wallet is credited once the transaction is confirmed on-chain. Minimum <b><span data-usd="50">$50</span></b> value.</div>
 <h4 class="font-head mb-1" data-i18n="fun.s4" style="font-size:15px">1 · Choose your deposit coin</h4>
 <div id="methods"><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div></div>
@@ -133,8 +134,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=20"></script>
-  <script src="/assets/js/common.js?v=20"></script>
+<script src="/assets/js/i18n-pages.js?v=21"></script>
+  <script src="/assets/js/common.js?v=21"></script>
 <script src="/assets/js/qrcode.js"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -225,8 +226,14 @@
 
         $('#wdAvail').innerHTML = `Available for withdrawal: <b>$${(r.live.free || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}</b> (live free balance)`;
 
-        // kyc lock
-        $('#wdKycLock').style.display = r.kycStatus === 'approved' ? 'none' : 'block';
+        // kyc locks (deposits + withdrawals)
+        const kycOk = r.kycStatus === 'approved';
+        $('#depKycLock').style.display = kycOk ? 'none' : 'block';
+        $$('#paneDeposit > *:not(#depKycLock)').forEach(el => {
+          el.style.opacity = kycOk ? '' : '.45';
+          el.style.pointerEvents = kycOk ? '' : 'none';
+        });
+        $('#wdKycLock').style.display = kycOk ? 'none' : 'block';
         $('#wdForm').style.opacity = r.kycStatus === 'approved' ? '1' : '.45';
         $('#wdForm').style.pointerEvents = r.kycStatus === 'approved' ? 'auto' : 'none';
 

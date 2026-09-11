@@ -197,8 +197,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=20"></script>
-  <script src="/assets/js/common.js?v=20"></script>
+<script src="/assets/js/i18n-pages.js?v=21"></script>
+  <script src="/assets/js/common.js?v=21"></script>
 <script src="/assets/js/chart.js?v=7"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -239,19 +239,48 @@
         POL: 'BINANCE:POLUSDT', UNI: 'BINANCE:UNIUSDT', SHIB: 'BINANCE:SHIBUSDT', BCH: 'BINANCE:BCHUSDT',
         NEAR: 'BINANCE:NEARUSDT', APT: 'BINANCE:APTUSDT', ARB: 'BINANCE:ARBUSDT', OP: 'BINANCE:OPUSDT',
         SUI: 'BINANCE:SUIUSDT', PAXG: 'BINANCE:PAXGUSDT', XAUT: 'TVC:GOLD',
+        USDC: 'BINANCE:USDCUSDT', DAI: 'BINANCE:DAIUSDT', WBTC: 'BINANCE:WBTCUSDT', TON: 'BINANCE:TONUSDT',
+        ICP: 'BINANCE:ICPUSDT', HBAR: 'BINANCE:HBARUSDT', XLM: 'BINANCE:XLMUSDT', XMR: 'BINANCE:XMRUSDT',
+        ETC: 'BINANCE:ETCUSDT', FIL: 'BINANCE:FILUSDT', ATOM: 'BINANCE:ATOMUSDT', CRO: 'BINANCE:CROUSDT',
+        IMX: 'BINANCE:IMXUSDT', AAVE: 'BINANCE:AAVEUSDT', LDO: 'BINANCE:LDOUSDT', SAND: 'BINANCE:SANDUSDT',
+        MANA: 'BINANCE:MANAUSDT', AXS: 'BINANCE:AXSUSDT', ALGO: 'BINANCE:ALGOUSDT', XTZ: 'BINANCE:XTZUSDT',
+        FLOW: 'BINANCE:FLOWUSDT', GRT: 'BINANCE:GRTUSDT', ENS: 'BINANCE:ENSUSDT', INJ: 'BINANCE:INJUSDT',
+        FET: 'BINANCE:FETUSDT', SEI: 'BINANCE:SEIUSDT', TIA: 'BINANCE:TIAUSDT', KAS: 'GATEIO:KASUSDT',
+        STX: 'BINANCE:STXUSDT', WLD: 'BINANCE:WLDUSDT', PEPE: 'BINANCE:PEPEUSDT', BONK: 'BINANCE:BONKUSDT',
+        WIF: 'BINANCE:WIFUSDT', FLOKI: 'BINANCE:FLOKIUSDT', JASMY: 'BINANCE:JASMYUSDT', ZK: 'BINANCE:ZKUSDT',
+        STRK: 'BINANCE:STRKUSDT', ONDO: 'BINANCE:ONDOUSDT', RUNE: 'BINANCE:RUNEUSDT', RENDER: 'BINANCE:RENDERUSDT',
+        LEO: 'BITFINEX:LEOUSD', HYPE: 'BYBIT:HYPEUSDT',
         AAPL: 'NASDAQ:AAPL', MSFT: 'NASDAQ:MSFT', GOOGL: 'NASDAQ:GOOGL', AMZN: 'NASDAQ:AMZN', NVDA: 'NASDAQ:NVDA',
         TSLA: 'NASDAQ:TSLA', META: 'NASDAQ:META', NFLX: 'NASDAQ:NFLX', AMD: 'NASDAQ:AMD', INTC: 'NASDAQ:INTC',
         ORCL: 'NYSE:ORCL', CRM: 'NYSE:CRM', JPM: 'NYSE:JPM', V: 'NYSE:V', MA: 'NYSE:MA', KO: 'NYSE:KO',
         PEP: 'NYSE:PEP', DIS: 'NYSE:DIS', NKE: 'NYSE:NKE', BA: 'NYSE:BA', XOM: 'NYSE:XOM', CVX: 'NYSE:CVX',
         JNJ: 'NYSE:JNJ', PG: 'NYSE:PG', WMT: 'NYSE:WMT', COST: 'NASDAQ:COST',
+        ADBE: 'NASDAQ:ADBE', AVGO: 'NASDAQ:AVGO', TXN: 'NASDAQ:TXN', QCOM: 'NASDAQ:QCOM', MU: 'NASDAQ:MU',
+        AMAT: 'NASDAQ:AMAT', LRCX: 'NASDAQ:LRCX', PYPL: 'NASDAQ:PYPL', UBER: 'NYSE:UBER', ABNB: 'NASDAQ:ABNB',
+        SBUX: 'NASDAQ:SBUX', MCD: 'NYSE:MCD', TGT: 'NYSE:TGT', HD: 'NYSE:HD', LOW: 'NYSE:LOW', F: 'NYSE:F',
+        GM: 'NYSE:GM', T: 'NYSE:T', VZ: 'NYSE:VZ', PFE: 'NYSE:PFE', MRK: 'NYSE:MRK', LLY: 'NYSE:LLY',
+        UNH: 'NYSE:UNH', TMO: 'NYSE:TMO', ABBV: 'NYSE:ABBV', BAC: 'NYSE:BAC', GS: 'NYSE:GS', MS: 'NYSE:MS',
+        BLK: 'NYSE:BLK', CAT: 'NYSE:CAT', DE: 'NYSE:DE', GE: 'NYSE:GE', HON: 'NASDAQ:HON', LMT: 'NYSE:LMT',
+        RTX: 'NYSE:RTX', IBM: 'NYSE:IBM', CSCO: 'NASDAQ:CSCO', CMCSA: 'NASDAQ:CMCSA', TMUS: 'NASDAQ:TMUS',
+        DELL: 'NYSE:DELL', PLTR: 'NASDAQ:PLTR', COIN: 'NASDAQ:COIN', BABA: 'NYSE:BABA', HOOD: 'NASDAQ:HOOD',
         XAU: 'TVC:GOLD', XAG: 'TVC:SILVER', XPT: 'TVC:PLATINUM', XPD: 'TVC:PALLADIUM', HG: 'COMEX:HG1!',
         WTI: 'TVC:USOIL', BRENT: 'TVC:UKOIL', NG: 'NYMEX:NG1!',
-        SPX: 'SP:SPX', NDX: 'NASDAQ:NDX', DJI: 'DJ:DJI', RUT: 'TVC:RUT'
+        WHEAT: 'CBOT:ZW1!', CORN: 'CBOT:ZC1!', SOY: 'CBOT:ZS1!', COFFEE: 'ICEUS:KC1!',
+        SPX: 'SP:SPX', NDX: 'NASDAQ:NDX', DJI: 'DJ:DJI', RUT: 'TVC:RUT',
+        FTSE: 'TVC:UKX', DAX: 'XETR:DAX', CAC: 'EURONEXT:PX1', NIKKEI: 'TVC:NI225', HSI: 'TVC:HSI',
+        NIFTY: 'NSE:NIFTY', ASX: 'ASX:XJO', VIX: 'TVC:VIX'
       };
+      function tvSymOf(a) {
+        if (TV_MAP[a.symbol]) return TV_MAP[a.symbol];
+        if (a.category === 'crypto') return 'BINANCE:' + a.symbol + 'USDT';
+        if (a.category === 'stocks') return 'NASDAQ:' + a.symbol;
+        if (a.category === 'indices') return 'TVC:' + a.symbol;
+        return 'BINANCE:BTCUSDT';
+      }
       let tvCurrent = null;
       function loadTV(a) {
         tvCurrent = a;
-        const sym = TV_MAP[a.symbol] || 'BINANCE:BTCUSDT';
+        const sym = tvSymOf(a);
         $('#tvSymLabel').textContent = sym.split(':')[1] + ' · ' + a.symbol;
         const box = $('#tvWidget');
         box.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa4b2;font-family:var(--font-head);font-size:13px;text-align:center;padding:20px;z-index:2" id="tvFallback">Connecting to TradingView…</div>';
@@ -520,11 +549,11 @@
         $('#orderPanel').innerHTML = `
           <div class="kyc-lock">
             <i class="fas fa-lock" style="font-size:34px;color:var(--gold);margin-bottom:14px"></i>
-            <h3 style="margin-bottom:8px">Live Trading Requires KYC</h3>
-            <p class="muted small" style="margin-bottom:18px">Complete manual identity verification to unlock live trading and withdrawals. It takes about 2 minutes to submit.</p>
+            <h3 style="margin-bottom:8px">${BB.t('trd.kycT')}</h3>
+            <p class="muted small" style="margin-bottom:18px">${BB.t('trd.kycP')}</p>
             <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-              <a class="btn btn-gold" href="/kyc"><i class="fas fa-id-card"></i> Complete KYC</a>
-              <a class="btn btn-outline" href="#" id="lockDemo"><i class="fas fa-flask"></i> Use Demo</a>
+              <a class="btn btn-gold" href="/kyc"><i class="fas fa-id-card"></i> ${BB.t('trd.kycCta')}</a>
+              <a class="btn btn-outline" href="#" id="lockDemo"><i class="fas fa-flask"></i> ${BB.t('trd.kycDemo')}</a>
             </div>
           </div>`;
         const d = $('#lockDemo');

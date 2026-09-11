@@ -7,13 +7,13 @@
 <meta content="website" property="og:type"/>
 <meta content="Blockchain Bullhorn" property="og:site_name"/>
 <meta content="Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn" property="og:title"/>
-<meta content="Live market prices for 60+ assets: crypto, stocks, real-world assets (gold, silver, oil), tokenized gold and indices. Real branding, real-time data, interactive bubble map." property="og:description"/>
+<meta content="Live market prices for 160+ assets: 60+ cryptocurrencies, 70 stocks, real-world assets (gold, silver, oil, wheat, coffee), tokenized gold and global indices — with the official TradingView chart. Real branding, real-time data." property="og:description"/>
 <meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
 <meta content="https://blockchainbullhorn.onrender.com/markets" property="og:url"/>
 <meta content="summary_large_image" name="twitter:card"/>
 <meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
 <title>Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn</title>
-<meta content="Live market prices for 60+ assets: crypto, stocks, real-world assets (gold, silver, oil), tokenized gold and indices. Real branding, real-time data, interactive bubble map." name="description"/>
+<meta content="Live market prices for 160+ assets: 60+ cryptocurrencies, 70 stocks, real-world assets (gold, silver, oil, wheat, coffee), tokenized gold and global indices — with the official TradingView chart. Real branding, real-time data." name="description"/>
 <link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
 <link href="/assets/css/fonts.css" rel="stylesheet"/>
@@ -28,7 +28,7 @@
 <div class="container">
 <div class="crumbs"><a data-i18n="mkt.s1" href="/">Home</a> · Markets</div>
 <h1 data-i18n="idx.s9">The Market Session</h1>
-<p data-i18n-html="mkt.h2">Live prices across crypto, stocks, real-world assets and indices — streaming from CoinGecko &amp; Yahoo Finance. Switch to the <b style="color:var(--gold)">Bubbles</b> view for the whole market on one screen, and tap any asset for its live coin view.</p>
+<p data-i18n-html="mkt.h2">Live prices across <b style="color:var(--gold)">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.</p>
 </div>
 </section>
 <section class="section-tight reveal">
@@ -55,38 +55,34 @@
 <button class="tab-btn" data-cat="indices"><i class="fas fa-chart-column"></i><span data-i18n="idx.s14">Indices</span></button>
 </div>
 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-<div class="view-seg" id="viewSeg">
-<button class="active" data-view="table"><i class="fas fa-table-list"></i><span data-i18n="mkt.s7">Table</span></button>
-<button data-view="bubbles"><i class="fas fa-circle" style="font-size:9px"></i><span data-i18n="mkt.s8">Bubbles</span></button>
-</div>
 <div style="position:relative;min-width:220px">
 <input class="input" id="mktSearch" placeholder="Search assets… (e.g. BTC, Apple, gold)" data-i18n-ph="mkt.searchPh" style="padding:10px 14px;padding-left:38px"/>
 <i class="fas fa-magnifying-glass" style="position:absolute;left:14px;top:12px;color:var(--ink-dim)"></i>
 </div>
 </div>
 </div>
-<!-- bubbles view -->
-<div class="bubbles-panel" id="bubblesPanel" style="display:none">
-<div class="flex-between" style="flex-wrap:wrap;gap:8px">
-<div class="bub-chips">
-<button class="bub-chip active" data-i18n="idx.s17" data-tf="1D">24h</button>
-<button class="bub-chip" data-i18n="mkt.s9" data-tf="7D">7d</button>
-<span class="bub-sep"></span>
-<button class="bub-chip" data-i18n="mkt.s10" data-size="movers">Size: movers</button>
-<button class="bub-chip active" data-i18n="mkt.s11" data-size="cap">Size: market cap</button>
+<!-- official TradingView chart -->
+<div class="card mb-2" style="padding:0;overflow:hidden">
+<div class="flex-between" style="padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:8px">
+<div style="display:flex;align-items:center;gap:10px">
+<img alt="TradingView" src="/assets/img/icons/partner-tradingview.png" style="width:22px;height:22px;border-radius:5px"/>
+<b class="font-head" data-i18n-html="mkt.h23" style="font-size:14px">Official TradingView Chart — <span id="tvSymLabel" style="color:var(--gold)"></span></b>
 </div>
-<span class="muted small" id="bubCount">—</span>
+<div class="bub-chips" id="tvChips" style="padding:0">
+<button class="bub-chip active" data-tv="BTC" type="button">BTC</button>
+<button class="bub-chip" data-tv="ETH" type="button">ETH</button>
+<button class="bub-chip" data-tv="SOL" type="button">SOL</button>
+<button class="bub-chip" data-tv="XRP" type="button">XRP</button>
+<button class="bub-chip" data-tv="DOGE" type="button">DOGE</button>
+<button class="bub-chip" data-tv="XAU" type="button">Gold</button>
+<button class="bub-chip" data-tv="SPX" type="button">S&amp;P 500</button>
+<button class="bub-chip" data-tv="AAPL" type="button">AAPL</button>
+<button class="bub-chip" data-tv="NVDA" type="button">NVDA</button>
+<button class="bub-chip" data-tv="TSLA" type="button">TSLA</button>
 </div>
-<div class="bubbles-stage" id="bubblesStage">
-<canvas id="bubblesCv"></canvas>
-<div class="bub-tip" id="bubTip"></div>
-<div class="bub-empty" id="bubEmpty" style="display:none"><i class="fas fa-magnifying-glass"></i><span data-i18n="mkt.s12">No assets match the current filters.</span></div>
 </div>
-<div class="bub-legend muted small">
-<span data-i18n-html="mkt.h13"><span class="bub-dot" style="background:#089981"></span> gaining</span>
-<span data-i18n-html="mkt.h14"><span class="bub-dot" style="background:#f23645"></span> losing</span>
-<span>·</span><span data-i18n="mkt.s15">bubble size = market cap</span>
-<span>·</span><span data-i18n="mkt.s16">click a bubble for the coin view</span>
+<div id="tvWidget" style="height:420px;position:relative;background:#131722">
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa4b2;font-family:var(--font-head);font-size:13px;text-align:center;padding:20px;z-index:2" id="tvFallback">Connecting to TradingView…</div>
 </div>
 </div>
 <!-- table view -->
@@ -121,12 +117,12 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=20"></script>
-  <script src="/assets/js/common.js?v=20"></script>
+<script src="/assets/js/i18n-pages.js?v=21"></script>
+  <script src="/assets/js/common.js?v=21"></script>
 <script src="/assets/js/chart.js?v=7"></script>
 <script>
     document.addEventListener('bb:ready', () => {
-      let assets = [], cat = 'all', query = '', sortKey = 'rank', sortDir = 1, prevPrices = {}, view = 'table';
+      let assets = [], cat = 'all', query = '', sortKey = 'rank', sortDir = 1, prevPrices = {};
 
       function filtered() {
         let list = assets.filter(a => a.price != null);
@@ -209,12 +205,12 @@
           const r = await BB.api('/api/watchlist/toggle', { method: 'POST', body: { assetId: st.dataset.star } });
           if (r.ok) { BB._watch = r.watchlist; render(); BB.toast(r.added ? 'Added to watchlist ★' : 'Removed from watchlist'); }
         }));
-        if (view === 'bubbles') Bubbles.sync();
       }
 
       // ---------- coin view (detail modal) ----------
       function coinView(id) {
         const a = assets.find(x => x.id === id); if (!a) return;
+        loadTV(tvSymOf(a), a.symbol);
         const starred = (BB._watch || []).includes(a.id);
         const range = a.high24h && a.low24h ? Math.max(2, Math.min(100, (a.price - a.low24h) / ((a.high24h - a.low24h) || 1) * 100)) : null;
         const bd = BB.modal(`${BB.assetIcon(a, 34)}<span style="vertical-align:middle;margin-left:6px">${BB.esc(a.name)} <span class="muted" style="font-size:14px">${BB.esc(a.symbol)}</span></span>`, `
@@ -260,150 +256,89 @@
         });
       }
 
-      // ---------- bubbles view (crypto-bubbles style board) ----------
-      const Bubbles = {
-        items: [], tf: '1D', sizeMode: 'cap', running: false, raf: 0, hover: null,
-        cv: null, ctx: null, W: 0, H: 0, mouse: null,
-
-        changeOf(a) {
-          if (this.tf === '7D' && a.spark && a.spark.length > 2) {
-            const f = a.spark[0], l = a.spark[a.spark.length - 1];
-            if (f > 0) return (l - f) / f * 100;
-          }
-          return a.changePct || 0;
-        },
-        targets(list) {
-          const chgs = list.map(a => Math.abs(this.changeOf(a)));
-          const maxChg = Math.max(0.5, ...chgs);
-          const maxCap = Math.max(1, ...list.map(a => a.marketCap || 0));
-          const minR = Math.min(this.W, this.H) < 480 ? 13 : 16;
-          const maxR = Math.min(this.W, this.H) < 480 ? 48 : 64;
-          return list.map((a, i) => {
-            let t;
-            if (this.sizeMode === 'cap' && a.marketCap) t = Math.pow(a.marketCap / maxCap, 0.5);
-            else t = Math.pow(Math.abs(this.changeOf(a)) / maxChg, 0.75);
-            return { a, tr: minR + (maxR - minR) * Math.max(0.08, t), chg: this.changeOf(a) };
-          });
-        },
-        sync() {
-          const list = filtered();
-          $('#bubEmpty').style.display = list.length ? 'none' : 'flex';
-          $('#bubCount').textContent = list.length + ' assets on the board';
-          const t = this.targets(list);
-          const keep = new Set(t.map(x => x.a.id));
-          this.items = this.items.filter(it => keep.has(it.a.id));
-          for (const x of t) {
-            const ex = this.items.find(it => it.a.id === x.a.id);
-            if (ex) { ex.a = x.a; ex.tr = x.tr; ex.chg = x.chg; }
-            else this.items.push({ ...x, x: this.W * (0.1 + Math.random() * 0.8), y: this.H * (0.1 + Math.random() * 0.8), vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5, r: x.tr * 0.4 });
-          }
-          if (!this.running) { this.running = true; this.loop(); }
-        },
-        resize() {
-          const stage = $('#bubblesStage'); if (!stage) return;
-          const dpr = window.devicePixelRatio || 1;
-          this.W = stage.clientWidth; this.H = stage.clientHeight;
-          this.cv.width = this.W * dpr; this.cv.height = this.H * dpr;
-          this.cv.style.width = this.W + 'px'; this.cv.style.height = this.H + 'px';
-          this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-          for (const it of this.items) { it.x = Math.min(it.x, this.W - 10); it.y = Math.min(it.y, this.H - 10); }
-        },
-        colorOf(chg) {
-          // authentic crypto-bubbles palette: solid TradingView green/red —
-          // same hues as the real board, no translucency, no intensity scaling
-          return chg >= 0 ? { r: 8, g: 153, b: 129 } : { r: 242, g: 54, b: 69 };
-        },
-        loop() {
-          if (view !== 'bubbles' || document.hidden) { this.running = false; return; }
-          this.raf = requestAnimationFrame(() => this.loop());
-          const ctx = this.ctx, W = this.W, H = this.H;
-          ctx.clearRect(0, 0, W, H);
-          const its = this.items;
-          for (const it of its) {
-            it.r += (it.tr - it.r) * 0.06; // smooth grow/shrink as data updates
-            it.vx += (Math.random() - 0.5) * 0.03; it.vy += (Math.random() - 0.5) * 0.03;
-            it.vx *= 0.985; it.vy *= 0.985;
-            it.x += it.vx; it.y += it.vy;
-            if (it.x < it.r) { it.x = it.r; it.vx = Math.abs(it.vx) * 0.9; }
-            if (it.x > W - it.r) { it.x = W - it.r; it.vx = -Math.abs(it.vx) * 0.9; }
-            if (it.y < it.r) { it.y = it.r; it.vy = Math.abs(it.vy) * 0.9; }
-            if (it.y > H - it.r) { it.y = H - it.r; it.vy = -Math.abs(it.vy) * 0.9; }
-          }
-          for (let i = 0; i < its.length; i++) for (let j = i + 1; j < its.length; j++) {
-            const A = its[i], B = its[j];
-            const dx = B.x - A.x, dy = B.y - A.y, d = Math.hypot(dx, dy), min = A.r + B.r + 2;
-            if (d > 0 && d < min) {
-              const nx = dx / d, ny = dy / d, push = (min - d) / 2;
-              A.x -= nx * push; A.y -= ny * push; B.x += nx * push; B.y += ny * push;
-              const rel = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny;
-              if (rel < 0) { A.vx += rel * nx * 0.5; A.vy += rel * ny * 0.5; B.vx -= rel * nx * 0.5; B.vy -= rel * ny * 0.5; }
-            }
-          }
-          this.hover = null;
-          if (this.mouse) for (const it of its) if (Math.hypot(this.mouse.x - it.x, this.mouse.y - it.y) < it.r) { this.hover = it; break; }
-          this.cv.style.cursor = this.hover ? 'pointer' : 'default';
-          const order = its.slice().sort((a, b) => b.r - a.r); // big bubbles behind
-          for (const it of order) {
-            const c = this.colorOf(it.chg), hov = it === this.hover;
-            const rr = it.r * (hov ? 1.09 : 1); // hover grows the bubble, like the real board
-            ctx.beginPath(); ctx.arc(it.x, it.y, rr, 0, Math.PI * 2);
-            ctx.fillStyle = `rgb(${c.r},${c.g},${c.b})`; // flat solid fill — authentic look
-            ctx.fill();
-            if (hov) { ctx.lineWidth = 2.5; ctx.strokeStyle = '#d3a877'; ctx.stroke(); }
-            if (rr >= 19) {
-              ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-              ctx.fillStyle = '#fff';
-              ctx.font = `700 ${Math.max(10, Math.min(17, rr * 0.36)).toFixed(0)}px "Quattrocento Sans"`;
-              ctx.fillText(it.a.symbol, it.x, it.y - (rr > 30 ? rr * 0.14 : 0));
-              if (rr > 30) {
-                ctx.font = `700 ${Math.max(9, Math.min(13, rr * 0.26)).toFixed(0)}px "Quattrocento Sans"`;
-                ctx.fillStyle = 'rgba(255,255,255,0.92)';
-                ctx.fillText(`${it.chg >= 0 ? '+' : ''}${it.chg.toFixed(1)}%`, it.x, it.y + rr * 0.24);
-              }
-            }
-          }
-          // tooltip
-          const tip = $('#bubTip');
-          if (this.hover) {
-            const a = this.hover.a, chg = this.hover.chg;
-            tip.style.display = 'block';
-            tip.style.left = Math.min(this.W - 190, Math.max(4, this.hover.x + this.hover.r + 10)) + 'px';
-            tip.style.top = Math.max(4, this.hover.y - 30) + 'px';
-            tip.innerHTML = `<b>${BB.esc(a.name)}</b> <span class="muted">${BB.esc(a.symbol)}</span><br>
-              <span class="num" style="font-weight:800">${BB.fmtPx(a.price)}</span>
-              <span class="${BB.chgClass(chg)}" style="font-weight:700">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span> · ${this.tf === '7D' ? '7d' : '24h'}`;
-          } else tip.style.display = 'none';
-        },
-        init() {
-          this.cv = $('#bubblesCv'); this.ctx = this.cv.getContext('2d');
-          this.resize();
-          window.addEventListener('resize', () => { this.resize(); this.sync(); });
-          this.cv.addEventListener('mousemove', e => {
-            const r = this.cv.getBoundingClientRect();
-            this.mouse = { x: e.clientX - r.left, y: e.clientY - r.top };
-          });
-          this.cv.addEventListener('mouseleave', () => { this.mouse = null; });
-          this.cv.addEventListener('click', () => { if (this.hover) coinView(this.hover.a.id); });
-          $$('#bubblesPanel [data-tf]').forEach(b => b.addEventListener('click', () => {
-            $$('#bubblesPanel [data-tf]').forEach(x => x.classList.remove('active'));
-            b.classList.add('active'); this.tf = b.dataset.tf; this.sync();
-          }));
-          $$('#bubblesPanel [data-size]').forEach(b => b.addEventListener('click', () => {
-            $$('#bubblesPanel [data-size]').forEach(x => x.classList.remove('active'));
-            b.classList.add('active'); this.sizeMode = b.dataset.size; this.sync();
-          }));
-          document.addEventListener('visibilitychange', () => { if (!document.hidden && view === 'bubbles' && !this.running) { this.running = true; this.loop(); } });
-        }
+      // ---------- official TradingView chart ----------
+      const TV_MAP = {
+        BTC: 'BINANCE:BTCUSDT', ETH: 'BINANCE:ETHUSDT', BNB: 'BINANCE:BNBUSDT', SOL: 'BINANCE:SOLUSDT',
+        XRP: 'BINANCE:XRPUSDT', ADA: 'BINANCE:ADAUSDT', DOGE: 'BINANCE:DOGEUSDT', AVAX: 'BINANCE:AVAXUSDT',
+        DOT: 'BINANCE:DOTUSDT', LINK: 'BINANCE:LINKUSDT', LTC: 'BINANCE:LTCUSDT', TRX: 'BINANCE:TRXUSDT',
+        UNI: 'BINANCE:UNIUSDT', SHIB: 'BINANCE:SHIBUSDT', PEPE: 'BINANCE:PEPEUSDT', WIF: 'BINANCE:WIFUSDT',
+        TON: 'BINANCE:TONUSDT', ICP: 'BINANCE:ICPUSDT', HBAR: 'BINANCE:HBARUSDT', XLM: 'BINANCE:XLMUSDT',
+        ETC: 'BINANCE:ETCUSDT', FIL: 'BINANCE:FILUSDT', ATOM: 'BINANCE:ATOMUSDT', AAVE: 'BINANCE:AAVEUSDT',
+        LDO: 'BINANCE:LDOUSDT', INJ: 'BINANCE:INJUSDT', SEI: 'BINANCE:SEIUSDT', TIA: 'BINANCE:TIAUSDT',
+        STX: 'BINANCE:STXUSDT', WLD: 'BINANCE:WLDUSDT', RENDER: 'BINANCE:RENDERUSDT', RUNE: 'BINANCE:RUNEUSDT',
+        PAXG: 'BINANCE:PAXGUSDT', XAUT: 'TVC:GOLD', LEO: 'BITFINEX:LEOUSD', HYPE: 'BYBIT:HYPEUSDT',
+        AAPL: 'NASDAQ:AAPL', MSFT: 'NASDAQ:MSFT', GOOGL: 'NASDAQ:GOOGL', AMZN: 'NASDAQ:AMZN', NVDA: 'NASDAQ:NVDA',
+        TSLA: 'NASDAQ:TSLA', META: 'NASDAQ:META', NFLX: 'NASDAQ:NFLX', AMD: 'NASDAQ:AMD', INTC: 'NASDAQ:INTC',
+        ADBE: 'NASDAQ:ADBE', AVGO: 'NASDAQ:AVGO', TXN: 'NASDAQ:TXN', QCOM: 'NASDAQ:QCOM', MU: 'NASDAQ:MU',
+        AMAT: 'NASDAQ:AMAT', LRCX: 'NASDAQ:LRCX', PYPL: 'NASDAQ:PYPL', ABNB: 'NASDAQ:ABNB', SBUX: 'NASDAQ:SBUX',
+        CSCO: 'NASDAQ:CSCO', CMCSA: 'NASDAQ:CMCSA', TMUS: 'NASDAQ:TMUS', PLTR: 'NASDAQ:PLTR', COIN: 'NASDAQ:COIN',
+        HOOD: 'NASDAQ:HOOD', COST: 'NASDAQ:COST',
+        ORCL: 'NYSE:ORCL', CRM: 'NYSE:CRM', JPM: 'NYSE:JPM', V: 'NYSE:V', MA: 'NYSE:MA', KO: 'NYSE:KO',
+        PEP: 'NYSE:PEP', DIS: 'NYSE:DIS', NKE: 'NYSE:NKE', BA: 'NYSE:BA', XOM: 'NYSE:XOM', CVX: 'NYSE:CVX',
+        JNJ: 'NYSE:JNJ', PG: 'NYSE:PG', WMT: 'NYSE:WMT', UBER: 'NYSE:UBER', MCD: 'NYSE:MCD', TGT: 'NYSE:TGT',
+        HD: 'NYSE:HD', LOW: 'NYSE:LOW', F: 'NYSE:F', GM: 'NYSE:GM', T: 'NYSE:T', VZ: 'NYSE:VZ', PFE: 'NYSE:PFE',
+        MRK: 'NYSE:MRK', LLY: 'NYSE:LLY', UNH: 'NYSE:UNH', TMO: 'NYSE:TMO', ABBV: 'NYSE:ABBV', BAC: 'NYSE:BAC',
+        GS: 'NYSE:GS', MS: 'NYSE:MS', BLK: 'NYSE:BLK', CAT: 'NYSE:CAT', DE: 'NYSE:DE', GE: 'NYSE:GE',
+        HON: 'NASDAQ:HON', LMT: 'NYSE:LMT', RTX: 'NYSE:RTX', IBM: 'NYSE:IBM', DELL: 'NYSE:DELL', BABA: 'NYSE:BABA',
+        XAU: 'TVC:GOLD', XAG: 'TVC:SILVER', XPT: 'TVC:PLATINUM', XPD: 'TVC:PALLADIUM', HG: 'COMEX:HG1!',
+        WTI: 'TVC:USOIL', BRENT: 'TVC:UKOIL', NG: 'NYMEX:NG1!',
+        WHEAT: 'CBOT:ZW1!', CORN: 'CBOT:ZC1!', SOY: 'CBOT:ZS1!', COFFEE: 'ICEUS:KC1!',
+        SPX: 'SP:SPX', NDX: 'NASDAQ:NDX', DJI: 'DJ:DJI', RUT: 'TVC:RUT',
+        FTSE: 'TVC:UKX', DAX: 'XETR:DAX', CAC: 'EURONEXT:PX1', NIKKEI: 'TVC:NI225', HSI: 'TVC:HSI',
+        NIFTY: 'NSE:NIFTY', ASX: 'ASX:XJO', VIX: 'TVC:VIX'
       };
-
-      // ---------- view toggle ----------
-      $$('#viewSeg button').forEach(b => b.addEventListener('click', () => {
-        $$('#viewSeg button').forEach(x => x.classList.remove('active'));
-        b.classList.add('active'); view = b.dataset.view;
-        $('#bubblesPanel').style.display = view === 'bubbles' ? 'block' : 'none';
-        $('#tableWrap').style.display = view === 'table' ? 'block' : 'none';
-        if (view === 'bubbles') { Bubbles.resize(); Bubbles.sync(); }
+      function tvSymOf(a) {
+        if (TV_MAP[a.symbol]) return TV_MAP[a.symbol];
+        if (a.category === 'crypto') return 'BINANCE:' + a.symbol + 'USDT';
+        if (a.category === 'stocks') return 'NASDAQ:' + a.symbol;
+        if (a.category === 'indices') return 'TVC:' + a.symbol;
+        return 'BINANCE:BTCUSDT';
+      }
+      let tvTimer = null;
+      function loadTV(sym, label) {
+        $('#tvSymLabel').textContent = (label || sym);
+        const box = $('#tvWidget');
+        if (!box || !windowTvOk()) return;
+        box.innerHTML = '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa4b2;font-family:var(--font-head);font-size:13px;text-align:center;padding:20px;z-index:2" id="tvFallback">Connecting to TradingView…</div>';
+        const cfg = JSON.stringify({
+          "autosize": true, "symbol": sym, "interval": "240", "timezone": "Etc/UTC",
+          "theme": "dark", "style": "1", "locale": "en", "backgroundColor": "rgba(19,23,34,1)",
+          "gridColor": "rgba(211,168,119,0.06)", "hide_side_toolbar": false,
+          "allow_symbol_change": false, "save_image": false,
+          "studies": ["STD;EMA"],
+          "support_host": "https://www.tradingview.com"
+        });
+        const script = document.createElement('script');
+        script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+        script.async = true;
+        script.innerHTML = cfg;
+        const holder = document.createElement('div');
+        holder.className = 'tradingview-widget-container';
+        holder.style.height = '100%';
+        const inner = document.createElement('div');
+        inner.className = 'tradingview-widget-container__widget';
+        inner.style.height = '100%';
+        holder.appendChild(inner);
+        holder.appendChild(script);
+        box.appendChild(holder);
+        clearTimeout(tvTimer);
+        tvTimer = setTimeout(() => {
+          if (!holder.querySelector('iframe')) {
+            const f = $('#tvFallback');
+            if (f) f.innerHTML = 'TradingView could not load (offline or blocked).<br><small style="color:#6f5f4e">The live table above always works.</small>';
+          } else { const f = $('#tvFallback'); if (f) f.remove(); }
+        }, 6000);
+      }
+      function windowTvOk() { return !!document.getElementById('tvWidget'); }
+      function chipSym(sym) {
+        return TV_MAP[sym] || (sym + 'USD');
+      }
+      $$('#tvChips .bub-chip').forEach(b => b.addEventListener('click', () => {
+        $$('#tvChips .bub-chip').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        loadTV(chipSym(b.dataset.tv), b.dataset.tv === 'XAU' ? 'GOLD' : b.textContent.trim());
       }));
+      loadTV(TV_MAP.BTC, 'BTCUSD');
 
       async function refresh() {
         if (BB.user && BB._watch === undefined) {
@@ -432,7 +367,6 @@
         });
       });
 
-      Bubbles.init();
       refresh();
       setInterval(refresh, 20000);
     });

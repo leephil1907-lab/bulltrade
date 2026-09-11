@@ -610,5 +610,16 @@
  "<i class=\"fas fa-layer-group\" style=\"color:var(--gold)\"></i> Open Positions (<span id=\"cntPos\">0</span>)": "<i class=\"fas fa-layer-group\" style=\"color:var(--gold)\"></i> Posiciones Abiertas (<span id=\"cntPos\">0</span>)",
  "<i class=\"fas fa-circle-info\"></i> Deposits are verified manually by our admin team — your live wallet is credited once the transaction is confirmed on-chain. Minimum <b><span data-usd=\"50\">$50</span></b> value.": "<i class=\"fas fa-circle-info\"></i> Los depósitos se verifican manualmente por nuestro equipo admin — tu wallet real se acredita una vez que la transacción se confirma on-chain. Valor mínimo de <b><span data-usd=\"50\">$50</span></b>.",
  "<i class=\"fas fa-book-open\"></i> Progress: <b id=\"academyProgress\">0%</b>": "<i class=\"fas fa-book-open\"></i> Progreso: <b id=\"academyProgress\">0%</b>",
- "you@example.com": "tu@ejemplo.com"
+ "you@example.com": "tu@ejemplo.com",
+ " Verify Later": " Verificar más tarde",
+ " Deposits require <a href=\"/kyc\">KYC verification</a> — verify once to unlock deposits, withdrawals, live trading and bots.": " Los depósitos requieren <a href=\"/kyc\">verificación KYC</a> — verifica una vez para desbloquear depósitos, retiros, trading en vivo y bots.",
+ " Trading bots require <a href=\"/kyc\">KYC verification</a> — verify once to unlock bots, live trading, deposits and withdrawals.": " Los bots de trading requieren <a href=\"/kyc\">verificación KYC</a> — verifica una vez para desbloquear bots, trading en vivo, depósitos y retiros.",
+ "Verify to Unlock": "Verifica para desbloquear",
+ "KYC verification required before bots can trade": "Se requiere verificación KYC antes de que los bots puedan operar",
+ "Live Trading Requires KYC": "El Trading en Vivo Requiere KYC",
+ "Complete manual identity verification to unlock live trading and withdrawals. It takes about 2 minutes to submit.": "Completa la verificación manual de identidad para desbloquear el trading en vivo y los retiros. Enviarla toma unos 2 minutos.",
+ "Complete KYC": "Completar KYC",
+ "Use Demo": "Usar Demo",
+ "Live prices across <b style=\"color:var(--gold)\">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.": "Precios en vivo de <b style=\"color:var(--gold)\">160+ activos</b> — cripto, acciones, activos del mundo real e índices globales — transmitidos desde CoinGecko &amp; Yahoo Finance. Toca cualquier activo para ver su vista en vivo, o síguelo en el gráfico oficial de TradingView de abajo.",
+ "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "Necesario para desbloquear <b>el trading en vivo, los bots de trading, los depósitos y los retiros</b>. Puedes saltarlo ahora — <b>Verificar más tarde</b> — y completarlo cuando quieras desde tu panel. El trading demo funciona de inmediato."
 }

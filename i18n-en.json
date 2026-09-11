@@ -102,7 +102,7 @@
  "markets.html": {
   "mkt.s1": "Home",
   "idx.s9": "The Market Session",
-  "mkt.h2": "Live prices across crypto, stocks, real-world assets and indices — streaming from CoinGecko &amp; Yahoo Finance. Switch to the <b style=\"color:var(--gold)\">Bubbles</b> view for the whole market on one screen, and tap any asset for its live coin view.",
+  "mkt.h2": "Live prices across <b style=\"color:var(--gold)\">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.",
   "mkt.s3": "Top Gainers",
   "mkt.s4": "Top Losers",
   "mkt.s5": "All",
@@ -129,7 +129,8 @@
   "mkt.s19": "24h Range",
   "mkt.s20": "Trend",
   "mkt.s21": "Market Cap / Volume",
-  "mkt.h22": "<i class=\"fas fa-satellite-dish\"></i> Live data via CoinGecko &amp; Yahoo Finance · auto-refreshes every 20 seconds · <span id=\"mktUpdated\">loading…</span>"
+  "mkt.h22": "<i class=\"fas fa-satellite-dish\"></i> Live data via CoinGecko &amp; Yahoo Finance · auto-refreshes every 20 seconds · <span id=\"mktUpdated\">loading…</span>",
+  "mkt.h23": "Official TradingView Chart — <span id=\"tvSymLabel\" style=\"color:var(--gold)\"></span>"
  },
  "trade.html": {
   "mkt.s1": "Home",
@@ -236,7 +237,8 @@
   "fun.s24": "Reset your demo balance to",
   "fun.s25": "Practice funds running low? Top back up instantly and keep practicing the system — risk-free, as always.",
   "fun.s26": "Top Up Demo Account",
-  "fun.s27": "Transaction History"
+  "fun.s27": "Transaction History",
+  "fun.h25": " Deposits require <a href=\"/kyc\">KYC verification</a> — verify once to unlock deposits, withdrawals, live trading and bots."
  },
  "store.html": {
   "mkt.s1": "Home",
@@ -544,7 +546,7 @@
   "sig.s32": "Why we ask",
   "sig.s33": "These questions help us tailor your onboarding and satisfy compliance requirements for live trading. Your demo account works regardless.",
   "sig.s34": "Verify your identity (KYC)",
-  "sig.h35": "Required for <b>live trading and withdrawals</b>. You can skip this now and complete it later from your dashboard — demo trading works immediately.",
+  "sig.h35": "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.",
   "kyc.s3": "ID document type",
   "sig.s36": "Your details (as shown on the document)",
   "sig.s37": "Front of ID document",
@@ -561,7 +563,7 @@
   "sig.s45": "Go to Dashboard",
   "sig.s46": "Start Trading",
   "sig.s47": "Back",
-  "sig.s48": "Skip for now",
+  "sig.s48": " Verify Later",
   "sig.s49": "Continue",
   "sig.s50": "Log in"
  },
@@ -595,7 +597,10 @@
   "tbo.s11": "Stats computed live from each bot's actual platform trades",
   "tbo.s12": "Live Bot Activity",
   "tbo.s13": "Risk notice",
-  "tbo.s14": "Trading bots are automated strategy tools — not financial advice and not a guarantee of profit. Bot performance shown is from platform demo trading; live results vary with market conditions. You can stop any bot at any time. Never allocate funds you cannot afford to have at risk."
+  "tbo.s14": "Trading bots are automated strategy tools — not financial advice and not a guarantee of profit. Bot performance shown is from platform demo trading; live results vary with market conditions. You can stop any bot at any time. Never allocate funds you cannot afford to have at risk.",
+  "tbo.h25": " Trading bots require <a href=\"/kyc\">KYC verification</a> — verify once to unlock bots, live trading, deposits and withdrawals.",
+  "tbo.kycBtn": "Verify to Unlock",
+  "tbo.kycNote": "KYC verification required before bots can trade"
  },
  "404.html": {
   "e404.s1": "This page wandered off the pasture",
