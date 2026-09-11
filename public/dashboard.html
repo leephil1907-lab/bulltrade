@@ -140,8 +140,19 @@
 <span class="badge badge-blue" data-i18n="dash.s18" id="refTotal">0 invited</span>
 </div>
 <p class="muted small mb-1" data-i18n-html="dash.h19">Share your link — you earn <b>100 XP</b> per trader who signs up.</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+<div class="pulse-stat" style="flex:1;min-width:90px;padding:8px 12px"><i class="fas fa-user-plus" style="color:var(--sky)"></i><div><small data-i18n="dash.s50">TOTAL INVITED</small><b class="num" id="refCount">0</b></div></div>
+<div class="pulse-stat" style="flex:1;min-width:90px;padding:8px 12px"><i class="fas fa-bolt" style="color:var(--green-bright)"></i><div><small data-i18n="dash.s51">ACTIVE TRADERS</small><b class="num" id="refActive">0</b></div></div>
+<div class="pulse-stat" style="flex:1;min-width:90px;padding:8px 12px"><i class="fas fa-star" style="color:var(--gold-deep)"></i><div><small data-i18n="dash.s52">XP EARNED</small><b class="num" id="refXp">0</b></div></div>
+</div>
 <div class="addr-box mb-1"><span id="refLink" style="flex:1"></span>
 <button id="refCopy" title="Copy link"><i class="fas fa-copy"></i></button></div>
+<div class="addr-box mb-2"><span class="muted small" style="flex:1"><span data-i18n="dash.s53">Your code</span>: <b class="num" id="refCode">—</b></span>
+<button id="refCopyCode" title="Copy code"><i class="fas fa-copy"></i></button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+<a class="btn btn-green btn-sm" href="#" id="refWa" style="flex:1;min-width:130px;justify-content:center"><i class="fab fa-whatsapp"></i><span data-i18n="dash.s54">Share on WhatsApp</span></a>
+<a class="btn btn-outline btn-sm" href="#" id="refX" style="flex:1;min-width:130px;justify-content:center"><i class="fab fa-x-twitter"></i><span data-i18n="dash.s55">Share on X</span></a>
+</div>
 <div id="refList"></div>
 </div>
 </div>
@@ -222,8 +233,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=21"></script>
-  <script src="/assets/js/common.js?v=21"></script>
+<script src="/assets/js/i18n-pages.js?v=22"></script>
+  <script src="/assets/js/common.js?v=22"></script>
 <script src="/assets/js/qrcode.js"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -623,16 +634,27 @@
       async function loadReferrals() {
         const r = await BB.api('/api/referrals', { silent: true });
         if (!r.code) return;
-        $('#refLink').textContent = location.origin + r.link;
+        const link = location.origin + r.link;
+        $('#refLink').textContent = link;
+        $('#refCode').textContent = r.code;
         $('#refTotal').textContent = r.total + ' invited';
+        $('#refCount').textContent = r.total;
+        $('#refActive').textContent = r.active;
+        $('#refXp').textContent = (r.total * (r.xpPerReferral || 100)).toLocaleString();
+        const msg = BB.t('dash.refShareMsg');
+        $('#refWa').href = 'https://wa.me/?text=' + encodeURIComponent(msg + ' ' + link);
+        $('#refX').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(msg) + '&url=' + encodeURIComponent(link);
         $('#refCopy').addEventListener('click', () => {
-          navigator.clipboard.writeText(location.origin + r.link).then(() => BB.toast('Invite link copied!', 'success'));
+          navigator.clipboard.writeText(link).then(() => BB.toast('Invite link copied!', 'success'));
         });
-        $('#refList').innerHTML = r.referred.length ? r.referred.slice(0, 5).map(u => `
+        $('#refCopyCode').addEventListener('click', () => {
+          navigator.clipboard.writeText(r.code).then(() => BB.toast('Referral code copied!', 'success'));
+        });
+        $('#refList').innerHTML = r.referred.length ? r.referred.map(u => `
           <div class="mini-quote"><i class="fas fa-user" style="color:var(--green-deep);width:22px;text-align:center"></i>
             <div><div class="mq-name">${BB.esc(u.name)}</div><div class="mq-sub">joined ${BB.timeAgo(u.joinedAt)}</div></div>
             <div class="mq-right"><span class="badge ${u.kycStatus === 'approved' ? 'badge-green' : 'badge-gray'}">${u.kycStatus === 'approved' ? 'Verified' : 'KYC ' + u.kycStatus.replace('_', ' ')}</span></div>
-          </div>`).join('') : '<div class="muted small">No referrals yet — share your link to build your herd.</div>';
+          </div>`).join('') : '<div class="muted small">' + BB.t('dash.refEmpty') + '</div>';
       }
 
       /* ================= 2FA + LOGIN HISTORY ================= */

@@ -218,8 +218,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=21"></script>
-  <script src="/assets/js/common.js?v=21"></script>
+<script src="/assets/js/i18n-pages.js?v=22"></script>
+  <script src="/assets/js/common.js?v=22"></script>
 <script src="/assets/js/countries.js"></script>
 <script>
     document.addEventListener('bb:ready', () => {
@@ -229,6 +229,15 @@
       const alertEl = $('#wizAlert');
       const showAlert = m => { alertEl.textContent = m; alertEl.classList.add('show'); alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
       const clearAlert = () => alertEl.classList.remove('show');
+
+      // referral link (?ref=CODE) — prefill + lock so the inviter always gets credited
+      const refCode = new URLSearchParams(location.search).get('ref');
+      if (refCode && /^[A-Za-z0-9-]{3,20}$/.test(refCode)) {
+        $('#suRef').value = refCode.toUpperCase();
+        $('#suRef').readOnly = true;
+        $('#suRef').style.opacity = '.75';
+        $('#suRef').title = 'Invitation code from your referrer';
+      }
 
       // populate countries (CTRY: {n: name, c: ISO} — flags + currency follow)
       const cs = $('#suCountry');

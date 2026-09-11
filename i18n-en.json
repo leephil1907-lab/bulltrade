@@ -165,7 +165,12 @@
   "trd.h26": "By trading you accept the <a href=\"/legal?p=disclaimer\">Risk Disclosure</a>. Live trading requires KYC.",
   "trd.h27": "Open Positions (<span id=\"cntPos\">0</span>)",
   "trd.h28": "Open Orders (<span id=\"cntOrd\">0</span>)",
-  "trd.s29": "Trade History"
+  "trd.s29": "Trade History",
+  "trd.h30": "Order Book — <span id=\"obSym\" style=\"color:var(--gold)\"></span>",
+  "trd.h31": "Spread: <span id=\"obSpread\" class=\"num\">—</span>",
+  "trd.obSize": "Size",
+  "trd.obTotal": "Total",
+  "trd.obTape": "TIME & SALES"
  },
  "dashboard.html": {
   "hdr.dashboard": "Dashboard",
@@ -203,7 +208,13 @@
   "dash.s26": "Login History",
   "ftr.fraudAlert": "Fraud Alert",
   "dash.s27": "When",
-  "dash.s28": "Device"
+  "dash.s28": "Device",
+  "dash.s50": "TOTAL INVITED",
+  "dash.s51": "ACTIVE TRADERS",
+  "dash.s52": "XP EARNED",
+  "dash.s53": "Your code",
+  "dash.s54": "Share on WhatsApp",
+  "dash.s55": "Share on X"
  },
  "funding.html": {
   "mkt.s1": "Home",

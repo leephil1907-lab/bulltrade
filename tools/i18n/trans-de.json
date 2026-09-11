@@ -621,5 +621,18 @@
  "Complete KYC": "KYC abschließen",
  "Use Demo": "Demo nutzen",
  "Live prices across <b style=\"color:var(--gold)\">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.": "Live-Kurse für <b style=\"color:var(--gold)\">160+ Assets</b> — Krypto, Aktien, Real-World-Assets und globale Indizes — gestreamt von CoinGecko &amp; Yahoo Finance. Tippe auf ein Asset für die Live-Ansicht oder verfolge es im offiziellen TradingView-Chart unten.",
- "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "Erforderlich, um <b>Live-Trading, Trading-Bots, Ein- und Auszahlungen</b> freizuschalten. Du kannst das jetzt überspringen — <b>Später verifizieren</b> — und es jederzeit im Dashboard nachholen. Demo-Trading funktioniert sofort."
+ "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "Erforderlich, um <b>Live-Trading, Trading-Bots, Ein- und Auszahlungen</b> freizuschalten. Du kannst das jetzt überspringen — <b>Später verifizieren</b> — und es jederzeit im Dashboard nachholen. Demo-Trading funktioniert sofort.",
+ "Order Book — <span id=\"obSym\" style=\"color:var(--gold)\"></span>": "Orderbuch — <span id=\"obSym\" style=\"color:var(--gold)\"></span>",
+ "Spread: <span id=\"obSpread\" class=\"num\">—</span>": "Spread: <span id=\"obSpread\" class=\"num\">—</span>",
+ "Total": "Gesamt",
+ "TIME & SALES": "ZEIT & UMSÄTZE",
+ "Waiting for trades…": "Warte auf Trades…",
+ "TOTAL INVITED": "TOTAL EINGELADEN",
+ "ACTIVE TRADERS": "AKTIVE TRADER",
+ "XP EARNED": "VERDIENTE XP",
+ "Your code": "Dein Code",
+ "Share on WhatsApp": "Auf WhatsApp teilen",
+ "Share on X": "Auf X teilen",
+ "Join me on Blockchain Bullhorn — learn crypto and trade with a free demo account:": "Begleite mich auf Blockchain Bullhorn — lerne Krypto und handle mit einem kostenlosen Demo-Konto:",
+ "No referrals yet — share your link to build your herd.": "Noch keine Empfehlungen — teile deinen Link, um deine Herde zu vergrößern."
 }

@@ -538,7 +538,7 @@
  "Qty": "数量",
  "Value": "价值",
  "Share": "占比",
- "Size": "规模",
+ "Size": "数量",
  "Entry": "开仓价",
  "Mark": "标记价",
  "Liq. price": "强平价",
@@ -621,5 +621,18 @@
  "Complete KYC": "完成 KYC 认证",
  "Use Demo": "使用模拟盘",
  "Live prices across <b style=\"color:var(--gold)\">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.": "<b style=\"color:var(--gold)\">160+ 资产</b>实时行情——加密货币、股票、实物资产与全球指数——数据来自 CoinGecko &amp; Yahoo Finance。点击任意资产查看实时详情，或在下方 TradingView 官方图表中跟踪。",
- "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "解锁<b>实盘交易、交易机器人、充值和提现</b>需要完成认证。你可以现在跳过——<b>稍后验证</b>——之后随时在控制台完成。模拟交易立即可用。"
+ "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "解锁<b>实盘交易、交易机器人、充值和提现</b>需要完成认证。你可以现在跳过——<b>稍后验证</b>——之后随时在控制台完成。模拟交易立即可用。",
+ "Order Book — <span id=\"obSym\" style=\"color:var(--gold)\"></span>": "订单簿 — <span id=\"obSym\" style=\"color:var(--gold)\"></span>",
+ "Spread: <span id=\"obSpread\" class=\"num\">—</span>": "价差：<span id=\"obSpread\" class=\"num\">—</span>",
+ "Total": "累计",
+ "TIME & SALES": "逐笔成交",
+ "Waiting for trades…": "等待成交…",
+ "TOTAL INVITED": "已邀请",
+ "ACTIVE TRADERS": "活跃交易者",
+ "XP EARNED": "已获得 XP",
+ "Your code": "你的邀请码",
+ "Share on WhatsApp": "分享到 WhatsApp",
+ "Share on X": "分享到 X",
+ "Join me on Blockchain Bullhorn — learn crypto and trade with a free demo account:": "来 Blockchain Bullhorn 和我一起——学加密货币，用免费模拟账户开始交易：",
+ "No referrals yet — share your link to build your herd.": "还没有邀请——分享你的链接，壮大牛群。"
 }

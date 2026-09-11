@@ -538,7 +538,7 @@
  "Qty": "मात्रा",
  "Value": "वैल्यू",
  "Share": "हिस्सा",
- "Size": "आकार",
+ "Size": "साइज़",
  "Entry": "एंट्री",
  "Mark": "मार्क",
  "Liq. price": "लिक्. कीमत",
@@ -621,5 +621,18 @@
  "Complete KYC": "KYC पूरा करें",
  "Use Demo": "डेमो इस्तेमाल करें",
  "Live prices across <b style=\"color:var(--gold)\">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.": "<b style=\"color:var(--gold)\">160+ एसेट्स</b> के लाइव प्राइस — क्रिप्टो, स्टॉक्स, रियल-वर्ल्ड एसेट्स और ग्लोबल इंडाइसेस — CoinGecko &amp; Yahoo Finance से स्ट्रीम होते हैं। लाइव व्यू के लिए किसी भी एसेट पर टैप करें, या नीचे दिए गए आधिकारिक TradingView चार्ट पर उसे फ़ॉलो करें।",
- "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "<b>लाइव ट्रेडिंग, ट्रेडिंग बॉट्स, डिपॉज़िट और निकासी</b> अनलॉक करने के लिए ज़रूरी। आप इसे अभी छोड़ सकते हैं — <b>बाद में सत्यापित करें</b> — और अपने डैशबोर्ड से कभी भी पूरा कर सकते हैं। डेमो ट्रेडिंग तुरंत उपलब्ध है।"
+ "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "<b>लाइव ट्रेडिंग, ट्रेडिंग बॉट्स, डिपॉज़िट और निकासी</b> अनलॉक करने के लिए ज़रूरी। आप इसे अभी छोड़ सकते हैं — <b>बाद में सत्यापित करें</b> — और अपने डैशबोर्ड से कभी भी पूरा कर सकते हैं। डेमो ट्रेडिंग तुरंत उपलब्ध है।",
+ "Order Book — <span id=\"obSym\" style=\"color:var(--gold)\"></span>": "ऑर्डर बुक — <span id=\"obSym\" style=\"color:var(--gold)\"></span>",
+ "Spread: <span id=\"obSpread\" class=\"num\">—</span>": "स्प्रेड: <span id=\"obSpread\" class=\"num\">—</span>",
+ "Total": "कुल",
+ "TIME & SALES": "टाइम एंड सेल्स",
+ "Waiting for trades…": "ट्रेड की प्रतीक्षा…",
+ "TOTAL INVITED": "कुल आमंत्रित",
+ "ACTIVE TRADERS": "सक्रिय ट्रेडर्स",
+ "XP EARNED": "अर्जित XP",
+ "Your code": "आपका कोड",
+ "Share on WhatsApp": "WhatsApp पर शेयर करें",
+ "Share on X": "X पर शेयर करें",
+ "Join me on Blockchain Bullhorn — learn crypto and trade with a free demo account:": "मुझसे जुड़ें Blockchain Bullhorn पर — क्रिप्टो सीखें और मुफ़्त डेमो खाते से ट्रेड करें:",
+ "No referrals yet — share your link to build your herd.": "अभी कोई रेफ़रल नहीं — अपना लिंक शेयर करें और अपने झुंड को बढ़ाएँ।"
 }

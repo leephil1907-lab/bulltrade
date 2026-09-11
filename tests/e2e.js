@@ -429,7 +429,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
     ok('country→currency mapping kept for signup + geo detector', cjs.includes('const CTRY') && cjs.includes('const COUNTRY_CUR') && /NG:\s*'NGN'/.test(cjs) && cjs.includes('setCountry'), 'country-cur');
     ok('two separate pickers: language + currency buttons', cjs.includes('id="langBtn"') && cjs.includes('id="curBtn"') && cjs.includes('curMenu'), 'two-pickers');
     ok('silent geo currency detection wired (no UI)', cjs.includes('/api/geo') && cjs.includes('COUNTRY_CUR[g.country]'), 'geo-detect');
-    ok('precise distinct currency symbols', /USD: \{ f: '\\ud83c\\uddfa\\ud83c\\uddf8', n: 'US Dollar', s: '\$'/.test(cjs) === false || true, 'sym-probe');
+    ok('precise distinct currency symbols (CNY CN-yuan, CHF code)', cjs.includes("CN¥") && /CHF: \{ f: '[^']*', n: 'Swiss Franc', s: 'CHF '/.test(cjs), 'sym-probe');
     ok('currency symbols + formatters converted', cjs.includes('BB.sym()') && cjs.includes('NGN'), 'sym');
     const trHtml = await (await fetch(BASE + '/trade')).text();
     ok('swap modal converts fee/value to display currency', trHtml.includes('BB.fmtUSD(r.feeUsd)') && trHtml.includes('BB.fmtUSD(r.usdValue)'), 'swap-fx');
@@ -532,6 +532,64 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
     ok('superadmin: delete user + records', r.data.ok);
     r = await req('GET', '/api/admin/user?id=' + suId, null, adminCookie);
     ok('superadmin: deleted user is gone', r.status === 404);
+  }
+
+  // ================= ORDER BOOK (trade page) =================
+  {
+    const res = await fetch(BASE + '/trade');
+    const html = await res.text();
+    ok('order book present on trade page', html.includes('id="orderBookCard"') && html.includes('id="obAsks"') && html.includes('id="obBids"') && html.includes('id="obTape"'), 'ob');
+    ok('order book has translated labels', html.includes('trd.h30') && html.includes('trd.obTape') && html.includes('trd.h31'), 'ob-i18n');
+  }
+
+  // ================= REFERRALS =================
+  {
+    r = await req('GET', '/api/auth/me', null, userCookie);
+    const myCode = r.data.user.referralCode;
+    ok('me returns referral code', /^[A-Za-z0-9-]+$/.test(myCode || ''), myCode);
+    const refEmail = `referral${Date.now()}@example.com`;
+    r = await req('POST', '/api/auth/signup', { name: 'Referral Friend', email: refEmail, password: 'Trader1234!', agree: true, referredBy: myCode });
+    ok('signup with referral code works', r.data.ok, r.data);
+    r = await req('GET', '/api/referrals', null, userCookie);
+    ok('referral dashboard sees the signup', r.data.ok && r.data.code === myCode && r.data.total >= 1 && r.data.link.includes('/signup?ref='), r.data.total);
+    ok('referral list has the friend w/ status', r.data.referred.some(u => /Referral/.test(u.name) && u.kycStatus === 'not_submitted'), r.data.referred);
+  }
+
+  // ================= 2FA (TOTP) =================
+  {
+    const tfaEmail = `totp${Date.now()}@example.com`;
+    r = await req('POST', '/api/auth/signup', { name: 'Two Factor', email: tfaEmail, password: 'Trader1234!', agree: true });
+    const tc = r.cookie;
+    ok('2fa user signed up', r.data.ok);
+    // local TOTP (RFC 6238) to verify the real flow end-to-end
+    const crypto = require('crypto');
+    const b32 = s => { const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; let bits = 0, val = 0, out = Buffer.alloc(Math.floor(s.length * 5 / 8)); let i = 0;
+      for (const ch of s.toUpperCase()) { val = (val << 5) | A.indexOf(ch); bits += 5; if (bits >= 8) { out[i++] = (val >>> (bits - 8)) & 255; bits -= 8; } } return out; };
+    const code = secret => { const buf = Buffer.alloc(8); buf.writeUInt32BE(Math.floor(Date.now() / 30000), 4);
+      const h = crypto.createHmac('sha1', b32(secret)).update(buf).digest(); const off = h[19] & 15;
+      return String(((h.readUInt32BE(off) & 0x7fffffff) % 1000000)).padStart(6, '0'); };
+    r = await req('POST', '/api/auth/2fa-setup', {}, tc);
+    ok('2fa setup returns secret + otpauth', r.data.ok && r.data.secret && r.data.otpauth.startsWith('otpauth://totp/'), r.data.secret);
+    const secret = r.data.secret;
+    r = await req('POST', '/api/auth/2fa-enable', { code: '000000' }, tc);
+    ok('2fa enable rejects wrong code', r.status === 400);
+    r = await req('POST', '/api/auth/2fa-enable', { code: code(secret) }, tc);
+    ok('2fa enabled with valid TOTP code', r.data.ok, r.data);
+    // login now requires the code
+    r = await req('POST', '/api/auth/login', { email: tfaEmail, password: 'Trader1234!' });
+    ok('login returns 2fa challenge', r.data.totpRequired === true && r.data.challenge && /•••/.test(r.data.email || ''), r.data);
+    r = await req('POST', '/api/auth/login-2fa', { challenge: r.data.challenge, code: '123456' });
+    ok('login-2fa rejects wrong code', r.status === 401);
+    r = await req('POST', '/api/auth/login', { email: tfaEmail, password: 'Trader1234!' });
+    r = await req('POST', '/api/auth/login-2fa', { challenge: r.data.challenge, code: code(secret) });
+    ok('login-2fa completes with valid code', r.data.ok && r.data.user, r.data.user && r.data.user.email);
+    const tc2 = r.cookie;
+    r = await req('GET', '/api/auth/me', null, tc2);
+    ok('me shows totpEnabled', r.data.totpEnabled === true);
+    r = await req('POST', '/api/auth/2fa-disable', { password: 'wrongpass1', code: code(secret) }, tc2);
+    ok('2fa disable requires correct password', r.status === 403);
+    r = await req('POST', '/api/auth/2fa-disable', { password: 'Trader1234!', code: code(secret) }, tc2);
+    ok('2fa disabled with password + code', r.data.ok, r.data);
   }
 
   console.log(`\n========== RESULT: ${pass} passed, ${fail} failed ==========`);

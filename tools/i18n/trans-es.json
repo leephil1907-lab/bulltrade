@@ -621,5 +621,18 @@
  "Complete KYC": "Completar KYC",
  "Use Demo": "Usar Demo",
  "Live prices across <b style=\"color:var(--gold)\">160+ assets</b> — crypto, stocks, real-world assets and global indices — streaming from CoinGecko &amp; Yahoo Finance. Tap any asset for its live coin view, or follow it on the official TradingView chart below.": "Precios en vivo de <b style=\"color:var(--gold)\">160+ activos</b> — cripto, acciones, activos del mundo real e índices globales — transmitidos desde CoinGecko &amp; Yahoo Finance. Toca cualquier activo para ver su vista en vivo, o síguelo en el gráfico oficial de TradingView de abajo.",
- "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "Necesario para desbloquear <b>el trading en vivo, los bots de trading, los depósitos y los retiros</b>. Puedes saltarlo ahora — <b>Verificar más tarde</b> — y completarlo cuando quieras desde tu panel. El trading demo funciona de inmediato."
+ "Required to unlock <b>live trading, trading bots, deposits and withdrawals</b>. You can skip this now — <b>Verify Later</b> — and complete it anytime from your dashboard. Demo trading works immediately.": "Necesario para desbloquear <b>el trading en vivo, los bots de trading, los depósitos y los retiros</b>. Puedes saltarlo ahora — <b>Verificar más tarde</b> — y completarlo cuando quieras desde tu panel. El trading demo funciona de inmediato.",
+ "Order Book — <span id=\"obSym\" style=\"color:var(--gold)\"></span>": "Libro de Órdenes — <span id=\"obSym\" style=\"color:var(--gold)\"></span>",
+ "Spread: <span id=\"obSpread\" class=\"num\">—</span>": "Spread: <span id=\"obSpread\" class=\"num\">—</span>",
+ "Total": "Total",
+ "TIME & SALES": "HORA Y VENTAS",
+ "Waiting for trades…": "Esperando operaciones…",
+ "TOTAL INVITED": "TOTAL INVITADOS",
+ "ACTIVE TRADERS": "TRADERS ACTIVOS",
+ "XP EARNED": "XP GANADO",
+ "Your code": "Tu código",
+ "Share on WhatsApp": "Compartir por WhatsApp",
+ "Share on X": "Compartir en X",
+ "Join me on Blockchain Bullhorn — learn crypto and trade with a free demo account:": "Únete a mí en Blockchain Bullhorn — aprende cripto y opera con una cuenta demo gratuita:",
+ "No referrals yet — share your link to build your herd.": "Aún no hay referidos — comparte tu enlace para hacer crecer tu manada."
 }

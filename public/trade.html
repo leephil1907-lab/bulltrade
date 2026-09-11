@@ -39,6 +39,19 @@
     .mode-switch button { flex: 1; border: none; background: none; color: var(--ink-soft); font-family: var(--font-head); font-weight: 700; font-size: 13px; padding: 9px 12px; border-radius: 9px; cursor: pointer; transition: all .2s; }
     .mode-switch button.active-demo { background: linear-gradient(135deg,#0053e2,#2E91FC); color: #fff; }
     .mode-switch button.active-live { background: var(--green); color: #fff; }
+    .ob-side { display: flex; flex-direction: column; gap: 1px; }
+    .ob-row { display: grid; grid-template-columns: 1.1fr 1fr 1.1fr; padding: 2.5px 8px; font-size: 12px; position: relative; border-radius: 3px; overflow: hidden; }
+    .ob-row .ob-bar { position: absolute; top: 0; bottom: 0; right: 0; opacity: .13; border-radius: 3px; }
+    .ob-row.ask { color: var(--red); } .ob-row.ask .ob-bar { background: var(--red); }
+    .ob-row.bid { color: var(--green-deep); } .ob-row.bid .ob-bar { background: var(--green-deep); }
+    .ob-row span { position: relative; z-index: 1; }
+    .ob-row .ob-s { text-align: right; color: var(--ink-soft); } .ob-row .ob-t { text-align: right; color: var(--ink-dim); }
+    .ob-mid { text-align: center; padding: 6px 0; font-size: 17px; font-weight: 800; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); margin: 4px 0; }
+    .tape-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; font-size: 12px; padding: 2.5px 6px; border-radius: 3px; font-family: var(--font-head); }
+    .tape-row .t-p { text-align: right; font-weight: 700; }
+    .tape-row.up .t-p { color: var(--green-deep); } .tape-row.down .t-p { color: var(--red); }
+    .tape-row .t-t { color: var(--ink-dim); }
+    @media (max-width: 720px) { #obGrid { grid-template-columns: 1fr !important; } }
     .side-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
     .side-tabs button { padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-soft); color: var(--ink-soft); font-family: var(--font-head); font-weight: 700; font-size: 15px; cursor: pointer; }
     .side-tabs button.buy.active { background: var(--green); color: #fff; border-color: transparent; }
@@ -138,6 +151,27 @@
 </div>
 </div>
 </div>
+<!-- order book + time & sales -->
+<div class="card" id="orderBookCard" style="padding:14px 16px">
+<div class="flex-between" style="margin-bottom:10px;flex-wrap:wrap;gap:8px">
+<b class="font-head" data-i18n-html="trd.h30" style="font-size:15px">Order Book — <span id="obSym" style="color:var(--gold)"></span></b>
+<span class="badge badge-blue" data-i18n-html="trd.h31">Spread: <span id="obSpread" class="num">—</span></span>
+</div>
+<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px" id="obGrid">
+<div>
+<div style="display:flex;justify-content:space-between;padding:0 8px 6px" class="muted small">
+<span data-i18n="idx.s16">Price</span><span data-i18n="trd.obSize">Size</span><span data-i18n="trd.obTotal">Total</span>
+</div>
+<div id="obAsks" class="ob-side"></div>
+<div class="ob-mid num" id="obMid">—</div>
+<div id="obBids" class="ob-side"></div>
+</div>
+<div>
+<div class="muted small" style="padding:0 4px 6px;font-weight:700;letter-spacing:.5px" data-i18n="trd.obTape">TIME &amp; SALES</div>
+<div id="obTape" style="max-height:432px;overflow:hidden"></div>
+</div>
+</div>
+</div>
 <!-- order form -->
 <div class="card" id="orderPanel">
 <div class="flex-between mb-2">
@@ -197,8 +231,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=21"></script>
-  <script src="/assets/js/common.js?v=21"></script>
+<script src="/assets/js/i18n-pages.js?v=22"></script>
+  <script src="/assets/js/common.js?v=22"></script>
 <script src="/assets/js/chart.js?v=7"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -351,6 +385,7 @@
         renderHead();
         loadTV(asset);
         renderFeed();
+        OrderBook.set(asset);
         await loadChart();
         updateQty();
         updateSummary();
@@ -692,6 +727,79 @@
       // boot
       if (params.get('swap') === '1') setTimeout(openSwap, 900); // deep-link from dashboard quick action
       setMode('demo');
+      // ---------- order book + time & sales (live simulated depth) ----------
+      const OrderBook = {
+        a: null, seed: 1, sizes: [], tape: [], timer: null,
+        rnd() { this.seed = (this.seed * 1103515245 + 12345) % 2147483648; return this.seed / 2147483648; },
+        unit(a) {
+          if (a.category === 'crypto') return 'usd';
+          if (a.category === 'stocks') return 'sh';
+          return 'un';
+        },
+        baseSize(a, usd) {
+          if (a.category === 'crypto') return usd / (a.price || 1);
+          if (a.category === 'stocks') return usd / 8;
+          return usd / 40;
+        },
+        set(a) {
+          this.a = a; this.seed = 7;
+          for (let i = 0; i < 18; i++) this.sizes[i] = 0.15 + this.rnd() * 0.85;
+          this.tape = []; this.renderTape();
+          $('#obSym').textContent = a.symbol;
+          this.tick();
+        },
+        fmtSize(v) {
+          if (v >= 1000) return v.toFixed(0);
+          if (v >= 100) return v.toFixed(1);
+          if (v >= 1) return v.toFixed(2);
+          return v.toFixed(4);
+        },
+        tick() {
+          const a = this.a; if (!a || !a.price) return;
+          const p = a.price, tickSz = p * 0.0012;
+          // evolve sizes smoothly
+          for (let i = 0; i < 18; i++) this.sizes[i] += (this.rnd() - 0.5) * 0.28;
+          this.sizes = this.sizes.map(s => Math.max(0.08, Math.min(1.6, s)));
+          const rows = { asks: [], bids: [] };
+          let cumA = 0, cumB = 0;
+          const maxCum = [0, 0];
+          const mk = (lvl) => {
+            const usd = 120 + this.sizes[lvl] * 3600;
+            return this.baseSize(a, usd);
+          };
+          for (let i = 0; i < 9; i++) { maxCum[0] += mk(i); rows.asks.push({ size: mk(i) }); }
+          for (let i = 9; i < 18; i++) { maxCum[1] += mk(i); rows.bids.push({ size: mk(i) }); }
+          rows.asks.forEach(r => { r.price = p + tickSz * (9 - rows.asks.indexOf(r) - 0.5); });
+          rows.bids.forEach(r => { r.price = p - tickSz * (rows.bids.indexOf(r) + 0.5); });
+          let c = 0; rows.asks = rows.asks.map(r => { c += r.size; return Object.assign(r, { cum: c }); });
+          c = 0; rows.bids = rows.bids.map(r => { c += r.size; return Object.assign(r, { cum: c }); });
+          const maxC = Math.max(cumA + maxCum[0], cumB + maxCum[1]);
+          const row = (r, cls) => `<div class="ob-row ${cls}"><span class="ob-bar" style="width:${Math.min(100, r.cum / maxC * 100).toFixed(1)}%"></span><span class="num">${BB.fmtPx(r.price)}</span><span class="ob-s num">${this.fmtSize(r.size)}</span><span class="ob-t num">${this.fmtSize(r.cum)}</span></div>`;
+          $('#obAsks').innerHTML = rows.asks.map(r => row(r, 'ask')).reverse().join('');
+          $('#obBids').innerHTML = rows.bids.map(r => row(r, 'bid')).join('');
+          const spr = tickSz * 1.0;
+          $('#obMid').textContent = BB.fmtPx(p);
+          $('#obSpread').textContent = BB.fmtPx(spr) + ' (' + (spr / p * 100).toFixed(3) + '%)';
+          // tape: 1-2 prints per tick, biased by 24h direction
+          const n = 1 + (this.rnd() > 0.55 ? 1 : 0);
+          const bias = (a.changePct || 0) >= 0 ? 0.62 : 0.38;
+          for (let i = 0; i < n; i++) {
+            const buy = this.rnd() < bias;
+            const price = p + (this.rnd() - 0.5) * tickSz * 3 * (buy ? 1 : -1) * (this.rnd() > 0.5 ? 1 : -1);
+            const size = this.baseSize(a, 40 + this.rnd() * 900);
+            const d = new Date();
+            this.tape.unshift({ t: d.toTimeString().slice(0, 8), p: price, s: size, buy });
+          }
+          this.tape = this.tape.slice(0, 28);
+          this.renderTape();
+        },
+        renderTape() {
+          $('#obTape').innerHTML = this.tape.map(x => `<div class="tape-row ${x.buy ? 'up' : 'down'}"><span class="t-t">${x.t}</span><span class="t-p num">${BB.fmtPx(x.p)}</span><span class="ob-s num">${this.fmtSize(x.s)}</span></div>`).join('') || ('<div class="muted small" style="padding:8px 6px">' + BB.t('trd.obWait') + '</div>');
+        },
+        start() { this.timer = setInterval(() => this.tick(), 1400); }
+      };
+      OrderBook.start();
+
       refreshPrices().then(() => { if (selectedId) selectAsset(selectedId, true); });
       refreshState();
       setInterval(refreshPrices, 15000);

@@ -81,5 +81,8 @@
  "trd.kycT": "Live Trading Requires KYC",
  "trd.kycP": "Complete manual identity verification to unlock live trading and withdrawals. It takes about 2 minutes to submit.",
  "trd.kycCta": "Complete KYC",
- "trd.kycDemo": "Use Demo"
+ "trd.kycDemo": "Use Demo",
+ "trd.obWait": "Waiting for trades…",
+ "dash.refShareMsg": "Join me on Blockchain Bullhorn — learn crypto and trade with a free demo account:",
+ "dash.refEmpty": "No referrals yet — share your link to build your herd."
 }
