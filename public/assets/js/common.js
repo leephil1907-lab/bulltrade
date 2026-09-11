@@ -563,6 +563,7 @@ function renderHeaderActions() {
           <a href="/kyc"><i class="fas fa-id-card"></i> ${BB.t('hdr.kyc')}</a>
           <a href="/trade"><i class="fas fa-chart-line"></i> ${BB.t('hdr.tradenow')}</a>
           <a href="#" id="menuNotify"><i class="fas fa-bell"></i> ${BB.t('hdr.notify')}</a>
+          <a href="#" id="menuInstall"><i class="fas fa-mobile-screen-button"></i> ${BB.t('ftr.install')}</a>
           <button id="logoutBtn"><i class="fas fa-arrow-right-from-bracket"></i> ${BB.t('hdr.logout')}</button>
         </div>
       </div>`;
@@ -987,6 +988,7 @@ const PWA = {
       setTimeout(() => b.classList.add('show'), 600);
     };
     if (this.isIOS()) setTimeout(() => show('ios'), 2500);
+    else if (this.deferredPrompt) setTimeout(() => show('android'), 600);   // Android/Chrome: banner + native install sheet
   },
 
   async notificationsModal() {
@@ -1046,14 +1048,15 @@ const PWA = {
     if (this.isIOS()) this.maybeInstallBanner();
     const openNotify = e => { e.preventDefault(); PWA.notificationsModal(); };
     const mn = $('#menuNotify'); if (mn) mn.addEventListener('click', openNotify);
-    const fn = $('#footNotify'); if (fn) fn.addEventListener('click', openNotify);
-    const fi = $('#footInstall'); if (fi) fi.addEventListener('click', e => {
-      e.preventDefault();
-      if (PWA.deferredPrompt) { PWA.deferredPrompt.prompt(); PWA.deferredPrompt = null; }
+    const doInstall = e => { e.preventDefault();
+      if (PWA.deferredPrompt) { const dp = PWA.deferredPrompt; PWA.deferredPrompt = null; dp.prompt(); }
       else if (PWA.isIOS()) BB.toast('On iPhone/iPad: tap the Share button ⬆️ then "Add to Home Screen".', 'info');
       else if (PWA.isStandalone()) BB.toast('You already have the app installed 🎉', 'success');
-      else BB.toast('Use your browser menu: "Install app" / "Add to Home screen".', 'info');
-    });
+      else BB.toast('Use your browser menu (⋮): "Install app" / "Add to Home screen".', 'info');
+    };
+    const mi = $('#menuInstall'); if (mi) mi.addEventListener('click', doInstall);
+    const fn = $('#footNotify'); if (fn) fn.addEventListener('click', openNotify);
+    const fi = $('#footInstall'); if (fi) fi.addEventListener('click', doInstall);
   }
 };
 

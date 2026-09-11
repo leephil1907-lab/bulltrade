@@ -434,6 +434,14 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
       /JPY: \{[^}]*s: '¥'/.test(symProbe) && /CNY: \{[^}]*s: 'CN¥'/.test(symProbe), 'symbols');
     r = await req('GET', '/api/geo');
     ok('silent geo endpoint responds (null country on private/local IP)', r.data.ok && r.data.country === null, r.data);
+    const man = await (await fetch(BASE + '/manifest.webmanifest')).json();
+    ok('PWA manifest valid: standalone + 192/512 icons + start_url', man.display === 'standalone' && man.start_url && man.icons.some(i => i.sizes === '512x512') && man.icons.some(i => i.sizes === '192x192'), 'manifest');
+    for (const p of ['/', '/markets', '/trade', '/community', '/dashboard', '/store', '/faq', '/funding', '/kyc']) {
+      const h = await (await fetch(BASE + p)).text();
+      ok('manifest linked on ' + p, h.includes('rel="manifest"'), 'manifest-link' + p);
+    }
+    ok('install banner works on Android (beforeinstallprompt path)', cjs.includes("else if (this.deferredPrompt) setTimeout(() => show('android')") && cjs.includes('bbInstallGo'), 'banner-android');
+    ok('install entry in menu + footer with prompt handler', cjs.includes('menuInstall') && cjs.includes('footInstall') && cjs.includes('doInstall'), 'install-entry');
     ok('auth pages hide Log In/Sign Up in header (guests)', cjs.includes("location.pathname === '/login' || location.pathname === '/signup'"), 'auth-header');
     const lgHtml = await (await fetch(BASE + '/login')).text();
     const lgVisible = lgHtml.replace(/<script>[\s\S]*?<\/script>/g, '');
