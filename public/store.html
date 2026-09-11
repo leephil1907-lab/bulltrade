@@ -1,124 +1,121 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="Store — Elite Crypto Education Products">
-  <meta property="og:description" content="Super Simple Crypto Trading System, The Crypto Cheat Guide, CMF Crypto Compounding Engine, spreadsheets and more — from the Blockchain Bullhorn store.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/store">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>Store — Elite Crypto Education Products</title>
-  <meta name="description" content="Super Simple Crypto Trading System, The Crypto Cheat Guide, CMF Crypto Compounding Engine, spreadsheets and more — from the Blockchain Bullhorn store.">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <script>document.documentElement.classList.add('js')</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Store — Elite Crypto Education Products" property="og:title"/>
+<meta content="Super Simple Crypto Trading System, The Crypto Cheat Guide, CMF Crypto Compounding Engine, spreadsheets and more — from the Blockchain Bullhorn store." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/store" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Store — Elite Crypto Education Products</title>
+<meta content="Super Simple Crypto Trading System, The Crypto Cheat Guide, CMF Crypto Compounding Engine, spreadsheets and more — from the Blockchain Bullhorn store." name="description"/>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <section class="page-hero">
-    <div class="container">
-      <div class="crumbs"><a href="/">Home</a> · Store</div>
-      <h1>The Store</h1>
-      <p>Elite crypto education products — built from real market experience. Once you create your login, your purchases are yours forever.</p>
-    </div>
-  </section>
-
-  <section class="section-tight">
-    <div class="container">
-      <div class="grid grid-3">
-        <div class="card card-hover product-card reveal">
-          <div class="pc-img"><span class="pc-tag">Best Seller</span><img src="/assets/img/brand/product-ssc.jpg" alt="Super Simple Crypto Trading System"></div>
-          <div class="pc-body">
-            <h3>Super Simple Crypto (Trading) System</h3>
-            <p>This video series was originally created for private coaching clients — now available to the public. Step-by-step through proven strategies, tools and market insights for beginners and intermediate traders.</p>
-            <div class="pc-price">$497 <small>one-time</small></div>
-            <div id="own-ssc"></div>
-            <button class="btn btn-primary btn-buy" data-buy="ssc"><i class="fas fa-coins"></i> Buy with Crypto — $497</button>
-          </div>
-        </div>
-        <div class="card card-hover product-card reveal reveal-d1">
-          <div class="pc-img"><span class="pc-tag">eBook</span><img src="/assets/img/brand/product-cheatguide.jpg" alt="The Crypto Cheat Guide"></div>
-          <div class="pc-body">
-            <h3>The Crypto Cheat Guide (Solo) 2026</h3>
-            <p>Discover exclusive secrets to mastering the crypto world. Not just following trends — making strategic decisions that safeguard and grow your investments.</p>
-            <div class="pc-price">$27 <small>only</small></div>
-            <div id="own-cheat"></div>
-            <button class="btn btn-primary btn-buy" data-buy="cheat"><i class="fas fa-book-open"></i> Buy with Crypto — $27</button>
-          </div>
-        </div>
-        <div class="card card-hover product-card reveal reveal-d2">
-          <div class="pc-img"><span class="pc-tag">Best Value</span><img src="/assets/img/brand/product-combo.jpg" alt="Crypto Cheat Guide Combo Pack"></div>
-          <div class="pc-body">
-            <h3>Crypto Cheat Guide — COMBO PACK</h3>
-            <p>From basics to mastery: exclusive ebook + audio content for learning on-the-go. Test your knowledge and accelerate. FAST!!!</p>
-            <div class="pc-price">$47 <small>combo</small></div>
-            <div id="own-combo"></div>
-            <button class="btn btn-primary btn-buy" data-buy="combo"><i class="fas fa-layer-group"></i> Buy with Crypto — $47</button>
-          </div>
-        </div>
-        <div class="card card-hover product-card reveal">
-          <div class="pc-img"><span class="pc-tag">Trading Tool</span><img src="/assets/img/brand/cmf-green.png" alt="CMF Crypto Compounding Engine"></div>
-          <div class="pc-body">
-            <h3>CMF Crypto Compounding Engine</h3>
-            <p>Stop guessing your trades. Simulate trades, control risk and project real outcomes before risking real money — built from real market experience.</p>
-            <div class="pc-price">Engine Access <small>via platform</small></div>
-            <a class="btn btn-gold" href="/cmf-engine"><i class="fas fa-engine"></i> Unlock the CMF Engine</a>
-          </div>
-        </div>
-        <div class="card card-hover product-card reveal reveal-d1">
-          <div class="pc-img"><span class="pc-tag">Free</span><img src="/assets/img/brand/starter-blueprint2.jpg" alt="Crypto Starter Blueprint"></div>
-          <div class="pc-body">
-            <h3>The Crypto Starter Blueprint</h3>
-            <p>Safely buy crypto, choose the right exchange &amp; wallet, fund your account, avoid beginner mistakes and make your first trade with confidence.</p>
-            <div class="pc-price">FREE <small>with account</small></div>
-            <a class="btn btn-green" href="/signup"><i class="fas fa-download"></i> Create Account &amp; Get It</a>
-          </div>
-        </div>
-        <div class="card card-hover product-card reveal reveal-d2">
-          <div class="pc-img"><span class="pc-tag">Premium</span><img src="/assets/img/brand/mentor-hero.jpg" alt="Elite Mentorship"></div>
-          <div class="pc-body">
-            <h3>Blockchain Bullhorn™ Elite Mentorship</h3>
-            <p>Private, bespoke, strategic. Work directly with Calvin Hill one-on-one: Diagnose → Correct → Optimize. Very limited spots — application required.</p>
-            <div class="pc-price">$10,000 <small>private mentorship</small></div>
-            <a class="btn btn-gold" href="/mentorship" data-open-chat><i class="fas fa-crown"></i> Apply for Mentorship</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card mt-3 reveal" style="background:linear-gradient(120deg,rgba(0,71,194,.2),rgba(63,20,12,.55))">
-        <div class="flex-between" style="align-items:center">
-          <div style="display:flex;gap:16px;align-items:center">
-            <img src="/assets/img/brand/newsletter.jpg" alt="The Crypto Ready Report" style="width:130px;border-radius:10px">
-            <div>
-              <h3>The Crypto Ready Report (Newsletter)</h3>
-              <p class="muted small">Unique insights, market analysis and the latest trends in crypto — delivered free.</p>
-            </div>
-          </div>
-          <a href="/signup" class="btn btn-primary"><i class="fas fa-envelope-open-text"></i> Subscribe Free</a>
-        </div>
-      </div>
-
-      <div class="card mt-2 reveal">
-        <h3><i class="fas fa-circle-question" style="color:var(--gold)"></i> Where are my spreadsheets &amp; eBooks?</h3>
-        <p class="muted mt-1">After purchase you create your login to access the member area with your ebooks, videos and Crypto Power Profit Spreadsheets. Log in at <a href="/login">the login page</a> — your account is on record forever, so your products are always available. Full details in the <a href="/faq">FAQ</a>.</p>
-      </div>
-    </div>
-  </section>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script src="/assets/js/qrcode.js"></script>
-  <script src="/assets/js/store-checkout.js"></script>
-  <script>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<section class="page-hero">
+<div class="container">
+<div class="crumbs"><a data-i18n="mkt.s1" href="/">Home</a> · Store</div>
+<h1 data-i18n="str.s1">The Store</h1>
+<p data-i18n="str.s2">Elite crypto education products — built from real market experience. Once you create your login, your purchases are yours forever.</p>
+</div>
+</section>
+<section class="section-tight">
+<div class="container">
+<div class="grid grid-3">
+<div class="card card-hover product-card reveal">
+<div class="pc-img"><span class="pc-tag" data-i18n="str.s3">Best Seller</span><img alt="Super Simple Crypto Trading System" src="/assets/img/brand/product-ssc.jpg"/></div>
+<div class="pc-body">
+<h3 data-i18n="idx.s1">Super Simple Crypto (Trading) System</h3>
+<p data-i18n="str.s4">This video series was originally created for private coaching clients — now available to the public. Step-by-step through proven strategies, tools and market insights for beginners and intermediate traders.</p>
+<div class="pc-price"><span data-usd="497">$497</span> <small data-i18n="idx.s36">one-time</small></div>
+<div id="own-ssc"></div>
+<button class="btn btn-primary btn-buy" data-buy="ssc"><i class="fas fa-coins"></i><span data-i18n="str.s5">Buy with Crypto —</span><span data-usd="497">$497</span></button>
+</div>
+</div>
+<div class="card card-hover product-card reveal reveal-d1">
+<div class="pc-img"><span class="pc-tag" data-i18n="idx.s38">eBook</span><img alt="The Crypto Cheat Guide" src="/assets/img/brand/product-cheatguide.jpg"/></div>
+<div class="pc-body">
+<h3 data-i18n="idx.s39">The Crypto Cheat Guide (Solo) 2026</h3>
+<p data-i18n="str.s6">Discover exclusive secrets to mastering the crypto world. Not just following trends — making strategic decisions that safeguard and grow your investments.</p>
+<div class="pc-price"><span data-usd="27">$27</span> <small data-i18n="idx.s41">only</small></div>
+<div id="own-cheat"></div>
+<button class="btn btn-primary btn-buy" data-buy="cheat"><i class="fas fa-book-open"></i><span data-i18n="str.s5">Buy with Crypto —</span><span data-usd="27">$27</span></button>
+</div>
+</div>
+<div class="card card-hover product-card reveal reveal-d2">
+<div class="pc-img"><span class="pc-tag" data-i18n="idx.s43">Best Value</span><img alt="Crypto Cheat Guide Combo Pack" src="/assets/img/brand/product-combo.jpg"/></div>
+<div class="pc-body">
+<h3 data-i18n="idx.s44">Crypto Cheat Guide — COMBO PACK</h3>
+<p data-i18n="str.s7">From basics to mastery: exclusive ebook + audio content for learning on-the-go. Test your knowledge and accelerate. FAST!!!</p>
+<div class="pc-price"><span data-usd="47">$47</span> <small data-i18n="idx.s46">combo</small></div>
+<div id="own-combo"></div>
+<button class="btn btn-primary btn-buy" data-buy="combo"><i class="fas fa-layer-group"></i><span data-i18n="str.s5">Buy with Crypto —</span><span data-usd="47">$47</span></button>
+</div>
+</div>
+<div class="card card-hover product-card reveal">
+<div class="pc-img"><span class="pc-tag" data-i18n="str.s8">Trading Tool</span><img alt="CMF Crypto Compounding Engine" src="/assets/img/brand/cmf-green.png"/></div>
+<div class="pc-body">
+<h3 data-i18n="str.s9">CMF Crypto Compounding Engine</h3>
+<p data-i18n="str.s10">Stop guessing your trades. Simulate trades, control risk and project real outcomes before risking real money — built from real market experience.</p>
+<div class="pc-price" data-i18n-html="str.h11">Engine Access <small>via platform</small></div>
+<a class="btn btn-gold" href="/cmf-engine"><i class="fas fa-engine"></i><span data-i18n="str.s12">Unlock the CMF Engine</span></a>
+</div>
+</div>
+<div class="card card-hover product-card reveal reveal-d1">
+<div class="pc-img"><span class="pc-tag" data-i18n="str.s13">Free</span><img alt="Crypto Starter Blueprint" src="/assets/img/brand/starter-blueprint2.jpg"/></div>
+<div class="pc-body">
+<h3 data-i18n="str.s14">The Crypto Starter Blueprint</h3>
+<p data-i18n="str.s15">Safely buy crypto, choose the right exchange &amp; wallet, fund your account, avoid beginner mistakes and make your first trade with confidence.</p>
+<div class="pc-price" data-i18n-html="str.h16">FREE <small>with account</small></div>
+<a class="btn btn-green" href="/signup"><i class="fas fa-download"></i><span data-i18n="str.s17">Create Account &amp; Get It</span></a>
+</div>
+</div>
+<div class="card card-hover product-card reveal reveal-d2">
+<div class="pc-img"><span class="pc-tag" data-i18n="str.s18">Premium</span><img alt="Elite Mentorship" src="/assets/img/brand/mentor-hero.jpg"/></div>
+<div class="pc-body">
+<h3 data-i18n="str.s19">Blockchain Bullhorn™ Elite Mentorship</h3>
+<p data-i18n="str.s20">Private, bespoke, strategic. Work directly with Calvin Hill one-on-one: Diagnose → Correct → Optimize. Very limited spots — application required.</p>
+<div class="pc-price">$10,000 <small data-i18n="str.s21">private mentorship</small></div>
+<a class="btn btn-gold" data-open-chat="" href="/mentorship"><i class="fas fa-crown"></i><span data-i18n="str.s22">Apply for Mentorship</span></a>
+</div>
+</div>
+</div>
+<div class="card mt-3 reveal" style="background:linear-gradient(120deg,rgba(0,71,194,.2),rgba(63,20,12,.55))">
+<div class="flex-between" style="align-items:center">
+<div style="display:flex;gap:16px;align-items:center">
+<img alt="The Crypto Ready Report" src="/assets/img/brand/newsletter.jpg" style="width:130px;border-radius:10px"/>
+<div>
+<h3 data-i18n="str.s23">The Crypto Ready Report (Newsletter)</h3>
+<p class="muted small" data-i18n="str.s24">Unique insights, market analysis and the latest trends in crypto — delivered free.</p>
+</div>
+</div>
+<a class="btn btn-primary" href="/signup"><i class="fas fa-envelope-open-text"></i><span data-i18n="idx.s90">Subscribe Free</span></a>
+</div>
+</div>
+<div class="card mt-2 reveal">
+<h3><i class="fas fa-circle-question" style="color:var(--gold)"></i><span data-i18n="str.s25">Where are my spreadsheets &amp; eBooks?</span></h3>
+<p class="muted mt-1" data-i18n-html="str.h26">After purchase you create your login to access the member area with your ebooks, videos and Crypto Power Profit Spreadsheets. Log in at <a href="/login">the login page</a> — your account is on record forever, so your products are always available. Full details in the <a href="/faq">FAQ</a>.</p>
+</div>
+</div>
+</section>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script src="/assets/js/qrcode.js"></script>
+<script src="/assets/js/store-checkout.js"></script>
+<script>
     document.addEventListener('bb:ready', async () => {
       // buy buttons
       $$('.btn-buy').forEach(b => b.addEventListener('click', () => openCheckout(b.dataset.buy)));

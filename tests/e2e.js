@@ -28,8 +28,8 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
     ok(`GET ${p} → ${p === '/nonexistent-page-xyz' ? 404 : 200}`, res.status === (p === '/nonexistent-page-xyz' ? 404 : 200), res.status);
     if (p !== '/nonexistent-page-xyz' && p !== '/relay-setup') {
       const html = await res.text();
-      ok(`${p} has absolute og:image (link preview)`, /property="og:image" content="https:\/\//.test(html) && /assets\/img\/brand\/og-image\.jpg/.test(html), p);
-      ok(`${p} has favicon + viewport`, /rel="icon"/.test(html) && /name="viewport" content="width=device-width/.test(html), p);
+      ok(`${p} has absolute og:image (link preview)`, /<meta\b(?=[^>]*property="og:image")(?=[^>]*content="https:\/\/)[^>]*>/.test(html) && /assets\/img\/brand\/og-image\.jpg/.test(html), p);
+      ok(`${p} has favicon + viewport`, /<link\b(?=[^>]*rel="icon")(?=[^>]*href=)[^>]*>/.test(html) && /<meta\b(?=[^>]*name="viewport")(?=[^>]*content="width=device-width)[^>]*>/.test(html), p);
       if (p === '/') ok('/ has Organization JSON-LD (global structured data)', /application\/ld\+json/.test(html) && /"@type":\s*"Organization"/.test(html), p);
     }
   }
@@ -395,9 +395,9 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('announcement ticker engine served', cjs.includes('renderAnnouncement') && cjs.includes('fx-roll'));
   ok('live-chat open helper served', cjs.includes('openChat()') && cjs.includes("closest('[data-open-chat]')"));
   const idxHtml = await (await fetch(BASE + '/')).text();
-  ok('homepage Elite Mentorship CTA opens live chat', idxHtml.includes('data-open-chat>Elite Mentorship'));
+  ok('homepage Elite Mentorship CTA opens live chat', idxHtml.includes('data-open-chat') && idxHtml.includes('>Elite Mentorship'));
   const storeHtml = await (await fetch(BASE + '/store')).text();
-  ok('store mentorship CTA opens live chat', storeHtml.includes('data-open-chat><i class="fas fa-crown"></i> Apply for Mentorship'));
+  ok('store mentorship CTA opens live chat', storeHtml.includes('data-open-chat') && storeHtml.includes('fa-crown') && storeHtml.includes('>Apply for Mentorship'));
   // admin chat reply
   r = await req('GET', `/api/admin/chat-messages?id=${convId}`, null, adminCookie);
   ok('admin reads chat', r.data.ok && r.data.messages.length >= 2);
@@ -412,9 +412,9 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
     ok('fx rates served (EUR + NGN present)', r.data.ok && r.data.rates && r.data.rates.EUR > 0 && r.data.rates.NGN > 0, r.data.rates && r.data.rates.EUR);
     let res = await fetch(BASE + '/');
     const idx = await res.text();
-    ok('homepage has i18n attributes (hero translated)', idx.includes('data-i18n="hero.lead"') && idx.includes('data-i18n-html="hero.h1"'), 'hero');
+    ok('homepage has i18n attributes (hero translated)', idx.includes('data-i18n-html="hero.lead"') && idx.includes('data-i18n-html="hero.h1"'), 'hero');
     ok('homepage has data-usd conversion marker', idx.includes('data-usd="10000"'), 'mentorship price');
-    res = await fetch(BASE + '/assets/js/common.js?v=14');
+    res = await fetch(BASE + '/assets/js/common.js?v=20');
     const cjs = await res.text();
     ok('i18n dictionary present (7 languages)', cjs.includes('const I18N') && cjs.includes('Español') && cjs.includes('हिन्दी') && cjs.includes('Deutsch'));
     ok('picker UI present (language + currency)', cjs.includes('langBtn') && cjs.includes('data-lang') && cjs.includes('data-cur'));

@@ -1,236 +1,227 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="Create Your Account — The Blockchain Bullhorn">
-  <meta property="og:description" content="Elite crypto education, live markets, demo & live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/signup">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>Create Your Account — The Blockchain Bullhorn</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#ffffff">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <script>document.documentElement.classList.add('js')</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Create Your Account — The Blockchain Bullhorn" property="og:title"/>
+<meta content="Elite crypto education, live markets, demo &amp; live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/signup" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Create Your Account — The Blockchain Bullhorn</title>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<meta content="#ffffff" name="theme-color"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <section class="section-tight" style="padding-top:44px">
-    <div class="container" style="max-width:660px">
-      <div class="text-center mb-3">
-        <a class="auth-brand" href="/" title="Back to homepage" style="margin:0 auto 10px">
-          <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn logo">
-          <span>Blockchain <b>Bullhorn</b></span>
-        </a>
-        <span class="eyebrow">Free Account · $10,000 Demo Included</span>
-        <h1 style="font-size:clamp(26px,4vw,36px)" data-i18n="auth.signupTitle">Join the Blockchain Bullhorn</h1>
-        <p class="muted">Four quick steps — account, profile, experience and verification.</p>
-      </div>
-
-      <div class="card" style="padding:34px">
-        <div class="wizard-steps" id="wsteps">
-          <div class="wstep active" data-step="1"><div class="dot"><i class="fas fa-user"></i></div><span class="lbl">Account</span></div>
-          <div class="wstep" data-step="2"><div class="dot"><i class="fas fa-id-badge"></i></div><span class="lbl">Profile</span></div>
-          <div class="wstep" data-step="3"><div class="dot"><i class="fas fa-graduation-cap"></i></div><span class="lbl">Experience</span></div>
-          <div class="wstep" data-step="4"><div class="dot"><i class="fas fa-id-card"></i></div><span class="lbl">Verify</span></div>
-        </div>
-
-        <div class="alert alert-error" id="wizAlert"></div>
-
-        <!-- STEP 1 -->
-        <div class="wizard-pane active" data-pane="1">
-          <h3 style="margin-bottom:16px">Create your login</h3>
-          <div class="field">
-            <label>Full name</label>
-            <input class="input" id="suName" placeholder="Jane Doe" autocomplete="name">
-            <div class="err">Please enter your full name.</div>
-          </div>
-          <div class="field">
-            <label>Email address</label>
-            <input class="input" id="suEmail" type="email" placeholder="you@example.com" autocomplete="email">
-            <div class="err">Enter a valid email address.</div>
-          </div>
-          <div class="form-row">
-            <div class="field">
-              <label>Password</label>
-              <div class="pw-wrap">
-                <input class="input" id="suPw" type="password" placeholder="Min. 8 characters" autocomplete="new-password">
-                <button type="button" class="pw-eye" id="suPwEye"><i class="fas fa-eye"></i></button>
-              </div>
-              <div class="pw-meter"><i id="pwBar"></i></div>
-              <div class="hint" id="pwHint">Use 8+ characters with letters, numbers &amp; a symbol.</div>
-              <div class="err">Password must be 8+ characters with letters and numbers.</div>
-            </div>
-            <div class="field">
-              <label>Confirm password</label>
-              <input class="input" id="suPw2" type="password" placeholder="Repeat password" autocomplete="new-password">
-              <div class="err">Passwords do not match.</div>
-            </div>
-          </div>
-          <div class="field">
-            <label>Referral code (optional)</label>
-            <input class="input" id="suRef" placeholder="e.g. BB-ABCD">
-          </div>
-          <label class="checkline" id="agreeLine">
-            <input type="checkbox" id="suAgree">
-            <span>I accept the <a href="/legal?p=terms">Terms &amp; Conditions</a>, the <a href="/legal?p=disclaimer">Risk Disclosure</a>, and understand trading involves substantial risk of loss.</span>
-          </label>
-        </div>
-
-        <!-- STEP 2 -->
-        <div class="wizard-pane" data-pane="2">
-          <h3 style="margin-bottom:16px">Tell us about you</h3>
-          <div class="form-row">
-            <div class="field">
-              <label>Date of birth</label>
-              <input class="input" id="suDob" type="date">
-              <div class="err">You must be 18 or older.</div>
-            </div>
-            <div class="field">
-              <label>Country / Region</label>
-              <select class="input" id="suCountry">
-                <option value="">Select country…</option>
-              </select>
-              <div class="err">Please select your country.</div>
-            </div>
-          </div>
-          <div class="field">
-            <label>Phone number</label>
-            <input class="input" id="suPhone" placeholder="+1 555 000 1234" autocomplete="tel">
-            <div class="hint">Used only for account security — we never call to sell or ask for funds.</div>
-            <div class="err">Enter a valid phone number.</div>
-          </div>
-          <label class="checkline"><input type="checkbox" id="suNews" checked>
-            <span>Send me <b>The Crypto Ready Report</b> — free weekly market insights from Calvin. (No spam, unsubscribe anytime.)</span>
-          </label>
-        </div>
-
-        <!-- STEP 3 -->
-        <div class="wizard-pane" data-pane="3">
-          <h3 style="margin-bottom:16px">Your trading experience</h3>
-          <div class="field">
-            <label>How much trading experience do you have?</label>
-            <select class="input" id="suExp">
-              <option value="">Select experience…</option>
-              <option value="none">Complete beginner — never traded</option>
-              <option value="less1">Less than 1 year</option>
-              <option value="1to3">1–3 years</option>
-              <option value="over3">3+ years</option>
-            </select>
-            <div class="err">Please select your experience level.</div>
-          </div>
-          <div class="field">
-            <label>Primary source of funds</label>
-            <select class="input" id="suFunds">
-              <option value="">Select source…</option>
-              <option value="employment">Employment income</option>
-              <option value="business">Business / self-employment</option>
-              <option value="savings">Savings</option>
-              <option value="investments">Investment returns</option>
-              <option value="other">Other</option>
-            </select>
-            <div class="err">Please select a source (required for compliance).</div>
-          </div>
-          <div class="card" style="background:rgba(0,71,194,.12);border-color:rgba(46,145,252,.3);font-size:13.5px">
-            <b class="font-head"><i class="fas fa-circle-info" style="color:var(--sky)"></i> Why we ask</b>
-            <p class="muted mt-1" style="font-size:13px">These questions help us tailor your onboarding and satisfy compliance requirements for live trading. Your demo account works regardless.</p>
-          </div>
-        </div>
-
-        <!-- STEP 4 -->
-        <div class="wizard-pane" data-pane="4">
-          <h3 style="margin-bottom:4px">Verify your identity (KYC)</h3>
-          <p class="muted small mb-2">Required for <b>live trading and withdrawals</b>. You can skip this now and complete it later from your dashboard — demo trading works immediately.</p>
-          <div class="field">
-            <label>ID document type</label>
-            <select class="input" id="suIdType">
-              <option value="passport">Passport</option>
-              <option value="drivers_license">Driver's License</option>
-              <option value="national_id">National ID Card</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>Your details (as shown on the document)</label>
-            <div class="form-row">
-              <input class="input" id="suKycName" placeholder="Full legal name">
-              <input class="input" id="suKycIdNo" placeholder="Document / ID number">
-            </div>
-            <div class="form-row" style="margin-top:10px">
-              <input class="input" id="suKycAddress" placeholder="Residential address (street & number)" style="grid-column:1/-1">
-              <input class="input" id="suKycCity" placeholder="City / State">
-            </div>
-          </div>
-          <div class="field">
-            <label>Front of ID document</label>
-            <div class="dropzone" id="dzFront">
-              <i class="fas fa-cloud-arrow-up"></i>
-              <b>Upload ID front</b>
-              <small>JPG, PNG or PDF · max 5MB</small>
-              <input type="file" id="fFront" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
-            </div>
-            <div id="prevFront"></div>
-          </div>
-          <div class="field">
-            <label>Back of ID document</label>
-            <div class="dropzone" id="dzBack">
-              <i class="fas fa-id-card-clip"></i>
-              <b>Upload ID back</b>
-              <small>Required for licenses and national IDs · passports may upload the front again</small>
-              <input type="file" id="fBack" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
-            </div>
-            <div id="prevBack"></div>
-          </div>
-          <div class="field">
-            <label>Selfie with ID <span class="muted" style="font-weight:400">(optional, speeds up review)</span></label>
-            <div class="dropzone" id="dzSelfie">
-              <i class="fas fa-face-smile"></i>
-              <b>Upload selfie with ID</b>
-              <small>Hold your ID next to your face</small>
-              <input type="file" id="fSelfie" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
-            </div>
-            <div id="prevSelfie"></div>
-          </div>
-        </div>
-
-        <!-- STEP 5 — done -->
-        <div class="wizard-pane" data-pane="5">
-          <div class="text-center" style="padding:30px 10px">
-            <div style="font-size:64px" class="floaty">🐂</div>
-            <h2 style="font-size:28px;margin:12px 0 8px">Welcome to the herd!</h2>
-            <p class="muted">Your account is ready with <b style="color:var(--green-bright)">$10,000 in demo funds</b>.<br>Your dashboard, the trading terminal and live markets are one click away.</p>
-            <div class="mt-3" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-              <a class="btn btn-gold btn-lg" href="/dashboard"><i class="fas fa-gauge-high"></i> Go to Dashboard</a>
-              <a class="btn btn-ghost btn-lg" href="/trade"><i class="fas fa-chart-line"></i> Start Trading</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="wizard-nav" id="wizNav">
-          <button class="btn btn-outline" id="btnBack" type="button" style="visibility:hidden"><i class="fas fa-arrow-left"></i> Back</button>
-          <div style="display:flex;gap:10px">
-            <button class="btn btn-ghost" id="btnSkip" type="button" style="display:none">Skip for now</button>
-            <button class="btn btn-primary" id="btnNext" type="button">Continue <i class="fas fa-arrow-right"></i></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="auth-alt mt-2">Already have an account? <a href="/login"><b>Log in</b></a></div>
-    </div>
-  </section>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script src="/assets/js/countries.js"></script>
-  <script>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<section class="section-tight" style="padding-top:44px">
+<div class="container" style="max-width:660px">
+<div class="text-center mb-3">
+<a class="auth-brand" href="/" style="margin:0 auto 10px" title="Back to homepage">
+<img alt="Blockchain Bullhorn logo" src="/assets/img/brand/logo.png"/>
+<span>Blockchain <b>Bullhorn</b></span>
+</a>
+<span class="eyebrow" data-i18n-html="sig.h1">Free Account · <span data-usd="10000">$10,000</span> Demo Included</span>
+<h1 data-i18n="auth.signupTitle" style="font-size:clamp(26px,4vw,36px)">Join the Blockchain Bullhorn</h1>
+<p class="muted" data-i18n="sig.s2">Four quick steps — account, profile, experience and verification.</p>
+</div>
+<div class="card" style="padding:34px">
+<div class="wizard-steps" id="wsteps">
+<div class="wstep active" data-step="1"><div class="dot"><i class="fas fa-user"></i></div><span class="lbl" data-i18n="sig.s3">Account</span></div>
+<div class="wstep" data-step="2"><div class="dot"><i class="fas fa-id-badge"></i></div><span class="lbl" data-i18n="sig.s4">Profile</span></div>
+<div class="wstep" data-step="3"><div class="dot"><i class="fas fa-graduation-cap"></i></div><span class="lbl" data-i18n="sig.s5">Experience</span></div>
+<div class="wstep" data-step="4"><div class="dot"><i class="fas fa-id-card"></i></div><span class="lbl" data-i18n="sig.s6">Verify</span></div>
+</div>
+<div class="alert alert-error" id="wizAlert"></div>
+<!-- STEP 1 -->
+<div class="wizard-pane active" data-pane="1">
+<h3 data-i18n="sig.s7" style="margin-bottom:16px">Create your login</h3>
+<div class="field">
+<label data-i18n="sig.s8">Full name</label>
+<input autocomplete="name" class="input" id="suName" placeholder="Jane Doe"/>
+<div class="err" data-i18n="sig.s9">Please enter your full name.</div>
+</div>
+<div class="field">
+<label data-i18n="sig.s10">Email address</label>
+<input autocomplete="email" class="input" id="suEmail" placeholder="you@example.com" type="email"/>
+<div class="err" data-i18n="sig.s11">Enter a valid email address.</div>
+</div>
+<div class="form-row">
+<div class="field">
+<label data-i18n="log.s6">Password</label>
+<div class="pw-wrap">
+<input autocomplete="new-password" class="input" id="suPw" placeholder="Min. 8 characters" data-i18n-ph="sig.pwPh" type="password"/>
+<button class="pw-eye" id="suPwEye" type="button"><i class="fas fa-eye"></i></button>
+</div>
+<div class="pw-meter"><i id="pwBar"></i></div>
+<div class="hint" data-i18n="sig.s12" id="pwHint">Use 8+ characters with letters, numbers &amp; a symbol.</div>
+<div class="err" data-i18n="sig.s13">Password must be 8+ characters with letters and numbers.</div>
+</div>
+<div class="field">
+<label data-i18n="sig.s14">Confirm password</label>
+<input autocomplete="new-password" class="input" id="suPw2" placeholder="Repeat password" data-i18n-ph="sig.pw2Ph" type="password"/>
+<div class="err" data-i18n="sig.s15">Passwords do not match.</div>
+</div>
+</div>
+<div class="field">
+<label data-i18n="sig.s16">Referral code (optional)</label>
+<input class="input" id="suRef" placeholder="e.g. BB-ABCD"/>
+</div>
+<label class="checkline" id="agreeLine">
+<input id="suAgree" type="checkbox"/>
+<span>I accept the <a data-i18n="leg.s3" href="/legal?p=terms">Terms &amp; Conditions</a>, the <a data-i18n="sig.s17" href="/legal?p=disclaimer">Risk Disclosure</a>, and understand trading involves substantial risk of loss.</span>
+</label>
+</div>
+<!-- STEP 2 -->
+<div class="wizard-pane" data-pane="2">
+<h3 data-i18n="sig.s18" style="margin-bottom:16px">Tell us about you</h3>
+<div class="form-row">
+<div class="field">
+<label data-i18n="sig.s19">Date of birth</label>
+<input class="input" id="suDob" type="date"/>
+<div class="err" data-i18n="sig.s20">You must be 18 or older.</div>
+</div>
+<div class="field">
+<label data-i18n="sig.s21">Country / Region</label>
+<select class="input" id="suCountry">
+<option value="">Select country…</option>
+</select>
+<div class="err" data-i18n="sig.s22">Please select your country.</div>
+</div>
+</div>
+<div class="field">
+<label data-i18n="sig.s23">Phone number</label>
+<input autocomplete="tel" class="input" id="suPhone" placeholder="+1 555 000 1234"/>
+<div class="hint" data-i18n="sig.s24">Used only for account security — we never call to sell or ask for funds.</div>
+<div class="err" data-i18n="sig.s25">Enter a valid phone number.</div>
+</div>
+<label class="checkline"><input checked="" id="suNews" type="checkbox"/>
+<span data-i18n-html="sig.h26">Send me <b>The Crypto Ready Report</b> — free weekly market insights from Calvin. (No spam, unsubscribe anytime.)</span>
+</label>
+</div>
+<!-- STEP 3 -->
+<div class="wizard-pane" data-pane="3">
+<h3 data-i18n="sig.s27" style="margin-bottom:16px">Your trading experience</h3>
+<div class="field">
+<label data-i18n="sig.s28">How much trading experience do you have?</label>
+<select class="input" id="suExp">
+<option value="">Select experience…</option>
+<option value="none">Complete beginner — never traded</option>
+<option value="less1">Less than 1 year</option>
+<option value="1to3">1–3 years</option>
+<option value="over3">3+ years</option>
+</select>
+<div class="err" data-i18n="sig.s29">Please select your experience level.</div>
+</div>
+<div class="field">
+<label data-i18n="sig.s30">Primary source of funds</label>
+<select class="input" id="suFunds">
+<option value="">Select source…</option>
+<option value="employment">Employment income</option>
+<option value="business">Business / self-employment</option>
+<option value="savings">Savings</option>
+<option value="investments">Investment returns</option>
+<option value="other">Other</option>
+</select>
+<div class="err" data-i18n="sig.s31">Please select a source (required for compliance).</div>
+</div>
+<div class="card" style="background:rgba(0,71,194,.12);border-color:rgba(46,145,252,.3);font-size:13.5px">
+<b class="font-head"><i class="fas fa-circle-info" style="color:var(--sky)"></i><span data-i18n="sig.s32">Why we ask</span></b>
+<p class="muted mt-1" data-i18n="sig.s33" style="font-size:13px">These questions help us tailor your onboarding and satisfy compliance requirements for live trading. Your demo account works regardless.</p>
+</div>
+</div>
+<!-- STEP 4 -->
+<div class="wizard-pane" data-pane="4">
+<h3 data-i18n="sig.s34" style="margin-bottom:4px">Verify your identity (KYC)</h3>
+<p class="muted small mb-2" data-i18n-html="sig.h35">Required for <b>live trading and withdrawals</b>. You can skip this now and complete it later from your dashboard — demo trading works immediately.</p>
+<div class="field">
+<label data-i18n="kyc.s3">ID document type</label>
+<select class="input" id="suIdType">
+<option value="passport">Passport</option>
+<option value="drivers_license">Driver's License</option>
+<option value="national_id">National ID Card</option>
+</select>
+</div>
+<div class="field">
+<label data-i18n="sig.s36">Your details (as shown on the document)</label>
+<div class="form-row">
+<input class="input" id="suKycName" placeholder="Full legal name" data-i18n-ph="sig.kycNamePh"/>
+<input class="input" id="suKycIdNo" placeholder="Document / ID number" data-i18n-ph="sig.kycIdPh"/>
+</div>
+<div class="form-row" style="margin-top:10px">
+<input class="input" id="suKycAddress" placeholder="Residential address (street &amp; number)" data-i18n-ph="sig.kycAddrPh" style="grid-column:1/-1"/>
+<input class="input" id="suKycCity" placeholder="City / State" data-i18n-ph="sig.kycCityPh"/>
+</div>
+</div>
+<div class="field">
+<label data-i18n="sig.s37">Front of ID document</label>
+<div class="dropzone" id="dzFront">
+<i class="fas fa-cloud-arrow-up"></i>
+<b data-i18n="kyc.s6">Upload ID front</b>
+<small data-i18n="sig.s38">JPG, PNG or PDF · max 5MB</small>
+<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fFront" type="file"/>
+</div>
+<div id="prevFront"></div>
+</div>
+<div class="field">
+<label data-i18n="sig.s39">Back of ID document</label>
+<div class="dropzone" id="dzBack">
+<i class="fas fa-id-card-clip"></i>
+<b data-i18n="kyc.s9">Upload ID back</b>
+<small data-i18n="sig.s40">Required for licenses and national IDs · passports may upload the front again</small>
+<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fBack" type="file"/>
+</div>
+<div id="prevBack"></div>
+</div>
+<div class="field">
+<label data-i18n-html="sig.h41">Selfie with ID <span class="muted" style="font-weight:400">(optional, speeds up review)</span></label>
+<div class="dropzone" id="dzSelfie">
+<i class="fas fa-face-smile"></i>
+<b data-i18n="kyc.s12">Upload selfie with ID</b>
+<small data-i18n="sig.s42">Hold your ID next to your face</small>
+<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fSelfie" type="file"/>
+</div>
+<div id="prevSelfie"></div>
+</div>
+</div>
+<!-- STEP 5 — done -->
+<div class="wizard-pane" data-pane="5">
+<div class="text-center" style="padding:30px 10px">
+<div class="floaty" style="font-size:64px">🐂</div>
+<h2 data-i18n="sig.s43" style="font-size:28px;margin:12px 0 8px">Welcome to the herd!</h2>
+<p class="muted" data-i18n-html="sig.h44">Your account is ready with <b style="color:var(--green-bright)"><span data-usd="10000">$10,000</span> in demo funds</b>.<br/>Your dashboard, the trading terminal and live markets are one click away.</p>
+<div class="mt-3" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+<a class="btn btn-gold btn-lg" href="/dashboard"><i class="fas fa-gauge-high"></i><span data-i18n="sig.s45">Go to Dashboard</span></a>
+<a class="btn btn-ghost btn-lg" href="/trade"><i class="fas fa-chart-line"></i><span data-i18n="sig.s46">Start Trading</span></a>
+</div>
+</div>
+</div>
+<div class="wizard-nav" id="wizNav">
+<button class="btn btn-outline" id="btnBack" style="visibility:hidden" type="button"><i class="fas fa-arrow-left"></i><span data-i18n="sig.s47">Back</span></button>
+<div style="display:flex;gap:10px">
+<button class="btn btn-ghost" data-i18n="sig.s48" id="btnSkip" style="display:none" type="button">Skip for now</button>
+<button class="btn btn-primary" id="btnNext" type="button"><span data-i18n="sig.s49">Continue</span><i class="fas fa-arrow-right"></i></button>
+</div>
+</div>
+</div>
+<div class="auth-alt mt-2">Already have an account? <a href="/login"><b data-i18n="sig.s50">Log in</b></a></div>
+</div>
+</section>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script src="/assets/js/countries.js"></script>
+<script>
     document.addEventListener('bb:ready', () => {
       if (BB.user) { location.href = '/dashboard'; return; }
       let step = 1;

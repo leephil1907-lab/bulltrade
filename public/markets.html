@@ -1,135 +1,130 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn">
-  <meta property="og:description" content="Live market prices for 60+ assets: crypto, stocks, real-world assets (gold, silver, oil), tokenized gold and indices. Real branding, real-time data, interactive bubble map.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/markets">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn</title>
-  <meta name="description" content="Live market prices for 60+ assets: crypto, stocks, real-world assets (gold, silver, oil), tokenized gold and indices. Real branding, real-time data, interactive bubble map.">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <script>document.documentElement.classList.add('js')</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn" property="og:title"/>
+<meta content="Live market prices for 60+ assets: crypto, stocks, real-world assets (gold, silver, oil), tokenized gold and indices. Real branding, real-time data, interactive bubble map." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/markets" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn</title>
+<meta content="Live market prices for 60+ assets: crypto, stocks, real-world assets (gold, silver, oil), tokenized gold and indices. Real branding, real-time data, interactive bubble map." name="description"/>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <section class="page-hero">
-    <div class="container">
-      <div class="crumbs"><a href="/">Home</a> · Markets</div>
-      <h1>The Market Session</h1>
-      <p>Live prices across crypto, stocks, real-world assets and indices — streaming from CoinGecko &amp; Yahoo Finance. Switch to the <b style="color:var(--gold)">Bubbles</b> view for the whole market on one screen, and tap any asset for its live coin view.</p>
-    </div>
-  </section>
-
-  <section class="section-tight reveal">
-    <div class="container-wide">
-      <!-- market pulse -->
-      <div class="pulse-strip" id="pulseStrip">
-        <div class="pulse-stat"><span class="pulse-dot"></span><div><small>LIVE MARKETS</small><b id="psAssets">—</b></div></div>
-        <div class="pulse-stat"><i class="fas fa-coins" style="color:var(--gold)"></i><div><small>CRYPTO MARKET CAP</small><b id="psCap">—</b></div></div>
-        <div class="pulse-stat"><i class="fas fa-scale-balanced" style="color:var(--sky)"></i><div><small>24H SENTIMENT</small><b id="psSent">—</b></div></div>
-        <div class="pulse-stat pulse-mover" id="psMover"><i class="fas fa-rocket" style="color:var(--green-bright)"></i><div><small>TOP MOVER</small><b id="psMoverVal">—</b></div></div>
-      </div>
-
-      <!-- top movers -->
-      <div class="grid grid-2 mb-2" id="moversWrap">
-        <div class="card"><h4 style="color:var(--green-bright);font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px"><i class="fas fa-rocket"></i> Top Gainers</h4><div id="gainersBox"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div></div></div></div>
-        <div class="card"><h4 style="color:var(--red);font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px"><i class="fas fa-arrow-trend-down"></i> Top Losers</h4><div id="losersBox"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div></div></div></div>
-      </div>
-
-      <div class="flex-between mb-2" style="flex-wrap:wrap;gap:10px">
-        <div class="tab-bar" id="mktTabs" style="margin-bottom:0">
-          <button class="tab-btn active" data-cat="all"><i class="fas fa-globe"></i> All</button>
-          <button class="tab-btn" data-cat="watch"><i class="fas fa-star" style="color:var(--gold-deep)"></i> My Watchlist</button>
-          <button class="tab-btn" data-cat="crypto"><i class="fas fa-coins"></i> Crypto</button>
-          <button class="tab-btn" data-cat="stocks"><i class="fas fa-building"></i> Stocks</button>
-          <button class="tab-btn" data-cat="rwa"><i class="fas fa-gem"></i> RWA &amp; Commodities</button>
-          <button class="tab-btn" data-cat="indices"><i class="fas fa-chart-column"></i> Indices</button>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <div class="view-seg" id="viewSeg">
-            <button class="active" data-view="table"><i class="fas fa-table-list"></i> Table</button>
-            <button data-view="bubbles"><i class="fas fa-circle" style="font-size:9px"></i> Bubbles</button>
-          </div>
-          <div style="position:relative;min-width:220px">
-            <input class="input" id="mktSearch" placeholder="Search assets… (e.g. BTC, Apple, gold)" style="padding:10px 14px;padding-left:38px">
-            <i class="fas fa-magnifying-glass" style="position:absolute;left:14px;top:12px;color:var(--ink-dim)"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- bubbles view -->
-      <div class="bubbles-panel" id="bubblesPanel" style="display:none">
-        <div class="flex-between" style="flex-wrap:wrap;gap:8px">
-          <div class="bub-chips">
-            <button class="bub-chip active" data-tf="1D">24h</button>
-            <button class="bub-chip" data-tf="7D">7d</button>
-            <span class="bub-sep"></span>
-            <button class="bub-chip" data-size="movers">Size: movers</button>
-            <button class="bub-chip active" data-size="cap">Size: market cap</button>
-          </div>
-          <span class="muted small" id="bubCount">—</span>
-        </div>
-        <div class="bubbles-stage" id="bubblesStage">
-          <canvas id="bubblesCv"></canvas>
-          <div class="bub-tip" id="bubTip"></div>
-          <div class="bub-empty" id="bubEmpty" style="display:none"><i class="fas fa-magnifying-glass"></i>No assets match the current filters.</div>
-        </div>
-        <div class="bub-legend muted small">
-          <span><span class="bub-dot" style="background:#089981"></span> gaining</span>
-          <span><span class="bub-dot" style="background:#f23645"></span> losing</span>
-          <span>·</span><span>bubble size = market cap</span>
-          <span>·</span><span>click a bubble for the coin view</span>
-        </div>
-      </div>
-
-      <!-- table view -->
-      <div class="table-wrap" id="tableWrap">
-        <table class="dt">
-          <thead>
-            <tr>
-              <th style="cursor:pointer" id="sortRank">#</th>
-              <th title="Watchlist"></th>
-              <th style="cursor:pointer" id="sortName">Asset</th>
-              <th style="cursor:pointer" id="sortPrice">Price</th>
-              <th style="cursor:pointer" id="sortChg">24h %</th>
-              <th>24h Range</th>
-              <th>Trend</th>
-              <th style="cursor:pointer" id="sortCap">Market Cap / Volume</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="mktBody">
-            <tr><td><span class="skeleton" style="width:45%"></span></td><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:53%"></span></td><td><span class="skeleton" style="width:82%"></span></td><td><span class="skeleton" style="width:61%"></span></td><td><span class="skeleton" style="width:90%"></span></td><td><span class="skeleton" style="width:69%"></span></td><td><span class="skeleton" style="width:48%"></span></td><td><span class="skeleton" style="width:77%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:62%"></span></td><td><span class="skeleton" style="width:91%"></span></td><td><span class="skeleton" style="width:70%"></span></td><td><span class="skeleton" style="width:49%"></span></td><td><span class="skeleton" style="width:78%"></span></td><td><span class="skeleton" style="width:57%"></span></td><td><span class="skeleton" style="width:86%"></span></td><td><span class="skeleton" style="width:65%"></span></td><td><span class="skeleton" style="width:94%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:79%"></span></td><td><span class="skeleton" style="width:58%"></span></td><td><span class="skeleton" style="width:87%"></span></td><td><span class="skeleton" style="width:66%"></span></td><td><span class="skeleton" style="width:45%"></span></td><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:53%"></span></td><td><span class="skeleton" style="width:82%"></span></td><td><span class="skeleton" style="width:61%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:46%"></span></td><td><span class="skeleton" style="width:75%"></span></td><td><span class="skeleton" style="width:54%"></span></td><td><span class="skeleton" style="width:83%"></span></td><td><span class="skeleton" style="width:62%"></span></td><td><span class="skeleton" style="width:91%"></span></td><td><span class="skeleton" style="width:70%"></span></td><td><span class="skeleton" style="width:49%"></span></td><td><span class="skeleton" style="width:78%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:63%"></span></td><td><span class="skeleton" style="width:92%"></span></td><td><span class="skeleton" style="width:71%"></span></td><td><span class="skeleton" style="width:50%"></span></td><td><span class="skeleton" style="width:79%"></span></td><td><span class="skeleton" style="width:58%"></span></td><td><span class="skeleton" style="width:87%"></span></td><td><span class="skeleton" style="width:66%"></span></td><td><span class="skeleton" style="width:45%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:80%"></span></td><td><span class="skeleton" style="width:59%"></span></td><td><span class="skeleton" style="width:88%"></span></td><td><span class="skeleton" style="width:67%"></span></td><td><span class="skeleton" style="width:46%"></span></td><td><span class="skeleton" style="width:75%"></span></td><td><span class="skeleton" style="width:54%"></span></td><td><span class="skeleton" style="width:83%"></span></td><td><span class="skeleton" style="width:62%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:47%"></span></td><td><span class="skeleton" style="width:76%"></span></td><td><span class="skeleton" style="width:55%"></span></td><td><span class="skeleton" style="width:84%"></span></td><td><span class="skeleton" style="width:63%"></span></td><td><span class="skeleton" style="width:92%"></span></td><td><span class="skeleton" style="width:71%"></span></td><td><span class="skeleton" style="width:50%"></span></td><td><span class="skeleton" style="width:79%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:64%"></span></td><td><span class="skeleton" style="width:93%"></span></td><td><span class="skeleton" style="width:72%"></span></td><td><span class="skeleton" style="width:51%"></span></td><td><span class="skeleton" style="width:80%"></span></td><td><span class="skeleton" style="width:59%"></span></td><td><span class="skeleton" style="width:88%"></span></td><td><span class="skeleton" style="width:67%"></span></td><td><span class="skeleton" style="width:46%"></span></td></tr>
-          </tbody>
-        </table>
-      </div>
-      <p class="muted small mt-1"><i class="fas fa-satellite-dish"></i> Live data via CoinGecko &amp; Yahoo Finance · auto-refreshes every 20 seconds · <span id="mktUpdated">loading…</span></p>
-    </div>
-  </section>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script src="/assets/js/chart.js?v=7"></script>
-  <script>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<section class="page-hero">
+<div class="container">
+<div class="crumbs"><a data-i18n="mkt.s1" href="/">Home</a> · Markets</div>
+<h1 data-i18n="idx.s9">The Market Session</h1>
+<p data-i18n-html="mkt.h2">Live prices across crypto, stocks, real-world assets and indices — streaming from CoinGecko &amp; Yahoo Finance. Switch to the <b style="color:var(--gold)">Bubbles</b> view for the whole market on one screen, and tap any asset for its live coin view.</p>
+</div>
+</section>
+<section class="section-tight reveal">
+<div class="container-wide">
+<!-- market pulse -->
+<div class="pulse-strip" id="pulseStrip">
+<div class="pulse-stat"><span class="pulse-dot"></span><div><small>LIVE MARKETS</small><b id="psAssets">—</b></div></div>
+<div class="pulse-stat"><i class="fas fa-coins" style="color:var(--gold)"></i><div><small>CRYPTO MARKET CAP</small><b id="psCap">—</b></div></div>
+<div class="pulse-stat"><i class="fas fa-scale-balanced" style="color:var(--sky)"></i><div><small>24H SENTIMENT</small><b id="psSent">—</b></div></div>
+<div class="pulse-stat pulse-mover" id="psMover"><i class="fas fa-rocket" style="color:var(--green-bright)"></i><div><small>TOP MOVER</small><b id="psMoverVal">—</b></div></div>
+</div>
+<!-- top movers -->
+<div class="grid grid-2 mb-2" id="moversWrap">
+<div class="card"><h4 style="color:var(--green-bright);font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px"><i class="fas fa-rocket"></i><span data-i18n="mkt.s3">Top Gainers</span></h4><div id="gainersBox"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div></div></div></div>
+<div class="card"><h4 style="color:var(--red);font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px"><i class="fas fa-arrow-trend-down"></i><span data-i18n="mkt.s4">Top Losers</span></h4><div id="losersBox"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div></div></div></div>
+</div>
+<div class="flex-between mb-2" style="flex-wrap:wrap;gap:10px">
+<div class="tab-bar" id="mktTabs" style="margin-bottom:0">
+<button class="tab-btn active" data-cat="all"><i class="fas fa-globe"></i><span data-i18n="mkt.s5">All</span></button>
+<button class="tab-btn" data-cat="watch"><i class="fas fa-star" style="color:var(--gold-deep)"></i><span data-i18n="mkt.s6">My Watchlist</span></button>
+<button class="tab-btn" data-cat="crypto"><i class="fas fa-coins"></i><span data-i18n="idx.s11">Crypto</span></button>
+<button class="tab-btn" data-cat="stocks"><i class="fas fa-building"></i><span data-i18n="idx.s12">Stocks</span></button>
+<button class="tab-btn" data-cat="rwa"><i class="fas fa-gem"></i><span data-i18n="idx.s13">RWA &amp; Commodities</span></button>
+<button class="tab-btn" data-cat="indices"><i class="fas fa-chart-column"></i><span data-i18n="idx.s14">Indices</span></button>
+</div>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+<div class="view-seg" id="viewSeg">
+<button class="active" data-view="table"><i class="fas fa-table-list"></i><span data-i18n="mkt.s7">Table</span></button>
+<button data-view="bubbles"><i class="fas fa-circle" style="font-size:9px"></i><span data-i18n="mkt.s8">Bubbles</span></button>
+</div>
+<div style="position:relative;min-width:220px">
+<input class="input" id="mktSearch" placeholder="Search assets… (e.g. BTC, Apple, gold)" data-i18n-ph="mkt.searchPh" style="padding:10px 14px;padding-left:38px"/>
+<i class="fas fa-magnifying-glass" style="position:absolute;left:14px;top:12px;color:var(--ink-dim)"></i>
+</div>
+</div>
+</div>
+<!-- bubbles view -->
+<div class="bubbles-panel" id="bubblesPanel" style="display:none">
+<div class="flex-between" style="flex-wrap:wrap;gap:8px">
+<div class="bub-chips">
+<button class="bub-chip active" data-i18n="idx.s17" data-tf="1D">24h</button>
+<button class="bub-chip" data-i18n="mkt.s9" data-tf="7D">7d</button>
+<span class="bub-sep"></span>
+<button class="bub-chip" data-i18n="mkt.s10" data-size="movers">Size: movers</button>
+<button class="bub-chip active" data-i18n="mkt.s11" data-size="cap">Size: market cap</button>
+</div>
+<span class="muted small" id="bubCount">—</span>
+</div>
+<div class="bubbles-stage" id="bubblesStage">
+<canvas id="bubblesCv"></canvas>
+<div class="bub-tip" id="bubTip"></div>
+<div class="bub-empty" id="bubEmpty" style="display:none"><i class="fas fa-magnifying-glass"></i><span data-i18n="mkt.s12">No assets match the current filters.</span></div>
+</div>
+<div class="bub-legend muted small">
+<span data-i18n-html="mkt.h13"><span class="bub-dot" style="background:#089981"></span> gaining</span>
+<span data-i18n-html="mkt.h14"><span class="bub-dot" style="background:#f23645"></span> losing</span>
+<span>·</span><span data-i18n="mkt.s15">bubble size = market cap</span>
+<span>·</span><span data-i18n="mkt.s16">click a bubble for the coin view</span>
+</div>
+</div>
+<!-- table view -->
+<div class="table-wrap" id="tableWrap">
+<table class="dt">
+<thead>
+<tr>
+<th data-i18n="mkt.s17" id="sortRank" style="cursor:pointer">#</th>
+<th title="Watchlist"></th>
+<th data-i18n="idx.s15" id="sortName" style="cursor:pointer">Asset</th>
+<th data-i18n="idx.s16" id="sortPrice" style="cursor:pointer">Price</th>
+<th data-i18n="mkt.s18" id="sortChg" style="cursor:pointer">24h %</th>
+<th data-i18n="mkt.s19">24h Range</th>
+<th data-i18n="mkt.s20">Trend</th>
+<th data-i18n="mkt.s21" id="sortCap" style="cursor:pointer">Market Cap / Volume</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="mktBody">
+<tr><td><span class="skeleton" style="width:45%"></span></td><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:53%"></span></td><td><span class="skeleton" style="width:82%"></span></td><td><span class="skeleton" style="width:61%"></span></td><td><span class="skeleton" style="width:90%"></span></td><td><span class="skeleton" style="width:69%"></span></td><td><span class="skeleton" style="width:48%"></span></td><td><span class="skeleton" style="width:77%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:62%"></span></td><td><span class="skeleton" style="width:91%"></span></td><td><span class="skeleton" style="width:70%"></span></td><td><span class="skeleton" style="width:49%"></span></td><td><span class="skeleton" style="width:78%"></span></td><td><span class="skeleton" style="width:57%"></span></td><td><span class="skeleton" style="width:86%"></span></td><td><span class="skeleton" style="width:65%"></span></td><td><span class="skeleton" style="width:94%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:79%"></span></td><td><span class="skeleton" style="width:58%"></span></td><td><span class="skeleton" style="width:87%"></span></td><td><span class="skeleton" style="width:66%"></span></td><td><span class="skeleton" style="width:45%"></span></td><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:53%"></span></td><td><span class="skeleton" style="width:82%"></span></td><td><span class="skeleton" style="width:61%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:46%"></span></td><td><span class="skeleton" style="width:75%"></span></td><td><span class="skeleton" style="width:54%"></span></td><td><span class="skeleton" style="width:83%"></span></td><td><span class="skeleton" style="width:62%"></span></td><td><span class="skeleton" style="width:91%"></span></td><td><span class="skeleton" style="width:70%"></span></td><td><span class="skeleton" style="width:49%"></span></td><td><span class="skeleton" style="width:78%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:63%"></span></td><td><span class="skeleton" style="width:92%"></span></td><td><span class="skeleton" style="width:71%"></span></td><td><span class="skeleton" style="width:50%"></span></td><td><span class="skeleton" style="width:79%"></span></td><td><span class="skeleton" style="width:58%"></span></td><td><span class="skeleton" style="width:87%"></span></td><td><span class="skeleton" style="width:66%"></span></td><td><span class="skeleton" style="width:45%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:80%"></span></td><td><span class="skeleton" style="width:59%"></span></td><td><span class="skeleton" style="width:88%"></span></td><td><span class="skeleton" style="width:67%"></span></td><td><span class="skeleton" style="width:46%"></span></td><td><span class="skeleton" style="width:75%"></span></td><td><span class="skeleton" style="width:54%"></span></td><td><span class="skeleton" style="width:83%"></span></td><td><span class="skeleton" style="width:62%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:47%"></span></td><td><span class="skeleton" style="width:76%"></span></td><td><span class="skeleton" style="width:55%"></span></td><td><span class="skeleton" style="width:84%"></span></td><td><span class="skeleton" style="width:63%"></span></td><td><span class="skeleton" style="width:92%"></span></td><td><span class="skeleton" style="width:71%"></span></td><td><span class="skeleton" style="width:50%"></span></td><td><span class="skeleton" style="width:79%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:64%"></span></td><td><span class="skeleton" style="width:93%"></span></td><td><span class="skeleton" style="width:72%"></span></td><td><span class="skeleton" style="width:51%"></span></td><td><span class="skeleton" style="width:80%"></span></td><td><span class="skeleton" style="width:59%"></span></td><td><span class="skeleton" style="width:88%"></span></td><td><span class="skeleton" style="width:67%"></span></td><td><span class="skeleton" style="width:46%"></span></td></tr>
+</tbody>
+</table>
+</div>
+<p class="muted small mt-1" data-i18n-html="mkt.h22"><i class="fas fa-satellite-dish"></i> Live data via CoinGecko &amp; Yahoo Finance · auto-refreshes every 20 seconds · <span id="mktUpdated">loading…</span></p>
+</div>
+</section>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script src="/assets/js/chart.js?v=7"></script>
+<script>
     document.addEventListener('bb:ready', () => {
       let assets = [], cat = 'all', query = '', sortKey = 'rank', sortDir = 1, prevPrices = {}, view = 'table';
 
@@ -150,7 +145,7 @@
         const gain = withP.filter(a => a.changePct > 0).length, lose = withP.filter(a => a.changePct < 0).length;
         const cap = assets.filter(a => a.category === 'crypto' && a.marketCap).reduce((s, a) => s + a.marketCap, 0);
         $('#psAssets').textContent = withP.length + ' assets streaming';
-        $('#psCap').textContent = cap ? '$' + (cap / 1e12).toFixed(2) + 'T' : '—';
+        $('#psCap').textContent = cap ? BB.fmtCompact(cap) : '—';
         $('#psSent').innerHTML = `<span style="color:var(--green-bright)">${gain} ▲</span> · <span style="color:var(--red)">${lose} ▼</span>`;
         const top = withP.slice().sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct))[0];
         if (top) {
@@ -165,7 +160,7 @@
         const row = a => `<div class="mini-quote" data-asset="${a.id}" style="cursor:pointer">
           ${BB.assetIcon(a, 26)}
           <div><div class="mq-name">${BB.esc(a.symbol)}</div><div class="mq-sub">${BB.esc(a.name.slice(0, 18))}</div></div>
-          <div class="mq-right"><div class="mq-price">$${BB.fmtPrice(a.price)}</div>
+          <div class="mq-right"><div class="mq-price">${BB.fmtPx(a.price)}</div>
           <div class="mq-chg ${BB.chgClass(a.changePct)}">${BB.chgIcon(a.changePct)} ${BB.fmtPct(a.changePct)}</div></div></div>`;
         $('#gainersBox').innerHTML = sorted.slice(0, 4).map(row).join('');
         $('#losersBox').innerHTML = sorted.slice(-4).reverse().map(row).join('');
@@ -194,12 +189,12 @@
             <td class="muted num">${i}</td>
             <td style="padding-right:2px"><i class="fas fa-star star-btn ${starred ? 'starred' : ''}" data-star="${a.id}" title="${starred ? 'Remove from' : 'Add to'} watchlist" style="cursor:pointer;color:${starred ? 'var(--gold-deep)' : 'var(--line)'}"></i></td>
             <td><div class="asset-cell">${BB.assetIcon(a)}<div><b>${BB.esc(a.name)}</b><span>${BB.esc(a.symbol)}${a.tag ? ' · ' + a.tag : ''}</span></div></div></td>
-            <td class="num" style="font-weight:700">$${BB.fmtPrice(a.price)}</td>
+            <td class="num" style="font-weight:700">${BB.fmtPx(a.price)}</td>
             <td class="num ${BB.chgClass(a.changePct)}" style="font-weight:700">${BB.chgIcon(a.changePct)} ${BB.fmtPct(a.changePct)}</td>
-            <td>${range != null ? `<div style="min-width:110px"><div class="muted small num" style="display:flex;justify-content:space-between"><span>$${BB.fmtPrice(a.low24h)}</span><span>$${BB.fmtPrice(a.high24h)}</span></div>
+            <td>${range != null ? `<div style="min-width:110px"><div class="muted small num" style="display:flex;justify-content:space-between"><span>${BB.fmtPx(a.low24h)}</span><span>${BB.fmtPx(a.high24h)}</span></div>
               <div style="height:4px;background:var(--brown-700);border-radius:3px;margin-top:4px"><div style="height:100%;width:${Math.max(2, Math.min(100, range))}%;background:linear-gradient(90deg,var(--gold),var(--green-bright));border-radius:3px"></div></div></div>` : '—'}</td>
             <td>${BB.sparkline(a.spark)}</td>
-            <td class="num muted">${a.marketCap ? '$' + (a.marketCap / 1e9).toFixed(2) + 'B' : a.volume24h ? '$' + (a.volume24h / 1e6).toFixed(1) + 'M vol' : '—'}</td>
+            <td class="num muted">${a.marketCap ? BB.fmtCompact(a.marketCap) : a.volume24h ? BB.fmtCompact(a.volume24h) + ' ' + BB.t('mkt.vol') : '—'}</td>
             <td><a class="btn btn-ghost btn-sm" href="/trade?asset=${a.id}"><i class="fas fa-bolt"></i> Trade</a></td>
           </tr>`;
         }).join('') || `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-magnifying-glass"></i>No assets match "${BB.esc(query)}"</div></td></tr>`;
@@ -227,19 +222,19 @@
             <div>
               <span class="badge badge-gold">${BB.esc(a.category === 'rwa' ? 'RWA / Commodity' : a.category)}</span>
               ${a.tag ? `<span class="badge badge-blue">${BB.esc(a.tag)}</span>` : ''}
-              <div style="font-size:30px;font-weight:800;font-family:var(--font-head);margin-top:6px" class="num">$${BB.fmtPrice(a.price)}</div>
+              <div style="font-size:30px;font-weight:800;font-family:var(--font-head);margin-top:6px" class="num">${BB.fmtPx(a.price)}</div>
               <div class="${BB.chgClass(a.changePct)}" style="font-weight:700;font-family:var(--font-head)">${BB.chgIcon(a.changePct)} ${BB.fmtPct(a.changePct)} <span class="muted" style="font-weight:400;font-size:12px">24h</span></div>
             </div>
             <div style="text-align:right">
               <div class="muted small">24h range</div>
-              ${range != null ? `<div style="min-width:150px"><div class="small num" style="display:flex;justify-content:space-between"><span>$${BB.fmtPrice(a.low24h)}</span><span>$${BB.fmtPrice(a.high24h)}</span></div>
+              ${range != null ? `<div style="min-width:150px"><div class="small num" style="display:flex;justify-content:space-between"><span>${BB.fmtPx(a.low24h)}</span><span>${BB.fmtPx(a.high24h)}</span></div>
               <div style="height:5px;background:var(--brown-700);border-radius:3px;margin-top:4px"><div style="height:100%;width:${range}%;background:linear-gradient(90deg,var(--gold),var(--green-bright));border-radius:3px"></div></div></div>` : '<span class="muted">—</span>'}
             </div>
           </div>
           <div class="coin-stats mt-2">
-            <div><small>Prev close</small><b class="num">${a.prevClose ? BB.sym() + BB.fmtPrice(a.prevClose) : '—'}</b></div>
-            <div><small>Market cap</small><b class="num">${a.marketCap ? '$' + (a.marketCap / 1e9).toFixed(2) + 'B' : '—'}</b></div>
-            <div><small>Volume 24h</small><b class="num">${a.volume24h ? '$' + (a.volume24h / 1e6).toFixed(1) + 'M' : '—'}</b></div>
+            <div><small>${BB.t('mkt.prevClose')}</small><b class="num">${a.prevClose ? BB.sym() + BB.fmtPrice(a.prevClose) : '—'}</b></div>
+            <div><small>${BB.t('mkt.mcap')}</small><b class="num">${a.marketCap ? BB.fmtCompact(a.marketCap) : '—'}</b></div>
+            <div><small>${BB.t('mkt.vol24')}</small><b class="num">${a.volume24h ? BB.fmtCompact(a.volume24h) : '—'}</b></div>
             <div><small>Max leverage</small><b class="num">${a.maxLeverage || 5}×</b></div>
           </div>
           <div class="coin-chart mt-2"><div style="position:relative;height:230px"><canvas id="coinCv"></canvas></div></div>
@@ -375,7 +370,7 @@
             tip.style.left = Math.min(this.W - 190, Math.max(4, this.hover.x + this.hover.r + 10)) + 'px';
             tip.style.top = Math.max(4, this.hover.y - 30) + 'px';
             tip.innerHTML = `<b>${BB.esc(a.name)}</b> <span class="muted">${BB.esc(a.symbol)}</span><br>
-              <span class="num" style="font-weight:800">$${BB.fmtPrice(a.price)}</span>
+              <span class="num" style="font-weight:800">${BB.fmtPx(a.price)}</span>
               <span class="${BB.chgClass(chg)}" style="font-weight:700">${chg >= 0 ? '+' : ''}${chg.toFixed(2)}%</span> · ${this.tf === '7D' ? '7d' : '24h'}`;
           } else tip.style.display = 'none';
         },

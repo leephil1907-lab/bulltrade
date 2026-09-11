@@ -18,10 +18,20 @@ window.BB = {
   fmtPrice(p) {
     if (p == null) return '—';
     const v = BB.cur === 'USD' ? Number(p) : Number(p) * BB.fx.rate;
-    if (v >= 1000) return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    if (v >= 1) return v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+    const d = BB.cur === 'USD' ? 2 : ((CURS[BB.cur] && CURS[BB.cur].d != null) ? CURS[BB.cur].d : 2);
+    if (v >= 1) return v.toLocaleString('en-US', { minimumFractionDigits: Math.min(d, 2), maximumFractionDigits: Math.max(d, 2) });
     if (v >= 0.01) return v.toFixed(4);
     return v.toPrecision(4);
+  },
+  fmtPx(p) { return BB.sym() + BB.fmtPrice(p); },                       // price WITH the selected currency's symbol
+  conv(n) { return BB.cur === 'USD' ? Number(n) : Number(n) * BB.fx.rate; },
+  fmtCompact(n) {                                                       // market cap / volume, converted + symbol
+    if (n == null || isNaN(n)) return '—';
+    const v = BB.conv(n), a = Math.abs(v);
+    if (a >= 1e12) return BB.sym() + (v / 1e12).toFixed(2) + 'T';
+    if (a >= 1e9) return BB.sym() + (v / 1e9).toFixed(2) + 'B';
+    if (a >= 1e6) return BB.sym() + (v / 1e6).toFixed(1) + 'M';
+    return BB.fmtUSD(n);
   },
   fmtUSD(n, d = 2) {
     if (n == null || isNaN(n)) return '—';
@@ -36,7 +46,7 @@ window.BB = {
     BB.lang = l; localStorage.setItem('bbLang', l);
     document.documentElement.lang = l;
     renderHeader(); renderFooter(); renderAnnouncement();
-    BB.applyLang(); PWA.refreshBannerText();
+    BB.applyLang(); BB.applyUsd(); PWA.refreshBannerText();
   },
   setCur(c, explicit = true) {
     BB.cur = c; localStorage.setItem('bbCur', c);
@@ -62,6 +72,8 @@ window.BB = {
   },
   applyLang() {
     document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = BB.t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = BB.t(el.dataset.i18nHtml); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = BB.t(el.dataset.i18nPh); });
   },
   applyUsd() {
     document.querySelectorAll('[data-usd]').forEach(el => {
@@ -1062,6 +1074,10 @@ const PWA = {
 
 // ---------- boot ----------
 async function bootCommon() {
+  if (window.PAGE_I18N) { for (const l of Object.keys(PAGE_I18N)) { I18N[l] = I18N[l] || {}; Object.assign(I18N[l], PAGE_I18N[l]); } }
+  // translate the page synchronously at DOMContentLoaded — before first paint (no EN flash)
+  // and before per-page boot handlers bind to nodes inside data-i18n-html blocks
+  BB.applyLang();
   Motion.init();
   document.documentElement.lang = BB.lang;
   const [settingsR, meR, fxR] = await Promise.all([

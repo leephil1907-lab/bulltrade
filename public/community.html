@@ -1,24 +1,25 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="Community — Members Only — The Blockchain Bullhorn">
-  <meta property="og:description" content="The Blockchain Bullhorn Community: apply for membership, complete onboarding, and learn how the whole trading system works — chart reading, risk management and more.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/community">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>Community — Members Only — The Blockchain Bullhorn</title>
-  <meta name="description" content="The Blockchain Bullhorn Community: apply for membership, complete onboarding, and learn how the whole trading system works — chart reading, risk management and more.">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Community — Members Only — The Blockchain Bullhorn" property="og:title"/>
+<meta content="The Blockchain Bullhorn Community: apply for membership, complete onboarding, and learn how the whole trading system works — chart reading, risk management and more." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/community" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Community — Members Only — The Blockchain Bullhorn</title>
+<meta content="The Blockchain Bullhorn Community: apply for membership, complete onboarding, and learn how the whole trading system works — chart reading, risk management and more." name="description"/>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<style>
     .gate-hero { text-align: center; padding: 54px 0 30px; }
     .gate-hero .lock-badge { width: 84px; height: 84px; border-radius: 50%; background: var(--gold-dim); border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--gold); margin: 0 auto 20px; }
     .apply-wrap { max-width: 720px; margin: 0 auto; }
@@ -47,118 +48,109 @@
     @media (max-width: 980px) { .member-wall { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 560px) { .member-wall { grid-template-columns: 1fr; } }
   </style>
-  <script>document.documentElement.classList.add('js')</script>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <!-- ============ GATE: guests & non-members ============ -->
-  <div id="gateView" style="display:none">
-    <section class="gate-hero">
-      <div class="container">
-        <div class="lock-badge"><i class="fas fa-lock"></i></div>
-        <span class="eyebrow">Members Only</span>
-        <h1 style="font-size:clamp(28px,4.4vw,44px)">The Blockchain Bullhorn Community</h1>
-        <p class="muted" style="max-width:640px;margin:10px auto 0">A private learning community for disciplined traders. Membership is <b style="color:var(--gold)">by application only</b> — every request is reviewed manually by our team, so the herd stays focused, safe and scam-free.</p>
-      </div>
-    </section>
-
-    <section class="section-tight">
-      <div class="container">
-        <div class="grid grid-3 mb-3">
-          <div class="card card-hover reveal"><div class="feat-icon"><i class="fas fa-graduation-cap"></i></div><h3>The Trading Academy</h3><p>Step-by-step lessons: how to read candlestick charts, market structure, support &amp; resistance, indicators, order types, leverage and risk management — how the whole system works.</p></div>
-          <div class="card card-hover reveal reveal-d1"><div class="feat-icon"><i class="fas fa-people-group"></i></div><h3>A Disciplined Herd</h3><p>Moderated community standards: no shilling, no signal-selling, no fake accounts. Structure over hype — ask questions, share charts and grow with peers.</p></div>
-          <div class="card card-hover reveal reveal-d2"><div class="feat-icon"><i class="fas fa-shield-halved"></i></div><h3>Vetted &amp; Verified</h3><p>Applications are manually approved by the admin team. Onboarding includes a short quiz on risk basics so every member starts with the right mindset.</p></div>
-        </div>
-
-        <!-- onboarding / application -->
-        <div class="apply-wrap card" style="padding:34px" id="applyCard">
-          <div id="applyStage"></div>
-        </div>
-
-        <div class="grid grid-4 mt-3">
-          <div class="card stat-tile reveal"><b><span data-count="125" data-suffix="K+">0</span></b><span>TikTok Community</span></div>
-          <div class="card stat-tile reveal reveal-d1"><b id="memberCount">—</b><span>Approved Members</span></div>
-          <div class="card stat-tile reveal reveal-d2"><b>9</b><span>Academy Lessons</span></div>
-          <div class="card stat-tile reveal reveal-d3"><b>Weekly</b><span>Live Sessions 7–8PM EST</span></div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- ============ MEMBER VIEW ============ -->
-  <div id="memberView" style="display:none">
-    <section class="page-hero" style="padding-bottom:26px">
-      <div class="container">
-        <span class="badge badge-green mb-1"><i class="fas fa-check"></i> APPROVED MEMBER</span>
-        <h1 style="font-size:clamp(26px,4vw,40px)">Welcome to the Herd 🐂</h1>
-        <p>The Trading Academy — learn how the whole system works, from reading your first candle to managing risk like a professional.</p>
-      </div>
-    </section>
-
-    <section class="section-tight">
-      <div class="container">
-        <div class="flex-between mb-2">
-          <h2 style="font-size:24px"><i class="fas fa-graduation-cap" style="color:var(--gold)"></i> The Trading Academy</h2>
-          <div class="kpi"><i class="fas fa-book-open"></i> Progress: <b id="academyProgress">0%</b></div>
-        </div>
-        <div id="lessons"></div>
-
-        <!-- live sessions -->
-        <div class="card mt-3" style="background:linear-gradient(120deg,rgba(0,71,194,.16),rgba(63,20,12,.4))">
-          <div class="flex-between">
-            <div>
-              <h3><i class="fas fa-tower-broadcast" style="color:var(--sky)"></i> Weekly Live Sessions</h3>
-              <p class="muted mt-1">Calvin goes live on TikTok every week between <b>7PM–8PM EST</b> — market breakdowns, Q&amp;A and mindset lessons. Bring your questions from the lessons above.</p>
-            </div>
-            <a class="btn btn-primary" href="https://www.tiktok.com/@blockchainbullhorn" target="_blank" rel="noopener" title="TikTok — @blockchainbullhorn"><i class="fab fa-tiktok"></i> Watch Live</a>
-          </div>
-        </div>
-
-        <!-- member wall -->
-        <div class="mt-3">
-          <h2 style="font-size:24px" class="mb-2"><i class="fas fa-users" style="color:var(--gold)"></i> Community Team</h2>
-          <div class="member-wall" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
-            <div class="card member-card"><img class="face" src="/assets/img/community/founder.jpg" alt="Calvin Hill"><h4>Calvin Hill</h4><div class="role">Founder &amp; Head Coach</div><p>Live weekly on TikTok. Creator of the Super Simple Crypto System &amp; CMF Engine.</p></div>
-            <div class="card member-card" style="padding:22px;text-align:left">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-                <svg width="27" height="27" viewBox="0 0 27 27" style="flex-shrink:0"><path fill="#00b67a" d="M12.9 1.6l3 6.1 6.7 1-4.9 4.7 1.2 6.7-6-3.1-6 3.1 1.2-6.7L3.2 8.7l6.7-1z"/></svg>
-                <b class="font-head" style="font-size:15px">Trustpilot</b>
-              </div>
-              <span style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
-              <div class="font-head" style="font-size:14px;margin-top:6px"><b>Excellent</b> · 4.7 / 5 · 312 reviews</div>
-              <p class="muted small mt-1">Verified students and traders across the Blockchain Bullhorn ecosystem.</p>
-              <a href="https://www.trustpilot.com" target="_blank" rel="noopener" class="btn btn-outline btn-sm mt-2">Read all reviews</a>
-            </div>
-            <div class="card member-card" style="padding:22px;text-align:left">
-              <span style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
-              <b class="font-head" style="display:block;margin-top:8px">"Finally, honest crypto education"</b>
-              <p class="small mt-1" style="color:var(--ink-soft)">"The only course where the guy actually trades what he teaches. Paid for itself in two weeks of disciplined demo trading."</p>
-              <div class="muted small font-head mt-1">Marcus T. · <span style="color:#00b67a">✔ Verified</span></div>
-            </div>
-            <div class="card member-card" style="padding:22px;text-align:left">
-              <span style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
-              <b class="font-head" style="display:block;margin-top:8px">"The CMF Engine changed everything"</b>
-              <p class="small mt-1" style="color:var(--ink-soft)">"Risk management explained better than anywhere else. Withdrawal hit my wallet the same day it was approved."</p>
-              <div class="muted small font-head mt-1">Adebayo O. · <span style="color:#00b67a">✔ Verified</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- next steps -->
-        <div class="grid grid-3 mt-3">
-          <a class="card card-hover text-center" href="/trade" style="display:block"><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-chart-line"></i></div><h3>Practice in the Terminal</h3><p class="muted">Apply the lessons with $10,000 demo funds and live market prices.</p></a>
-          <a class="card card-hover text-center" href="/trading-bots" style="display:block"><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-robot"></i></div><h3>Trading Bots</h3><p class="muted">Automated strategies that place trades for you — connection key required.</p></a>
-          <a class="card card-hover text-center" href="/mentorship" style="display:block" data-open-chat><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-crown"></i></div><h3>Elite Mentorship</h3><p class="muted">Ready for 1-on-1 work with Calvin? Apply for the Elite Mentorship.</p></a>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<!-- ============ GATE: guests & non-members ============ -->
+<div id="gateView" style="display:none">
+<section class="gate-hero">
+<div class="container">
+<div class="lock-badge"><i class="fas fa-lock"></i></div>
+<span class="eyebrow" data-i18n="com.s1">Members Only</span>
+<h1 data-i18n="com.s2" style="font-size:clamp(28px,4.4vw,44px)">The Blockchain Bullhorn Community</h1>
+<p class="muted" data-i18n-html="com.h3" style="max-width:640px;margin:10px auto 0">A private learning community for disciplined traders. Membership is <b style="color:var(--gold)">by application only</b> — every request is reviewed manually by our team, so the herd stays focused, safe and scam-free.</p>
+</div>
+</section>
+<section class="section-tight">
+<div class="container">
+<div class="grid grid-3 mb-3">
+<div class="card card-hover reveal"><div class="feat-icon"><i class="fas fa-graduation-cap"></i></div><h3 data-i18n="com.s4">The Trading Academy</h3><p data-i18n="com.s5">Step-by-step lessons: how to read candlestick charts, market structure, support &amp; resistance, indicators, order types, leverage and risk management — how the whole system works.</p></div>
+<div class="card card-hover reveal reveal-d1"><div class="feat-icon"><i class="fas fa-people-group"></i></div><h3 data-i18n="com.s6">A Disciplined Herd</h3><p data-i18n="com.s7">Moderated community standards: no shilling, no signal-selling, no fake accounts. Structure over hype — ask questions, share charts and grow with peers.</p></div>
+<div class="card card-hover reveal reveal-d2"><div class="feat-icon"><i class="fas fa-shield-halved"></i></div><h3 data-i18n="com.s8">Vetted &amp; Verified</h3><p data-i18n="com.s9">Applications are manually approved by the admin team. Onboarding includes a short quiz on risk basics so every member starts with the right mindset.</p></div>
+</div>
+<!-- onboarding / application -->
+<div class="apply-wrap card" id="applyCard" style="padding:34px">
+<div id="applyStage"></div>
+</div>
+<div class="grid grid-4 mt-3">
+<div class="card stat-tile reveal"><b><span data-count="125" data-suffix="K+">0</span></b><span data-i18n="hero.stat1">TikTok Community</span></div>
+<div class="card stat-tile reveal reveal-d1"><b id="memberCount">—</b><span data-i18n="com.s10">Approved Members</span></div>
+<div class="card stat-tile reveal reveal-d2"><b>9</b><span data-i18n="com.s11">Academy Lessons</span></div>
+<div class="card stat-tile reveal reveal-d3"><b data-i18n="com.s12">Weekly</b><span data-i18n="com.s13">Live Sessions 7–8PM EST</span></div>
+</div>
+</div>
+</section>
+</div>
+<!-- ============ MEMBER VIEW ============ -->
+<div id="memberView" style="display:none">
+<section class="page-hero" style="padding-bottom:26px">
+<div class="container">
+<span class="badge badge-green mb-1"><i class="fas fa-check"></i> APPROVED MEMBER</span>
+<h1 data-i18n="com.s14" style="font-size:clamp(26px,4vw,40px)">Welcome to the Herd 🐂</h1>
+<p data-i18n="com.s15">The Trading Academy — learn how the whole system works, from reading your first candle to managing risk like a professional.</p>
+</div>
+</section>
+<section class="section-tight">
+<div class="container">
+<div class="flex-between mb-2">
+<h2 style="font-size:24px"><i class="fas fa-graduation-cap" style="color:var(--gold)"></i><span data-i18n="com.s4">The Trading Academy</span></h2>
+<div class="kpi" data-i18n-html="com.h16"><i class="fas fa-book-open"></i> Progress: <b id="academyProgress">0%</b></div>
+</div>
+<div id="lessons"></div>
+<!-- live sessions -->
+<div class="card mt-3" style="background:linear-gradient(120deg,rgba(0,71,194,.16),rgba(63,20,12,.4))">
+<div class="flex-between">
+<div>
+<h3><i class="fas fa-tower-broadcast" style="color:var(--sky)"></i><span data-i18n="com.s17">Weekly Live Sessions</span></h3>
+<p class="muted mt-1" data-i18n-html="com.h18">Calvin goes live on TikTok every week between <b>7PM–8PM EST</b> — market breakdowns, Q&amp;A and mindset lessons. Bring your questions from the lessons above.</p>
+</div>
+<a class="btn btn-primary" href="https://www.tiktok.com/@blockchainbullhorn" rel="noopener" target="_blank" title="TikTok — @blockchainbullhorn"><i class="fab fa-tiktok"></i><span data-i18n="com.s19">Watch Live</span></a>
+</div>
+</div>
+<!-- member wall -->
+<div class="mt-3">
+<h2 class="mb-2" style="font-size:24px"><i class="fas fa-users" style="color:var(--gold)"></i><span data-i18n="com.s20">Community Team</span></h2>
+<div class="member-wall" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+<div class="card member-card"><img alt="Calvin Hill" class="face" src="/assets/img/community/founder.jpg"/><h4 data-i18n="idx.s62">Calvin Hill</h4><div class="role" data-i18n="idx.s63">Founder &amp; Head Coach</div><p data-i18n="com.s21">Live weekly on TikTok. Creator of the Super Simple Crypto System &amp; CMF Engine.</p></div>
+<div class="card member-card" style="padding:22px;text-align:left">
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+<svg height="27" style="flex-shrink:0" viewbox="0 0 27 27" width="27"><path d="M12.9 1.6l3 6.1 6.7 1-4.9 4.7 1.2 6.7-6-3.1-6 3.1 1.2-6.7L3.2 8.7l6.7-1z" fill="#00b67a"></path></svg>
+<b class="font-head" data-i18n="com.s22" style="font-size:15px">Trustpilot</b>
+</div>
+<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+<div class="font-head" data-i18n-html="com.h23" style="font-size:14px;margin-top:6px"><b>Excellent</b> · 4.7 / 5 · 312 reviews</div>
+<p class="muted small mt-1" data-i18n="com.s24">Verified students and traders across the Blockchain Bullhorn ecosystem.</p>
+<a class="btn btn-outline btn-sm mt-2" data-i18n="com.s25" href="https://www.trustpilot.com" rel="noopener" target="_blank">Read all reviews</a>
+</div>
+<div class="card member-card" style="padding:22px;text-align:left">
+<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+<b class="font-head" data-i18n="idx.s74" style="display:block;margin-top:8px">"Finally, honest crypto education"</b>
+<p class="small mt-1" data-i18n="com.s26" style="color:var(--ink-soft)">"The only course where the guy actually trades what he teaches. Paid for itself in two weeks of disciplined demo trading."</p>
+<div class="muted small font-head mt-1" data-i18n-html="com.h27">Marcus T. · <span style="color:#00b67a">✔ Verified</span></div>
+</div>
+<div class="card member-card" style="padding:22px;text-align:left">
+<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+<b class="font-head" data-i18n="idx.s78" style="display:block;margin-top:8px">"The CMF Engine changed everything"</b>
+<p class="small mt-1" data-i18n="com.s28" style="color:var(--ink-soft)">"Risk management explained better than anywhere else. Withdrawal hit my wallet the same day it was approved."</p>
+<div class="muted small font-head mt-1" data-i18n-html="com.h29">Adebayo O. · <span style="color:#00b67a">✔ Verified</span></div>
+</div>
+</div>
+</div>
+<!-- next steps -->
+<div class="grid grid-3 mt-3">
+<a class="card card-hover text-center" href="/trade" style="display:block"><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-chart-line"></i></div><h3 data-i18n="com.s30">Practice in the Terminal</h3><p class="muted" data-i18n-html="com.h31">Apply the lessons with <span data-usd="10000">$10,000</span> demo funds and live market prices.</p></a>
+<a class="card card-hover text-center" href="/trading-bots" style="display:block"><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-robot"></i></div><h3 data-i18n="nav.bots">Trading Bots</h3><p class="muted" data-i18n="com.s32">Automated strategies that place trades for you — connection key required.</p></a>
+<a class="card card-hover text-center" data-open-chat="" href="/mentorship" style="display:block"><div class="feat-icon" style="margin:0 auto 12px"><i class="fas fa-crown"></i></div><h3 data-i18n="ftr.mentorship">Elite Mentorship</h3><p class="muted" data-i18n="com.s33">Ready for 1-on-1 work with Calvin? Apply for the Elite Mentorship.</p></a>
+</div>
+</div>
+</section>
+</div>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script>
     /* ---------------- Academy curriculum ---------------- */
     const LESSONS = [
       { t: 'How This Trading System Works', m: '6 min', body: `
@@ -290,7 +282,7 @@
         stage.innerHTML = `
           <div class="text-center" style="padding:22px 8px">
             <h3 style="font-size:24px">Want in? Two steps:</h3>
-            <p class="muted mt-1 mb-2">1 · Create your free account (includes $10,000 demo funds).<br>2 · Apply for community membership &amp; pass the onboarding quiz.</p>
+            <p class="muted mt-1 mb-2">1 · Create your free account (includes <span data-usd="10000">$10,000</span> demo funds).<br>2 · Apply for community membership &amp; pass the onboarding quiz.</p>
             <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
               <a class="btn btn-gold btn-lg" href="/signup"><i class="fas fa-user-plus"></i> Create Free Account</a>
               <a class="btn btn-outline btn-lg" href="/login"><i class="fas fa-right-to-bracket"></i> I Already Have One</a>
@@ -322,7 +314,7 @@
               <option value="experienced">Experienced — focused on refining my system</option>
             </select></div>
           <div class="field"><label>What do you want from this community?</label>
-            <textarea class="input" id="appGoals" rows="3" placeholder="e.g. Learn to read charts, stop over-leveraging, build a disciplined system…"></textarea></div>
+            <textarea class="input" id="appGoals" rows="3" placeholder="e.g. Learn to read charts, stop over-leveraging, build a disciplined system…" data-i18n-ph="com.goalsPh"></textarea></div>
           <button class="btn btn-primary" id="toQuizBtn">Continue to Onboarding Quiz <i class="fas fa-arrow-right"></i></button>
         </div>
         <div id="appStepQuiz" style="display:none">

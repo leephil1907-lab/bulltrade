@@ -1,102 +1,101 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="KYC Verification — The Blockchain Bullhorn">
-  <meta property="og:description" content="Elite crypto education, live markets, demo & live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/kyc">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>KYC Verification — The Blockchain Bullhorn</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <script>document.documentElement.classList.add('js')</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="KYC Verification — The Blockchain Bullhorn" property="og:title"/>
+<meta content="Elite crypto education, live markets, demo &amp; live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/kyc" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>KYC Verification — The Blockchain Bullhorn</title>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <section class="section-tight">
-    <div class="container" style="max-width:720px">
-      <div class="page-hero" style="padding-bottom:18px">
-        <div class="crumbs"><a href="/">Home</a> · <a href="/dashboard">Dashboard</a> · KYC</div>
-        <h1 style="font-size:clamp(24px,3.4vw,34px)">Identity Verification (KYC)</h1>
-        <p>Manual verification by our compliance team — required for live trading and withdrawals. Usually completed within 24 hours.</p>
-      </div>
-
-      <div class="card" style="padding:32px">
-        <div id="kycStatusBox"><span class="skeleton" style="width:100%;height:80px"></span></div>
-        <div id="kycForm">
-          <div class="field">
-            <label>ID document type</label>
-            <select class="input" id="idType">
-              <option value="passport">Passport (recommended)</option>
-              <option value="drivers_license">Driver's License</option>
-              <option value="national_id">National ID Card</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>1 · Your details (as shown on the document)</label>
-            <div class="form-row">
-              <input class="input" id="kycName" placeholder="Full legal name" autocomplete="name">
-              <input class="input" id="kycIdNo" placeholder="Document / ID number">
-            </div>
-            <div class="form-row" style="margin-top:10px">
-              <input class="input" id="kycAddress" placeholder="Residential address (street & number)" autocomplete="street-address" style="grid-column:1/-1">
-              <input class="input" id="kycCity" placeholder="City / State">
-              <input class="input" id="kycCountry" placeholder="Country" autocomplete="country-name">
-            </div>
-          </div>
-          <div class="field">
-            <label>2 · Front side of your document</label>
-            <div class="dropzone" id="dzFront">
-              <i class="fas fa-id-card"></i>
-              <b>Upload ID front</b>
-              <small>All four corners visible · JPG, PNG, WEBP or PDF · max 5MB</small>
-              <input type="file" id="fFront" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
-            </div>
-            <div id="prevFront"></div>
-          </div>
-          <div class="field">
-            <label>3 · Back side of your document</label>
-            <div class="dropzone" id="dzBack">
-              <i class="fas fa-id-card-clip"></i>
-              <b>Upload ID back</b>
-              <small>Required for licenses and national IDs · passports without a back side may upload the front again</small>
-              <input type="file" id="fBack" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
-            </div>
-            <div id="prevBack"></div>
-          </div>
-          <div class="field">
-            <label>4 · Selfie holding your document <span class="muted" style="font-weight:400">(optional, speeds up review)</span></label>
-            <div class="dropzone" id="dzSelfie">
-              <i class="fas fa-face-smile"></i>
-              <b>Upload selfie with ID</b>
-              <small>Hold the ID next to your face — no glare, face fully visible</small>
-              <input type="file" id="fSelfie" accept="image/jpeg,image/png,image/webp,application/pdf" hidden>
-            </div>
-            <div id="prevSelfie"></div>
-          </div>
-          <div class="card" style="background:rgba(0,71,194,.1);border-color:rgba(46,145,252,.25);font-size:13px;margin-bottom:18px">
-            <b class="font-head"><i class="fas fa-lock" style="color:var(--sky)"></i> Your data is protected</b>
-            <p class="muted" style="font-size:12.5px;margin-top:6px">Documents are stored securely, visible only to our compliance team, and never shared with third parties. See our <a href="/legal?p=gdpr">Privacy Policy</a>.</p>
-          </div>
-          <button class="btn btn-gold btn-lg btn-block" id="kycSubmit"><i class="fas fa-paper-plane"></i> Submit for Verification</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<section class="section-tight">
+<div class="container" style="max-width:720px">
+<div class="page-hero" style="padding-bottom:18px">
+<div class="crumbs"><a data-i18n="mkt.s1" href="/">Home</a> · <a data-i18n="hdr.dashboard" href="/dashboard">Dashboard</a> · KYC</div>
+<h1 data-i18n="kyc.s1" style="font-size:clamp(24px,3.4vw,34px)">Identity Verification (KYC)</h1>
+<p data-i18n="kyc.s2">Manual verification by our compliance team — required for live trading and withdrawals. Usually completed within 24 hours.</p>
+</div>
+<div class="card" style="padding:32px">
+<div id="kycStatusBox"><span class="skeleton" style="width:100%;height:80px"></span></div>
+<div id="kycForm">
+<div class="field">
+<label data-i18n="kyc.s3">ID document type</label>
+<select class="input" id="idType">
+<option value="passport">Passport (recommended)</option>
+<option value="drivers_license">Driver's License</option>
+<option value="national_id">National ID Card</option>
+</select>
+</div>
+<div class="field">
+<label data-i18n="kyc.s4">1 · Your details (as shown on the document)</label>
+<div class="form-row">
+<input autocomplete="name" class="input" id="kycName" placeholder="Full legal name" data-i18n-ph="kyc.namePh"/>
+<input class="input" id="kycIdNo" placeholder="Document / ID number" data-i18n-ph="kyc.idPh"/>
+</div>
+<div class="form-row" style="margin-top:10px">
+<input autocomplete="street-address" class="input" id="kycAddress" placeholder="Residential address (street &amp; number)" style="grid-column:1/-1"/>
+<input class="input" id="kycCity" placeholder="City / State" data-i18n-ph="kyc.cityPh"/>
+<input autocomplete="country-name" class="input" id="kycCountry" placeholder="Country" data-i18n-ph="kyc.countryPh"/>
+</div>
+</div>
+<div class="field">
+<label data-i18n="kyc.s5">2 · Front side of your document</label>
+<div class="dropzone" id="dzFront">
+<i class="fas fa-id-card"></i>
+<b data-i18n="kyc.s6">Upload ID front</b>
+<small data-i18n="kyc.s7">All four corners visible · JPG, PNG, WEBP or PDF · max 5MB</small>
+<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fFront" type="file"/>
+</div>
+<div id="prevFront"></div>
+</div>
+<div class="field">
+<label data-i18n="kyc.s8">3 · Back side of your document</label>
+<div class="dropzone" id="dzBack">
+<i class="fas fa-id-card-clip"></i>
+<b data-i18n="kyc.s9">Upload ID back</b>
+<small data-i18n="kyc.s10">Required for licenses and national IDs · passports without a back side may upload the front again</small>
+<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fBack" type="file"/>
+</div>
+<div id="prevBack"></div>
+</div>
+<div class="field">
+<label data-i18n-html="kyc.h11">4 · Selfie holding your document <span class="muted" style="font-weight:400">(optional, speeds up review)</span></label>
+<div class="dropzone" id="dzSelfie">
+<i class="fas fa-face-smile"></i>
+<b data-i18n="kyc.s12">Upload selfie with ID</b>
+<small data-i18n="kyc.s13">Hold the ID next to your face — no glare, face fully visible</small>
+<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fSelfie" type="file"/>
+</div>
+<div id="prevSelfie"></div>
+</div>
+<div class="card" style="background:rgba(0,71,194,.1);border-color:rgba(46,145,252,.25);font-size:13px;margin-bottom:18px">
+<b class="font-head"><i class="fas fa-lock" style="color:var(--sky)"></i><span data-i18n="kyc.s14">Your data is protected</span></b>
+<p class="muted" data-i18n-html="kyc.h15" style="font-size:12.5px;margin-top:6px">Documents are stored securely, visible only to our compliance team, and never shared with third parties. See our <a href="/legal?p=gdpr">Privacy Policy</a>.</p>
+</div>
+<button class="btn btn-gold btn-lg btn-block" id="kycSubmit"><i class="fas fa-paper-plane"></i><span data-i18n="kyc.s16">Submit for Verification</span></button>
+</div>
+</div>
+</div>
+</section>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script>
     document.addEventListener('bb:ready', async () => {
       if (!BB.user) { location.href = '/login?next=' + encodeURIComponent('/kyc'); return; }
       const docs = { front: null, back: null, selfie: null };

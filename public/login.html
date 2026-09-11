@@ -1,90 +1,88 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="Log In — The Blockchain Bullhorn">
-  <meta property="og:description" content="Elite crypto education, live markets, demo & live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/login">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>Log In — The Blockchain Bullhorn</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#ffffff">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <script>document.documentElement.classList.add('js')</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Log In — The Blockchain Bullhorn" property="og:title"/>
+<meta content="Elite crypto education, live markets, demo &amp; live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/login" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Log In — The Blockchain Bullhorn</title>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<meta content="#ffffff" name="theme-color"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <div class="auth-wrap">
-    <div class="auth-art">
-      <img src="/assets/img/brand/login-art.jpg" alt="Blockchain Bullhorn">
-      <div class="auth-art-caption">
-        <span class="eyebrow">The Blockchain Bullhorn</span>
-        <h2>The markets missed you 🐂</h2>
-        <p>Pick up where you left off — your demo portfolio, live positions and the Crypto Ready Report are waiting.</p>
-      </div>
-    </div>
-    <div class="auth-form-side">
-      <div class="auth-box">
-        <a class="auth-brand" href="/" title="Back to homepage">
-          <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn logo">
-          <span>Blockchain <b>Bullhorn</b></span>
-        </a>
-        <h1 data-i18n="auth.welcomeBack">Welcome Back</h1>
-        <p class="sub">Log in to access your dashboard, spreadsheets, trading terminal and courses.</p>
-        <div class="alert alert-error" id="loginAlert"></div>
-        <form id="loginForm" novalidate>
-          <div class="field">
-            <label for="email">Email</label>
-            <input class="input" type="email" id="email" placeholder="you@example.com" autocomplete="email" required>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<div class="auth-wrap">
+<div class="auth-art">
+<img alt="Blockchain Bullhorn" src="/assets/img/brand/login-art.jpg"/>
+<div class="auth-art-caption">
+<span class="eyebrow" data-i18n="log.s1">The Blockchain Bullhorn</span>
+<h2 data-i18n="log.s2">The markets missed you 🐂</h2>
+<p data-i18n="log.s3">Pick up where you left off — your demo portfolio, live positions and the Crypto Ready Report are waiting.</p>
+</div>
+</div>
+<div class="auth-form-side">
+<div class="auth-box">
+<a class="auth-brand" href="/" title="Back to homepage">
+<img alt="Blockchain Bullhorn logo" src="/assets/img/brand/logo.png"/>
+<span>Blockchain <b>Bullhorn</b></span>
+</a>
+<h1 data-i18n="auth.welcomeBack">Welcome Back</h1>
+<p class="sub" data-i18n="log.s4">Log in to access your dashboard, spreadsheets, trading terminal and courses.</p>
+<div class="alert alert-error" id="loginAlert"></div>
+<form id="loginForm" novalidate="">
+<div class="field">
+<label data-i18n="log.s5" for="email">Email</label>
+<input autocomplete="email" class="input" id="email" placeholder="you@example.com" data-i18n-ph="log.emailPh" required="" type="email"/>
+</div>
+<div class="field">
+<label data-i18n="log.s6" for="password">Password</label>
+<div class="pw-wrap">
+<input autocomplete="current-password" class="input" id="password" placeholder="Your password" data-i18n-ph="log.pwPh" required="" type="password"/>
+<button aria-label="Show password" class="pw-eye" id="pwEye" type="button"><i class="fas fa-eye"></i></button>
+</div>
+</div>
+<div class="flex-between mb-2">
+<label class="checkline"><input checked="" id="remember" type="checkbox"/> Remember me</label>
+<a data-i18n="log.s7" href="/forgot-password" style="font-family:var(--font-head);font-size:13.5px">Forgot password?</a>
+</div>
+<button class="btn btn-primary btn-lg btn-block" id="loginBtn" type="submit"><i class="fas fa-right-to-bracket"></i><span data-i18n="hdr.login">Log In</span></button>
+</form>
+<!-- 2FA step (shown when the account has TOTP enabled) -->
+<div id="totpStep" style="display:none">
+<div class="alert alert-info" data-i18n-html="log.h8" style="display:block">
+<i class="fas fa-shield-halved"></i> Two-factor authentication is enabled on <b id="totpEmail"></b>. Enter the 6-digit code from your authenticator app.
           </div>
-          <div class="field">
-            <label for="password">Password</label>
-            <div class="pw-wrap">
-              <input class="input" type="password" id="password" placeholder="Your password" autocomplete="current-password" required>
-              <button type="button" class="pw-eye" id="pwEye" aria-label="Show password"><i class="fas fa-eye"></i></button>
-            </div>
-          </div>
-          <div class="flex-between mb-2">
-            <label class="checkline"><input type="checkbox" id="remember" checked> Remember me</label>
-            <a href="/forgot-password" style="font-family:var(--font-head);font-size:13.5px">Forgot password?</a>
-          </div>
-          <button class="btn btn-primary btn-lg btn-block" id="loginBtn" type="submit"><i class="fas fa-right-to-bracket"></i> Log In</button>
-        </form>
-
-        <!-- 2FA step (shown when the account has TOTP enabled) -->
-        <div id="totpStep" style="display:none">
-          <div class="alert alert-info" style="display:block">
-            <i class="fas fa-shield-halved"></i> Two-factor authentication is enabled on <b id="totpEmail"></b>. Enter the 6-digit code from your authenticator app.
-          </div>
-          <div class="field">
-            <label for="totpCode">Authenticator code</label>
-            <input class="input" id="totpCode" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code" style="text-align:center;font-family:var(--font-head);font-size:22px;letter-spacing:8px">
-          </div>
-          <button class="btn btn-primary btn-lg btn-block" id="totpBtn"><i class="fas fa-key"></i> Verify &amp; Log In</button>
-          <button class="btn btn-outline btn-sm btn-block mt-1" id="totpBack">Use a different account</button>
+<div class="field">
+<label data-i18n="log.s9" for="totpCode">Authenticator code</label>
+<input autocomplete="one-time-code" class="input" id="totpCode" inputmode="numeric" maxlength="6" placeholder="123456" style="text-align:center;font-family:var(--font-head);font-size:22px;letter-spacing:8px"/>
+</div>
+<button class="btn btn-primary btn-lg btn-block" id="totpBtn"><i class="fas fa-key"></i><span data-i18n="log.s10">Verify &amp; Log In</span></button>
+<button class="btn btn-outline btn-sm btn-block mt-1" data-i18n="log.s11" id="totpBack">Use a different account</button>
+</div>
+<div class="auth-alt">New to Blockchain Bullhorn? <a href="/signup"><b data-i18n="log.s12">Create your free account</b></a> — includes <span data-usd="10000">$10,000</span> demo funds.</div>
+<div class="alert alert-info mt-2" style="display:block">
+<i class="fas fa-shield-halved"></i> We never ask for your password or seed phrase by chat, DM or email. See the <a data-i18n="ftr.fraudAlert" href="/avoid-scams">Fraud Alert</a>.
         </div>
-
-        <div class="auth-alt">New to Blockchain Bullhorn? <a href="/signup"><b>Create your free account</b></a> — includes $10,000 demo funds.</div>
-        <div class="alert alert-info mt-2" style="display:block">
-          <i class="fas fa-shield-halved"></i> We never ask for your password or seed phrase by chat, DM or email. See the <a href="/avoid-scams">Fraud Alert</a>.
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script>
+</div>
+</div>
+</div>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script>
     document.addEventListener('bb:ready', async () => {
       if (BB.user) { location.href = '/dashboard'; return; }
       $('#pwEye').addEventListener('click', () => {

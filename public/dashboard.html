@@ -1,23 +1,24 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="Dashboard — The Blockchain Bullhorn">
-  <meta property="og:description" content="Elite crypto education, live markets, demo & live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/dashboard">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>Dashboard — The Blockchain Bullhorn</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Dashboard — The Blockchain Bullhorn" property="og:title"/>
+<meta content="Elite crypto education, live markets, demo &amp; live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/dashboard" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Dashboard — The Blockchain Bullhorn</title>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<style>
     .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .bal-card { position: relative; overflow: hidden; }
     .bal-card .bc-label { font-family: var(--font-head); font-size: 11.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-dim); display: flex; align-items: center; gap: 7px; }
@@ -42,201 +43,189 @@
     @media (max-width: 1080px) { .dash-grid { grid-template-columns: 1fr 1fr; } .qa-row { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 640px) { .dash-grid { grid-template-columns: 1fr; } .qa-row { grid-template-columns: 1fr 1fr; } }
   </style>
-  <script>document.documentElement.classList.add('js')</script>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <section class="section-tight reveal">
-    <div class="container-wide">
-      <div class="flex-between mb-2">
-        <div>
-          <h1 style="font-size:clamp(24px,3vw,32px)" id="welcomeTitle">Dashboard</h1>
-          <p class="muted" id="welcomeSub">Loading your account…</p>
-          <div class="acct-row mt-1" id="acctChips"></div>
-        </div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <a href="/funding" class="btn btn-green"><i class="fas fa-wallet"></i> Deposit</a>
-          <a href="/trade" class="btn btn-gold"><i class="fas fa-chart-line"></i> Trade</a>
-        </div>
-      </div>
-
-      <!-- KYC status -->
-      <div class="card mb-2" id="kycCard"></div>
-
-      <!-- balances -->
-      <div class="dash-grid mb-2" id="balCards">
-        <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
-        <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
-        <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
-        <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
-      </div>
-
-      <!-- quick actions -->
-      <div class="qa-row mb-2">
-        <a class="qa" href="/funding"><i class="fas fa-arrow-down"></i> Deposit Crypto</a>
-        <a class="qa" href="/funding"><i class="fas fa-arrow-up"></i> Withdraw</a>
-        <a class="qa" href="/kyc"><i class="fas fa-id-card"></i> Verify Identity</a>
-        <a class="qa" href="/trade?swap=1"><i class="fas fa-right-left"></i> Swap Coins</a>
-        <a class="qa" href="/trading-bots"><i class="fas fa-robot"></i> Trading Bots</a>
-        <a class="qa" href="/community"><i class="fas fa-graduation-cap"></i> Academy</a>
-        <a class="qa" href="/markets"><i class="fas fa-chart-column"></i> Markets</a>
-      </div>
-
-      <!-- portfolio breakdown -->
-      <div class="card mb-2" id="portfolioCard">
-        <div class="flex-between mb-2" style="flex-wrap:wrap;gap:10px">
-          <b class="font-head" style="font-size:16px"><i class="fas fa-briefcase" style="color:var(--gold)"></i> My Portfolio</b>
-          <div class="tab-bar" style="margin:0" id="pfTabs">
-            <button class="tab-btn" data-pfm="demo">Demo</button>
-            <button class="tab-btn" data-pfm="live">Live</button>
-          </div>
-        </div>
-        <div id="pfBody"><span class="skeleton" style="width:100%;height:120px"></span></div>
-      </div>
-
-      <!-- pro tools: alerts + XP -->
-      <div class="grid grid-2 mb-2">
-        <div class="card">
-          <div class="flex-between mb-2">
-            <b class="font-head" style="font-size:16px"><i class="fas fa-bell" style="color:var(--gold)"></i> Price Alerts</b>
-            <span class="badge badge-gold" id="alCount">0</span>
-          </div>
-          <div id="alList" style="max-height:210px;overflow-y:auto"><span class="skeleton" style="width:100%;height:60px"></span></div>
-          <div class="form-row mt-2" style="align-items:end">
-            <div class="field" style="margin:0">
-              <label>Asset</label>
-              <select class="input" id="alAsset"></select>
-            </div>
-            <div class="field" style="margin:0">
-              <label>When price is</label>
-              <div style="display:flex;gap:8px">
-                <select class="input" id="alDir" style="width:96px"><option value="above">Above</option><option value="below">Below</option></select>
-                <input class="input" id="alPrice" type="number" step="any" min="0" placeholder="Target $">
-              </div>
-            </div>
-          </div>
-          <button class="btn btn-green btn-sm btn-block mt-1" id="alAdd"><i class="fas fa-plus"></i> Set Alert</button>
-        </div>
-        <div class="card">
-          <div class="flex-between mb-2">
-            <b class="font-head" style="font-size:16px"><i class="fas fa-medal" style="color:var(--gold)"></i> Level <span id="xpLevel">1</span> Trader</b>
-            <span class="badge badge-green" id="xpTotal">0 XP</span>
-          </div>
-          <div class="pw-meter" style="height:9px"><i id="xpBar" style="width:0%;background:var(--green)"></i></div>
-          <div class="muted small mt-1" id="xpNext"></div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px" id="badgeWall"></div>
-        </div>
-      </div>
-
-      <!-- gamification: contest + referrals -->
-      <div class="grid grid-2 mb-2">
-        <div class="card">
-          <div class="flex-between mb-2">
-            <b class="font-head" style="font-size:16px"><i class="fas fa-trophy" style="color:var(--gold)"></i> Weekly Demo Contest</b>
-            <a href="/trade" class="btn btn-outline btn-sm">Enter</a>
-          </div>
-          <div class="muted small mb-2" id="contestMeta"></div>
-          <div id="contestBoard"><span class="skeleton" style="width:100%;height:80px"></span></div>
-        </div>
-        <div class="card">
-          <div class="flex-between mb-2">
-            <b class="font-head" style="font-size:16px"><i class="fas fa-user-plus" style="color:var(--gold)"></i> Invite &amp; Earn XP</b>
-            <span class="badge badge-blue" id="refTotal">0 invited</span>
-          </div>
-          <p class="muted small mb-1">Share your link — you earn <b>100 XP</b> per trader who signs up.</p>
-          <div class="addr-box mb-1"><span id="refLink" style="flex:1"></span>
-            <button id="refCopy" title="Copy link"><i class="fas fa-copy"></i></button></div>
-          <div id="refList"></div>
-        </div>
-      </div>
-
-      <!-- performance -->
-      <div class="grid grid-2 mb-2">
-        <div class="card">
-          <div class="flex-between mb-2">
-            <b class="font-head" style="font-size:16px"><i class="fas fa-chart-area" style="color:var(--gold)"></i> Realized P/L — <span id="perfMode">DEMO</span></b>
-            <div class="tab-bar" style="margin:0" id="perfTabs">
-              <button class="tab-btn active" data-m="demo" style="padding:5px 12px">Demo</button>
-              <button class="tab-btn" data-m="live" style="padding:5px 12px">Live</button>
-            </div>
-          </div>
-          <canvas id="plChart" style="width:100%;height:190px"></canvas>
-          <div class="grid grid-4 mt-2" style="gap:10px" id="perfStats"></div>
-        </div>
-        <div class="card">
-          <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-chart-pie" style="color:var(--gold)"></i> Allocation — <span id="donutMode">DEMO</span></b></div>
-          <div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
-            <canvas id="donut" width="180" height="180" style="max-width:180px"></canvas>
-            <div style="flex:1;min-width:190px" id="donutLegend"><span class="skeleton" style="width:100%;height:70px"></span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- positions & orders -->
-      <div class="card mb-2">
-        <div class="flex-between mb-2">
-          <b class="font-head" style="font-size:16px"><i class="fas fa-layer-group" style="color:var(--gold)"></i> Open Positions (<span id="cntPos">0</span>)</b>
-          <div class="tab-bar" style="margin:0" id="posTabs">
-            <button class="tab-btn active" data-m="demo" style="padding:5px 12px">Demo</button>
-            <button class="tab-btn" data-m="live" style="padding:5px 12px">Live</button>
-          </div>
-        </div>
-        <div id="positionsBox"></div>
-      </div>
-
-      <div class="grid grid-2">
-        <!-- copy allocations -->
-        <div class="card">
-          <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-robot" style="color:var(--gold)"></i> Trading Bots</b><a href="/trading-bots" class="btn btn-outline btn-sm">Browse Bots</a></div>
-          <div id="dashCopy"><span class="skeleton" style="width:100%;height:60px"></span></div>
-        </div>
-        <!-- recent activity -->
-        <div class="card">
-          <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-receipt" style="color:var(--gold)"></i> Recent Activity</b><a href="/funding" class="btn btn-outline btn-sm">All</a></div>
-          <div id="dashTx"><span class="skeleton" style="width:100%;height:60px"></span></div>
-        </div>
-      </div>
-
-      <!-- trade history -->
-      <div class="card mt-2">
-        <div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-clock-rotate-left" style="color:var(--gold)"></i> Trade History</b></div>
-        <div id="historyBox"><span class="skeleton" style="width:100%;height:120px"></span></div>
-      </div>
-
-      <!-- security -->
-      <div class="grid grid-2 mt-2">
-        <div class="card">
-          <div class="flex-between mb-2">
-            <b class="font-head" style="font-size:16px"><i class="fas fa-shield-halved" style="color:var(--gold)"></i> Two-Factor Authentication</b>
-            <span id="twofaState"></span>
-          </div>
-          <div id="twofaBox"></div>
-        </div>
-        <div class="card">
-          <div class="flex-between mb-2">
-            <b class="font-head" style="font-size:16px"><i class="fas fa-clock" style="color:var(--gold)"></i> Login History</b>
-            <a href="/avoid-scams" class="btn btn-outline btn-sm">Fraud Alert</a>
-          </div>
-          <div class="table-wrap" style="box-shadow:none"><table class="dt" style="min-width:0">
-            <thead><tr><th>When</th><th>Device</th><th>IP</th></tr></thead>
-            <tbody id="loginRows">
-            <tr><td><span class="skeleton" style="width:50%"></span></td><td><span class="skeleton" style="width:81%"></span></td><td><span class="skeleton" style="width:67%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:73%"></span></td><td><span class="skeleton" style="width:59%"></span></td><td><span class="skeleton" style="width:90%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:51%"></span></td><td><span class="skeleton" style="width:82%"></span></td><td><span class="skeleton" style="width:68%"></span></td></tr>
-            <tr><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:60%"></span></td><td><span class="skeleton" style="width:91%"></span></td></tr>
-          </tbody>
-          </table></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script src="/assets/js/qrcode.js"></script>
-  <script>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<section class="section-tight reveal">
+<div class="container-wide">
+<div class="flex-between mb-2">
+<div>
+<h1 data-i18n="hdr.dashboard" id="welcomeTitle" style="font-size:clamp(24px,3vw,32px)">Dashboard</h1>
+<p class="muted" data-i18n="dash.s1" id="welcomeSub">Loading your account…</p>
+<div class="acct-row mt-1" id="acctChips"></div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<a class="btn btn-green" href="/funding"><i class="fas fa-wallet"></i><span data-i18n="dash.s2">Deposit</span></a>
+<a class="btn btn-gold" href="/trade"><i class="fas fa-chart-line"></i><span data-i18n="dash.s3">Trade</span></a>
+</div>
+</div>
+<!-- KYC status -->
+<div class="card mb-2" id="kycCard"></div>
+<!-- balances -->
+<div class="dash-grid mb-2" id="balCards">
+<div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
+<div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
+<div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
+<div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
+</div>
+<!-- quick actions -->
+<div class="qa-row mb-2">
+<a class="qa" href="/funding"><i class="fas fa-arrow-down"></i><span data-i18n="dash.s4">Deposit Crypto</span></a>
+<a class="qa" href="/funding"><i class="fas fa-arrow-up"></i><span data-i18n="dash.s5">Withdraw</span></a>
+<a class="qa" href="/kyc"><i class="fas fa-id-card"></i><span data-i18n="dash.s6">Verify Identity</span></a>
+<a class="qa" href="/trade?swap=1"><i class="fas fa-right-left"></i><span data-i18n="trd.s11">Swap Coins</span></a>
+<a class="qa" href="/trading-bots"><i class="fas fa-robot"></i><span data-i18n="nav.bots">Trading Bots</span></a>
+<a class="qa" href="/community"><i class="fas fa-graduation-cap"></i><span data-i18n="dash.s7">Academy</span></a>
+<a class="qa" href="/markets"><i class="fas fa-chart-column"></i><span data-i18n="nav.markets">Markets</span></a>
+</div>
+<!-- portfolio breakdown -->
+<div class="card mb-2" id="portfolioCard">
+<div class="flex-between mb-2" style="flex-wrap:wrap;gap:10px">
+<b class="font-head" style="font-size:16px"><i class="fas fa-briefcase" style="color:var(--gold)"></i><span data-i18n="dash.s8">My Portfolio</span></b>
+<div class="tab-bar" id="pfTabs" style="margin:0">
+<button class="tab-btn" data-i18n="dash.s9" data-pfm="demo">Demo</button>
+<button class="tab-btn" data-i18n="dash.s10" data-pfm="live">Live</button>
+</div>
+</div>
+<div id="pfBody"><span class="skeleton" style="width:100%;height:120px"></span></div>
+</div>
+<!-- pro tools: alerts + XP -->
+<div class="grid grid-2 mb-2">
+<div class="card">
+<div class="flex-between mb-2">
+<b class="font-head" style="font-size:16px"><i class="fas fa-bell" style="color:var(--gold)"></i><span data-i18n="dash.s11">Price Alerts</span></b>
+<span class="badge badge-gold" id="alCount">0</span>
+</div>
+<div id="alList" style="max-height:210px;overflow-y:auto"><span class="skeleton" style="width:100%;height:60px"></span></div>
+<div class="form-row mt-2" style="align-items:end">
+<div class="field" style="margin:0">
+<label data-i18n="idx.s15">Asset</label>
+<select class="input" id="alAsset"></select>
+</div>
+<div class="field" style="margin:0">
+<label data-i18n="dash.s12">When price is</label>
+<div style="display:flex;gap:8px">
+<select class="input" id="alDir" style="width:96px"><option value="above">Above</option><option value="below">Below</option></select>
+<input class="input" id="alPrice" min="0" placeholder="Target $" step="any" type="number"/>
+</div>
+</div>
+</div>
+<button class="btn btn-green btn-sm btn-block mt-1" id="alAdd"><i class="fas fa-plus"></i><span data-i18n="dash.s13">Set Alert</span></button>
+</div>
+<div class="card">
+<div class="flex-between mb-2">
+<b class="font-head" data-i18n-html="dash.h14" style="font-size:16px"><i class="fas fa-medal" style="color:var(--gold)"></i> Level <span id="xpLevel">1</span> Trader</b>
+<span class="badge badge-green" id="xpTotal">0 XP</span>
+</div>
+<div class="pw-meter" style="height:9px"><i id="xpBar" style="width:0%;background:var(--green)"></i></div>
+<div class="muted small mt-1" id="xpNext"></div>
+<div id="badgeWall" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"></div>
+</div>
+</div>
+<!-- gamification: contest + referrals -->
+<div class="grid grid-2 mb-2">
+<div class="card">
+<div class="flex-between mb-2">
+<b class="font-head" style="font-size:16px"><i class="fas fa-trophy" style="color:var(--gold)"></i><span data-i18n="dash.s15">Weekly Demo Contest</span></b>
+<a class="btn btn-outline btn-sm" data-i18n="dash.s16" href="/trade">Enter</a>
+</div>
+<div class="muted small mb-2" id="contestMeta"></div>
+<div id="contestBoard"><span class="skeleton" style="width:100%;height:80px"></span></div>
+</div>
+<div class="card">
+<div class="flex-between mb-2">
+<b class="font-head" style="font-size:16px"><i class="fas fa-user-plus" style="color:var(--gold)"></i><span data-i18n="dash.s17">Invite &amp; Earn XP</span></b>
+<span class="badge badge-blue" data-i18n="dash.s18" id="refTotal">0 invited</span>
+</div>
+<p class="muted small mb-1" data-i18n-html="dash.h19">Share your link — you earn <b>100 XP</b> per trader who signs up.</p>
+<div class="addr-box mb-1"><span id="refLink" style="flex:1"></span>
+<button id="refCopy" title="Copy link"><i class="fas fa-copy"></i></button></div>
+<div id="refList"></div>
+</div>
+</div>
+<!-- performance -->
+<div class="grid grid-2 mb-2">
+<div class="card">
+<div class="flex-between mb-2">
+<b class="font-head" data-i18n-html="dash.h20" style="font-size:16px"><i class="fas fa-chart-area" style="color:var(--gold)"></i> Realized P/L — <span id="perfMode">DEMO</span></b>
+<div class="tab-bar" id="perfTabs" style="margin:0">
+<button class="tab-btn active" data-i18n="dash.s9" data-m="demo" style="padding:5px 12px">Demo</button>
+<button class="tab-btn" data-i18n="dash.s10" data-m="live" style="padding:5px 12px">Live</button>
+</div>
+</div>
+<canvas id="plChart" style="width:100%;height:190px"></canvas>
+<div class="grid grid-4 mt-2" id="perfStats" style="gap:10px"></div>
+</div>
+<div class="card">
+<div class="flex-between mb-2"><b class="font-head" data-i18n-html="dash.h21" style="font-size:16px"><i class="fas fa-chart-pie" style="color:var(--gold)"></i> Allocation — <span id="donutMode">DEMO</span></b></div>
+<div style="display:flex;gap:22px;align-items:center;flex-wrap:wrap">
+<canvas height="180" id="donut" style="max-width:180px" width="180"></canvas>
+<div id="donutLegend" style="flex:1;min-width:190px"><span class="skeleton" style="width:100%;height:70px"></span></div>
+</div>
+</div>
+</div>
+<!-- positions & orders -->
+<div class="card mb-2">
+<div class="flex-between mb-2">
+<b class="font-head" data-i18n-html="dash.h22" style="font-size:16px"><i class="fas fa-layer-group" style="color:var(--gold)"></i> Open Positions (<span id="cntPos">0</span>)</b>
+<div class="tab-bar" id="posTabs" style="margin:0">
+<button class="tab-btn active" data-i18n="dash.s9" data-m="demo" style="padding:5px 12px">Demo</button>
+<button class="tab-btn" data-i18n="dash.s10" data-m="live" style="padding:5px 12px">Live</button>
+</div>
+</div>
+<div id="positionsBox"></div>
+</div>
+<div class="grid grid-2">
+<!-- copy allocations -->
+<div class="card">
+<div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-robot" style="color:var(--gold)"></i><span data-i18n="nav.bots">Trading Bots</span></b><a class="btn btn-outline btn-sm" data-i18n="dash.s23" href="/trading-bots">Browse Bots</a></div>
+<div id="dashCopy"><span class="skeleton" style="width:100%;height:60px"></span></div>
+</div>
+<!-- recent activity -->
+<div class="card">
+<div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-receipt" style="color:var(--gold)"></i><span data-i18n="dash.s24">Recent Activity</span></b><a class="btn btn-outline btn-sm" data-i18n="mkt.s5" href="/funding">All</a></div>
+<div id="dashTx"><span class="skeleton" style="width:100%;height:60px"></span></div>
+</div>
+</div>
+<!-- trade history -->
+<div class="card mt-2">
+<div class="flex-between mb-2"><b class="font-head" style="font-size:16px"><i class="fas fa-clock-rotate-left" style="color:var(--gold)"></i><span data-i18n="trd.s29">Trade History</span></b></div>
+<div id="historyBox"><span class="skeleton" style="width:100%;height:120px"></span></div>
+</div>
+<!-- security -->
+<div class="grid grid-2 mt-2">
+<div class="card">
+<div class="flex-between mb-2">
+<b class="font-head" style="font-size:16px"><i class="fas fa-shield-halved" style="color:var(--gold)"></i><span data-i18n="dash.s25">Two-Factor Authentication</span></b>
+<span id="twofaState"></span>
+</div>
+<div id="twofaBox"></div>
+</div>
+<div class="card">
+<div class="flex-between mb-2">
+<b class="font-head" style="font-size:16px"><i class="fas fa-clock" style="color:var(--gold)"></i><span data-i18n="dash.s26">Login History</span></b>
+<a class="btn btn-outline btn-sm" data-i18n="ftr.fraudAlert" href="/avoid-scams">Fraud Alert</a>
+</div>
+<div class="table-wrap" style="box-shadow:none"><table class="dt" style="min-width:0">
+<thead><tr><th data-i18n="dash.s27">When</th><th data-i18n="dash.s28">Device</th><th>IP</th></tr></thead>
+<tbody id="loginRows">
+<tr><td><span class="skeleton" style="width:50%"></span></td><td><span class="skeleton" style="width:81%"></span></td><td><span class="skeleton" style="width:67%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:73%"></span></td><td><span class="skeleton" style="width:59%"></span></td><td><span class="skeleton" style="width:90%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:51%"></span></td><td><span class="skeleton" style="width:82%"></span></td><td><span class="skeleton" style="width:68%"></span></td></tr>
+<tr><td><span class="skeleton" style="width:74%"></span></td><td><span class="skeleton" style="width:60%"></span></td><td><span class="skeleton" style="width:91%"></span></td></tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+</section>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script src="/assets/js/qrcode.js"></script>
+<script>
     document.addEventListener('bb:ready', async () => {
       if (!BB.user) { location.href = '/login?next=' + encodeURIComponent('/dashboard'); return; }
       let posMode = 'demo', perfMode = 'demo';
@@ -294,13 +283,13 @@
         if (!meR.ok) return;
         const live = meR.live, demo = meR.demo;
         const cards = [
-          { label: 'Live Equity', icon: 'fa-bolt', value: live.equity, sub: `${BB.fmtUSD(live.free)} free · ${BB.fmtUSD(live.marginUsed)} margin · ${BB.fmtUSD(live.spot || 0)} coins · ${BB.fmtUSD(live.inCopy || 0)} copying`, cls: 'var(--green-bright)' },
+          { label: BB.t('dash.liveEq'), icon: 'fa-bolt', value: live.equity, sub: `${BB.fmtUSD(live.free)} free · ${BB.fmtUSD(live.marginUsed)} margin · ${BB.fmtUSD(live.spot || 0)} coins · ${BB.fmtUSD(live.inCopy || 0)} copying`, cls: 'var(--green-bright)' },
           { label: 'Live Unrealized P/L', icon: 'fa-arrow-trend-up', value: live.unrealized, sub: 'across open live positions', cls: live.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' },
-          { label: 'Demo Equity', icon: 'fa-flask', value: demo.equity, sub: `${BB.fmtUSD(demo.free)} free · ${BB.fmtUSD(demo.marginUsed)} margin · ${BB.fmtUSD(demo.spot || 0)} coins · ${BB.fmtUSD(demo.inCopy || 0)} copying`, cls: 'var(--sky)' },
+          { label: BB.t('dash.demoEq'), icon: 'fa-flask', value: demo.equity, sub: `${BB.fmtUSD(demo.free)} free · ${BB.fmtUSD(demo.marginUsed)} margin · ${BB.fmtUSD(demo.spot || 0)} coins · ${BB.fmtUSD(demo.inCopy || 0)} copying`, cls: 'var(--sky)' },
           { label: 'Demo Unrealized P/L', icon: 'fa-arrow-trend-up', value: demo.unrealized, sub: 'practice account', cls: demo.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' }
         ];
         const adj = (live.manualPnl || 0) + (demo.manualPnl || 0);
-        if (Math.abs(adj) > 0.004) cards.push({ label: 'Account Adjustment', icon: 'fa-sliders', value: adj, sub: `live ${BB.fmtUSD(live.manualPnl || 0)} · demo ${BB.fmtUSD(demo.manualPnl || 0)}`, cls: adj >= 0 ? 'var(--gold-deep)' : 'var(--red)' });
+        if (Math.abs(adj) > 0.004) cards.push({ label: BB.t('dash.adj'), icon: 'fa-sliders', value: adj, sub: `live ${BB.fmtUSD(live.manualPnl || 0)} · demo ${BB.fmtUSD(demo.manualPnl || 0)}`, cls: adj >= 0 ? 'var(--gold-deep)' : 'var(--red)' });
         $('#balCards').innerHTML = cards.map(c => `
           <div class="card bal-card">
             <div class="bc-label"><i class="fas ${c.icon}"></i> ${c.label}</div>
@@ -334,11 +323,11 @@
         const share = v => total > 0 ? v / total * 100 : 0;
         $('#pfBody').innerHTML = `
           <div class="flex-between mb-2" style="align-items:baseline;flex-wrap:wrap;gap:10px">
-            <div><span class="muted small">Total portfolio value (${pfMode.toUpperCase()})</span>
+            <div><span class="muted small">${BB.t('dash.totalPf')} (${pfMode.toUpperCase()})</span>
               <div style="font-size:26px;font-weight:800;font-family:var(--font-head)" class="num">${BB.fmtUSD(total)}</div></div>
-            <div class="muted small text-right">Cash <b>${BB.fmtUSD(eq.free)}</b> · Coins <b>${BB.fmtUSD(eq.spot || 0)}</b> · Positions <b>${BB.fmtUSD(eq.marginUsed + eq.unrealized)}</b> · Bots <b>${BB.fmtUSD(eq.inCopy || 0)}</b></div>
+            <div class="muted small text-right">${BB.t('dash.cash')} <b>${BB.fmtUSD(eq.free)}</b> · ${BB.t('dash.coins')} <b>${BB.fmtUSD(eq.spot || 0)}</b> · ${BB.t('dash.positions')} <b>${BB.fmtUSD(eq.marginUsed + eq.unrealized)}</b> · ${BB.t('dash.bots')} <b>${BB.fmtUSD(eq.inCopy || 0)}</b></div>
           </div>
-          ${rows.length ? `<div class="table-wrap"><table class="dt"><thead><tr><th>Holding</th><th class="num">Qty</th><th class="num">Price</th><th class="num">Value</th><th class="num" style="min-width:90px">Share</th></tr></thead><tbody>
+          ${rows.length ? `<div class="table-wrap"><table class="dt"><thead><tr><th>${BB.t('dash.thHolding')}</th><th class="num">${BB.t('dash.thQty')}</th><th class="num">${BB.t('dash.thPrice')}</th><th class="num">${BB.t('dash.thValue')}</th><th class="num" style="min-width:90px">${BB.t('dash.thShare')}</th></tr></thead><tbody>
           ${rows.map(r => `<tr>
             <td><div class="asset-cell">${r.aid ? assetIcon(r.aid, r.sym) : `<div class="a-icon"><i class="fas ${r.icon || 'fa-coins'}" style="color:var(--gold)"></i></div>`}<div><b>${BB.esc(r.name)}</b>${r.sym ? `<span>${BB.esc(r.sym)}</span>` : ''}</div></div></td>
             <td class="num">${r.qty != null ? r.qty.toLocaleString(undefined, { maximumFractionDigits: 8 }) : '—'}</td>
@@ -363,14 +352,14 @@
           drawDonut([{ label: 'Free USD', value: st.equity.free, color: '#d3a877' }]);
         } else {
           $('#positionsBox').innerHTML = `<div class="table-wrap"><table class="dt"><thead><tr>
-            <th>Asset</th><th>Side</th><th>Size</th><th>Entry</th><th>Mark</th><th>Liq. price</th><th>Margin</th><th>P/L</th><th></th></tr></thead><tbody>
+            <th>${BB.t('dash.thAsset')}</th><th>${BB.t('dash.thSide')}</th><th>${BB.t('dash.thSize')}</th><th>${BB.t('dash.thEntry')}</th><th>${BB.t('dash.thMark')}</th><th>${BB.t('dash.thLiq')}</th><th>${BB.t('dash.thMargin')}</th><th>P/L</th><th></th></tr></thead><tbody>
             ${ps.map(p => `<tr>
               <td><div class="asset-cell">${assetIcon(p.assetId, p.symbol)}<div><b>${BB.esc(p.symbol)}</b><span>${BB.esc(p.name.slice(0, 18))}</span></div></div></td>
               <td><span class="badge ${p.side === 'buy' ? 'badge-green' : 'badge-red'}">${p.side === 'buy' ? 'LONG' : 'SHORT'} ${p.leverage}×</span></td>
               <td class="num">$${(p.qty * p.entry).toFixed(0)}</td>
-              <td class="num">$${BB.fmtPrice(p.entry)}</td>
-              <td class="num">$${BB.fmtPrice(p.currentPrice)}</td>
-              <td class="num muted">$${BB.fmtPrice(p.liquidationPrice)}</td>
+              <td class="num">${BB.fmtPx(p.entry)}</td>
+              <td class="num">${BB.fmtPx(p.currentPrice)}</td>
+              <td class="num muted">${BB.fmtPx(p.liquidationPrice)}</td>
               <td class="num">$${p.margin.toFixed(2)}</td>
               <td class="num" style="font-weight:700"><span class="${p.pnl >= 0 ? 'up' : 'down'}">${p.pnl >= 0 ? '+' : ''}${BB.fmtUSD(p.pnl)} (${p.pnlPct >= 0 ? '+' : ''}${p.pnlPct.toFixed(1)}%)</span></td>
               <td><button class="btn btn-danger btn-sm" data-close="${p.id}">Close</button></td></tr>`).join('')}
@@ -389,15 +378,15 @@
         // history
         const trades = st.recentTrades || [];
         $('#historyBox').innerHTML = trades.length ? `<div class="table-wrap"><table class="dt"><thead><tr>
-          <th>Time</th><th>Asset</th><th>Action</th><th>Side</th><th>Price</th><th>Size</th><th>Fee</th><th>Realized P/L</th></tr></thead><tbody>
+          <th>${BB.t('dash.thTime')}</th><th>${BB.t('dash.thAsset')}</th><th>${BB.t('dash.thAction')}</th><th>${BB.t('dash.thSide')}</th><th>${BB.t('dash.thPrice')}</th><th>${BB.t('dash.thSize')}</th><th>${BB.t('dash.thFee')}</th><th>${BB.t('dash.thPL')}</th></tr></thead><tbody>
           ${trades.slice(0, 12).map(t => `<tr><td class="muted small">${BB.fmtTime(t.at)}</td>
             <td><b class="font-head">${BB.esc(t.symbol)}</b></td>
             <td><span class="badge ${t.action === 'open' ? 'badge-blue' : t.liquidated ? 'badge-red' : 'badge-gold'}">${t.action === 'open' ? 'OPENED' : t.liquidated ? 'LIQUIDATED' : (t.reason || 'CLOSED').toUpperCase()}</span></td>
             <td class="${t.side === 'buy' ? 'up' : 'down'}">${t.side.toUpperCase()}</td>
-            <td class="num">$${BB.fmtPrice(t.price)}</td><td class="num">${BB.fmtUSD(t.notional)}</td>
+            <td class="num">${BB.fmtPx(t.price)}</td><td class="num">${BB.fmtUSD(t.notional)}</td>
             <td class="num muted">${BB.fmtUSD(t.fee)}</td>
             <td class="num" style="font-weight:700">${t.action === 'open' ? '—' : `<span class="${t.pnl >= 0 ? 'up' : 'down'}">${t.pnl >= 0 ? '+' : ''}${BB.fmtUSD(t.pnl)}</span>`}</td></tr>`).join('')}
-        </tbody></table></div>` : '<div class="empty-state"><i class="fas fa-clock-rotate-left"></i>No trades yet in this mode.</div>';
+        </tbody></table></div>` : '<div class="empty-state"><i class="fas fa-clock-rotate-left"></i>' + BB.t('dash.noTrades') + '</div>';
       }
 
       function assetIcon(assetId, symbol) {
@@ -452,7 +441,7 @@
           ctx.strokeStyle = 'rgba(211,168,119,0.08)';
           ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
           ctx.fillStyle = '#97836f';
-          ctx.fillText('$' + Math.round(v), w - padR + 6, y + 3);
+          ctx.fillText(BB.sym() + Math.round(BB.conv(v)).toLocaleString('en-US'), w - padR + 6, y + 3);
         }
         // zero line
         if (min < 0 && max > 0) {
@@ -502,7 +491,7 @@
         });
         ctx.beginPath(); ctx.arc(90, 90, 56, 0, Math.PI * 2); ctx.fillStyle = '#ffffff'; ctx.fill();
         ctx.fillStyle = '#3f140c'; ctx.font = 'bold 15px "Quattrocento Sans"'; ctx.textAlign = 'center';
-        ctx.fillText('$' + Math.round(total).toLocaleString(), 90, 88);
+        ctx.fillText(BB.fmtUSD(total, 0), 90, 88);
         ctx.fillStyle = '#6e5a4c'; ctx.font = '10px "Quattrocento Sans"';
         ctx.fillText('TOTAL', 90, 104);
         $('#donutLegend').innerHTML = items.map(it => `
@@ -562,11 +551,11 @@
         $('#alList').innerHTML = r.alerts.length ? r.alerts.slice(0, 12).map(a => `
           <div class="mini-quote">
             <i class="fas ${a.status === 'triggered' ? 'fa-bell' : 'fa-bell-slash'}" style="color:${a.status === 'triggered' ? 'var(--red)' : 'var(--ink-dim)'};width:22px;text-align:center"></i>
-            <div><div class="mq-name">${BB.esc(a.symbol)} ${a.dir === 'above' ? '≥' : '≤'} $${BB.fmtPrice(a.target)}</div>
-            <div class="mq-sub">${a.status === 'triggered' ? '⚡ Triggered ' + BB.timeAgo(a.triggeredAt) + ' @ $' + BB.fmtPrice(a.triggeredPrice) : 'Waiting · set ' + BB.timeAgo(a.createdAt)}</div></div>
+            <div><div class="mq-name">${BB.esc(a.symbol)} ${a.dir === 'above' ? '≥' : '≤'} ${BB.fmtPx(a.target)}</div>
+            <div class="mq-sub">${a.status === 'triggered' ? BB.t('dash.triggered') + ' ' + BB.timeAgo(a.triggeredAt) + ' @ ' + BB.fmtPx(a.triggeredPrice) : BB.t('dash.waiting') + ' ' + BB.timeAgo(a.createdAt)}</div></div>
             <div class="mq-right">${a.status === 'triggered' ? '<a class="btn btn-green btn-sm" href="/trade?asset=' + a.assetId + '">Trade</a>' : ''}</div>
             <button class="pw-eye" data-del="${a.id}" title="Delete"><i class="fas fa-trash"></i></button>
-          </div>`).join('') : '<div class="empty-state" style="padding:18px"><i class="fas fa-bell"></i>No alerts yet — get notified when price hits your level.</div>';
+          </div>`).join('') : '<div class="empty-state" style="padding:18px"><i class="fas fa-bell"></i>' + BB.t('dash.noAlerts') + '</div>';
         $$('#alList [data-del]').forEach(b => b.addEventListener('click', async () => {
           await BB.api('/api/alerts/delete', { method: 'POST', body: { id: b.dataset.del } });
           loadAlerts();
@@ -576,8 +565,8 @@
           if (a.status === 'triggered' && !seenTriggered.has(a.id)) {
             seenTriggered.add(a.id);
             if (seenTriggered.size > r.alerts.length + 5) seenTriggered = new Set([...seenTriggered].slice(-10));
-            BB.toast(`⚡ ${a.symbol} ${a.dir} $${BB.fmtPrice(a.target)} — triggered @ $${BB.fmtPrice(a.triggeredPrice)}!`, 'success');
-            try { if (window.Notification && Notification.permission === 'granted') new Notification(`Blockchain Bullhorn — ${a.symbol} alert`, { body: `${a.symbol} is ${a.dir} $${BB.fmtPrice(a.target)} (now $${BB.fmtPrice(a.triggeredPrice)})`, icon: '/assets/img/app-icon.png' }); } catch (e) {}
+            BB.toast(`⚡ ${a.symbol} ${a.dir} ${BB.fmtPx(a.target)} — triggered @ ${BB.fmtPx(a.triggeredPrice)}!`, 'success');
+            try { if (window.Notification && Notification.permission === 'granted') new Notification(`Blockchain Bullhorn — ${a.symbol} alert`, { body: `${a.symbol} is ${a.dir} ${BB.fmtPx(a.target)} (now ${BB.fmtPx(a.triggeredPrice)})`, icon: '/assets/img/app-icon.png' }); } catch (e) {}
           }
         }
       }
@@ -594,7 +583,7 @@
         });
         $('#alAsset').addEventListener('change', () => {
           const r3 = (BB._mkts || []).find(a => a.id === $('#alAsset').value);
-          if (r3) $('#alPrice').placeholder = 'Now $' + BB.fmtPrice(r3.price);
+          if (r3) $('#alPrice').placeholder = 'Now ' + BB.fmtPx(r3.price);
         });
       }
       try { if (window.Notification && Notification.permission === 'default') Notification.requestPermission(); } catch (e) {}
@@ -616,7 +605,7 @@
       async function loadContest() {
         const r = await BB.api('/api/contest', { silent: true });
         if (!r.standings) return;
-        $('#contestMeta').textContent = r.enabled ? (r.prize || '') : 'Contest currently paused';
+        $('#contestMeta').textContent = r.enabled ? (r.prize || '') : BB.t('dash.contestPaused');
         const rows = r.standings.slice(0, 6);
         $('#contestBoard').innerHTML = rows.length ? `
           <div style="display:grid;gap:8px">${rows.map(s => `
@@ -627,7 +616,7 @@
               <div class="mq-right"><div class="mq-price ${s.roi >= 0 ? 'up' : 'down'}">${s.roi >= 0 ? '+' : ''}${s.roi}%</div><div class="mq-sub">${BB.fmtUSD(s.pnl)}</div></div>
             </div>`).join('')}</div>
           <p class="muted small mt-1">Demo ROI this week (Mon UTC) · min 3 closed trades · resets every Monday.</p>`
-          : '<div class="empty-state" style="padding:18px"><i class="fas fa-trophy"></i>No qualifying traders yet this week — be the first!</div>';
+          : '<div class="empty-state" style="padding:18px"><i class="fas fa-trophy"></i>' + BB.t('dash.noContest') + '</div>';
       }
 
       /* ================= REFERRALS ================= */
@@ -661,7 +650,7 @@
         if (off) off.addEventListener('click', async () => {
           const bd = BB.modal('Disable Two-Factor Authentication', `
             <div class="field"><label>Password</label><input class="input" type="password" id="tfaPw"></div>
-            <div class="field"><label>Authenticator code</label><input class="input" id="tfaCode" placeholder="6-digit code" maxlength="6"></div>
+            <div class="field"><label>Authenticator code</label><input class="input" id="tfaCode" placeholder="6-digit code" data-i18n-ph="dash.tfaPh" maxlength="6"></div>
             <button class="btn btn-danger btn-block" id="tfaGo">Disable 2FA</button>`);
           $('#tfaGo', bd).addEventListener('click', async () => {
             const r = await BB.api('/api/auth/2fa-disable', { method: 'POST', body: { password: $('#tfaPw', bd).value, code: $('#tfaCode', bd).value } });

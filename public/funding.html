@@ -1,23 +1,24 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="Funding — Crypto Deposits &amp; Withdrawals — The Blockchain Bullhorn">
-  <meta property="og:description" content="Elite crypto education, live markets, demo & live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/funding">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>Funding — Crypto Deposits &amp; Withdrawals — The Blockchain Bullhorn</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Funding — Crypto Deposits &amp; Withdrawals — The Blockchain Bullhorn" property="og:title"/>
+<meta content="Elite crypto education, live markets, demo &amp; live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/funding" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Funding — Crypto Deposits &amp; Withdrawals — The Blockchain Bullhorn</title>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<style>
     .fund-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; align-items: start; }
     .method { display: flex; align-items: center; gap: 12px; border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 15px; cursor: pointer; transition: all .15s; margin-bottom: 10px; }
     .method:hover { border-color: var(--green); }
@@ -33,116 +34,109 @@
     .qr-panel small { color: #7a5f43; font-family: var(--font-head); font-size: 10px; display: block; margin-top: 6px; word-break: break-all; }
     @media (max-width: 720px) { .dep-grid { grid-template-columns: 1fr; } .fund-layout { grid-template-columns: 1fr; } }
   </style>
-  <script>document.documentElement.classList.add('js')</script>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <section class="section-tight reveal">
-    <div class="container-wide">
-      <div class="page-hero" style="padding-bottom:20px">
-        <div class="crumbs"><a href="/">Home</a> · <a href="/dashboard">Dashboard</a> · Funding</div>
-        <h1 style="font-size:clamp(24px,3.4vw,34px)">Funding</h1>
-        <p><i class="fas fa-coins" style="color:var(--gold)"></i> 100% crypto wallet funding — deposit and withdraw directly from your own wallet. No banks, no cards.</p>
-      </div>
-
-      <div class="dash-grid mb-2" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px" id="fundBals">
-        <div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
-        <div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
-        <div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
-      </div>
-
-      <div class="fund-layout">
-        <div class="card">
-          <div class="tab-bar" id="fundTabs">
-            <button class="tab-btn active" data-ft="deposit" style="flex:1;text-align:center"><i class="fas fa-arrow-down"></i> Deposit</button>
-            <button class="tab-btn" data-ft="withdraw" style="flex:1;text-align:center"><i class="fas fa-arrow-up"></i> Withdraw</button>
-            <button class="tab-btn" data-ft="demo" style="flex:1;text-align:center"><i class="fas fa-flask"></i> Demo Top-Up</button>
-          </div>
-
-          <!-- ============ DEPOSIT ============ -->
-          <div id="paneDeposit">
-            <div class="alert alert-info" style="display:block"><i class="fas fa-circle-info"></i> Deposits are verified manually by our admin team — your live wallet is credited once the transaction is confirmed on-chain. Minimum <b>$50</b> value.</div>
-            <h4 class="font-head mb-1" style="font-size:15px">1 · Choose your deposit coin</h4>
-            <div id="methods"><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div></div>
-            <div class="dep-grid mt-2">
-              <div>
-                <h4 class="font-head mb-1" style="font-size:15px">2 · Send to the deposit address</h4>
-                <div class="addr-box"><span id="addrText">—</span><button id="copyAddr" title="Copy address"><i class="fas fa-copy"></i></button></div>
-                <p class="muted small mt-1">⚠️ Send only <b id="assetName">USDT</b> on the displayed network. Sending other coins or the wrong network may result in permanent loss.</p>
-                <div class="addr-box mt-2" style="background:rgba(27,169,75,.07);border-style:solid;border-color:rgba(27,169,75,.35)" id="depGuide"></div>
-                <h4 class="font-head mb-1 mt-2" style="font-size:15px">3 · Confirm your deposit</h4>
-                <div class="form-row">
-                  <div class="field"><label>Amount sent (USD value)</label><input class="input num" id="depAmount" type="number" min="50" step="any" placeholder="e.g. 250"></div>
-                  <div class="field"><label>Transaction hash (TXID)</label><input class="input" id="depTxid" placeholder="0x… / bc1…"></div>
-                </div>
-                <div class="field">
-                  <label>Proof of payment — upload screenshot / receipt <span style="color:var(--red)">*</span></label>
-                  <div class="dropzone" id="proofZone">
-                    <i class="fas fa-image"></i>
-                    <b>Upload transaction screenshot</b>
-                    <small>JPG, PNG, WEBP or PDF · max 5MB — from your wallet app or exchange</small>
-                  </div>
-                  <input type="file" id="proofFile" accept="image/jpeg,image/png,image/webp,application/pdf" style="display:none">
-                  <div id="proofPrev"></div>
-                </div>
-                <button class="btn btn-green btn-block btn-lg" id="depBtn"><i class="fas fa-check"></i> Submit Deposit for Verification</button>
-                <p class="muted small mt-1"><i class="fas fa-shield-halved" style="color:var(--green-deep)"></i> Your TXID + proof go straight to our admin team for manual verification. Once approved, your live wallet is credited and you're notified.</p>
-              </div>
-              <div class="qr-panel">
-                <div id="qrBox"></div>
-                <small id="qrLabel">Scan to deposit</small>
-              </div>
-            </div>
-          </div>
-
-          <!-- ============ WITHDRAW ============ -->
-          <div id="paneWithdraw" style="display:none">
-            <div class="alert alert-error" id="wdKycLock" style="display:none"><i class="fas fa-lock"></i> Withdrawals require <a href="/kyc">KYC verification</a> — submit your ID for manual review to unlock.</div>
-            <div id="wdForm">
-              <h4 class="font-head mb-1" style="font-size:15px">1 · Select withdrawal coin</h4>
-              <div id="wdMethods"><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div></div>
-              <h4 class="font-head mb-1 mt-2" style="font-size:15px">2 · Enter amount &amp; destination wallet</h4>
-              <div class="field">
-                <label>Amount (USD value)</label>
-                <input class="input num" id="wdAmount" type="number" step="any" placeholder="Min. $20">
-                <div class="hint" id="wdAvail">—</div>
-              </div>
-              <div class="field">
-                <label>Withdraw to — your wallet address</label>
-                <input class="input" id="wdAddress" placeholder="Paste destination wallet address">
-                <div class="hint"><i class="fas fa-shield-halved"></i> Double-check the address. Crypto withdrawals are irreversible once processed.</div>
-              </div>
-              <button class="btn btn-gold btn-block btn-lg" id="wdBtn"><i class="fas fa-paper-plane"></i> Request Withdrawal</button>
-              <p class="muted small mt-1">Requests are reviewed manually by our admin team and typically processed within 24 hours. Funds are held immediately when you submit.</p>
-            </div>
-          </div>
-
-          <!-- ============ DEMO ============ -->
-          <div id="paneDemo" style="display:none">
-            <div class="text-center" style="padding:16px 6px">
-              <i class="fas fa-flask" style="font-size:36px;color:var(--sky);margin-bottom:14px"></i>
-              <h3>Reset your demo balance to $10,000</h3>
-              <p class="muted small mt-1 mb-2">Practice funds running low? Top back up instantly and keep practicing the system — risk-free, as always.</p>
-              <button class="btn btn-primary btn-lg" id="topupBtn"><i class="fas fa-rotate"></i> Top Up Demo Account</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- history -->
-        <div class="card">
-          <b class="font-head" style="font-size:16px"><i class="fas fa-receipt" style="color:var(--gold)"></i> Transaction History</b>
-          <div class="mt-2" id="txList"><span class="skeleton" style="width:100%;height:120px"></span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script src="/assets/js/qrcode.js"></script>
-  <script>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<section class="section-tight reveal">
+<div class="container-wide">
+<div class="page-hero" style="padding-bottom:20px">
+<div class="crumbs"><a data-i18n="mkt.s1" href="/">Home</a> · <a data-i18n="hdr.dashboard" href="/dashboard">Dashboard</a> · Funding</div>
+<h1 data-i18n="hdr.funding" style="font-size:clamp(24px,3.4vw,34px)">Funding</h1>
+<p><i class="fas fa-coins" style="color:var(--gold)"></i><span data-i18n="fun.s1">100% crypto wallet funding — deposit and withdraw directly from your own wallet. No banks, no cards.</span></p>
+</div>
+<div class="dash-grid mb-2" id="fundBals" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+<div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
+<div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
+<div class="card"><span class="skeleton" style="width:130px;height:56px"></span></div>
+</div>
+<div class="fund-layout">
+<div class="card">
+<div class="tab-bar" id="fundTabs">
+<button class="tab-btn active" data-ft="deposit" style="flex:1;text-align:center"><i class="fas fa-arrow-down"></i><span data-i18n="dash.s2">Deposit</span></button>
+<button class="tab-btn" data-ft="withdraw" style="flex:1;text-align:center"><i class="fas fa-arrow-up"></i><span data-i18n="dash.s5">Withdraw</span></button>
+<button class="tab-btn" data-ft="demo" style="flex:1;text-align:center"><i class="fas fa-flask"></i><span data-i18n="fun.s2">Demo Top-Up</span></button>
+</div>
+<!-- ============ DEPOSIT ============ -->
+<div id="paneDeposit">
+<div class="alert alert-info" data-i18n-html="fun.h3" style="display:block"><i class="fas fa-circle-info"></i> Deposits are verified manually by our admin team — your live wallet is credited once the transaction is confirmed on-chain. Minimum <b><span data-usd="50">$50</span></b> value.</div>
+<h4 class="font-head mb-1" data-i18n="fun.s4" style="font-size:15px">1 · Choose your deposit coin</h4>
+<div id="methods"><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div></div>
+<div class="dep-grid mt-2">
+<div>
+<h4 class="font-head mb-1" data-i18n="fun.s5" style="font-size:15px">2 · Send to the deposit address</h4>
+<div class="addr-box"><span id="addrText">—</span><button id="copyAddr" title="Copy address"><i class="fas fa-copy"></i></button></div>
+<p class="muted small mt-1" data-i18n-html="fun.h6">⚠️ Send only <b id="assetName">USDT</b> on the displayed network. Sending other coins or the wrong network may result in permanent loss.</p>
+<div class="addr-box mt-2" id="depGuide" style="background:rgba(27,169,75,.07);border-style:solid;border-color:rgba(27,169,75,.35)"></div>
+<h4 class="font-head mb-1 mt-2" data-i18n="fun.s7" style="font-size:15px">3 · Confirm your deposit</h4>
+<div class="form-row">
+<div class="field"><label data-i18n="fun.s8">Amount sent (USD value)</label><input class="input num" id="depAmount" min="50" placeholder="e.g. 250" step="any" type="number"/></div>
+<div class="field"><label data-i18n="fun.s9">Transaction hash (TXID)</label><input class="input" id="depTxid" placeholder="0x… / bc1…"/></div>
+</div>
+<div class="field">
+<label data-i18n-html="fun.h10">Proof of payment — upload screenshot / receipt <span style="color:var(--red)">*</span></label>
+<div class="dropzone" id="proofZone">
+<i class="fas fa-image"></i>
+<b data-i18n="fun.s11">Upload transaction screenshot</b>
+<small data-i18n="fun.s12">JPG, PNG, WEBP or PDF · max 5MB — from your wallet app or exchange</small>
+</div>
+<input accept="image/jpeg,image/png,image/webp,application/pdf" id="proofFile" style="display:none" type="file"/>
+<div id="proofPrev"></div>
+</div>
+<button class="btn btn-green btn-block btn-lg" id="depBtn"><i class="fas fa-check"></i><span data-i18n="fun.s13">Submit Deposit for Verification</span></button>
+<p class="muted small mt-1"><i class="fas fa-shield-halved" style="color:var(--green-deep)"></i><span data-i18n="fun.s14">Your TXID + proof go straight to our admin team for manual verification. Once approved, your live wallet is credited and you're notified.</span></p>
+</div>
+<div class="qr-panel">
+<div id="qrBox"></div>
+<small data-i18n="fun.s15" id="qrLabel">Scan to deposit</small>
+</div>
+</div>
+</div>
+<!-- ============ WITHDRAW ============ -->
+<div id="paneWithdraw" style="display:none">
+<div class="alert alert-error" id="wdKycLock" style="display:none"><i class="fas fa-lock"></i> Withdrawals require <a data-i18n="fun.s16" href="/kyc">KYC verification</a> — submit your ID for manual review to unlock.</div>
+<div id="wdForm">
+<h4 class="font-head mb-1" data-i18n="fun.s17" style="font-size:15px">1 · Select withdrawal coin</h4>
+<div id="wdMethods"><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div><div class="method" style="opacity:1"><span class="skeleton" style="width:34px;height:34px;border-radius:50%"></span><div style="flex:1"><span class="skeleton" style="width:55%;height:13px"></span><span class="skeleton" style="width:40%;height:11px;margin-top:6px"></span></div><span class="skeleton" style="width:20px;height:20px;border-radius:50%"></span></div></div>
+<h4 class="font-head mb-1 mt-2" data-i18n="fun.s18" style="font-size:15px">2 · Enter amount &amp; destination wallet</h4>
+<div class="field">
+<label data-i18n="fun.s19">Amount (USD value)</label>
+<input class="input num" data-i18n-ph="fun.wdPh" id="wdAmount" placeholder="Min. $20 (USD)" step="any" type="number"/>
+<div class="hint" id="wdAvail">—</div>
+</div>
+<div class="field">
+<label data-i18n="fun.s20">Withdraw to — your wallet address</label>
+<input class="input" id="wdAddress" placeholder="Paste destination wallet address" data-i18n-ph="fun.wdAddrPh"/>
+<div class="hint"><i class="fas fa-shield-halved"></i><span data-i18n="fun.s21">Double-check the address. Crypto withdrawals are irreversible once processed.</span></div>
+</div>
+<button class="btn btn-gold btn-block btn-lg" id="wdBtn"><i class="fas fa-paper-plane"></i><span data-i18n="fun.s22">Request Withdrawal</span></button>
+<p class="muted small mt-1" data-i18n="fun.s23">Requests are reviewed manually by our admin team and typically processed within 24 hours. Funds are held immediately when you submit.</p>
+</div>
+</div>
+<!-- ============ DEMO ============ -->
+<div id="paneDemo" style="display:none">
+<div class="text-center" style="padding:16px 6px">
+<i class="fas fa-flask" style="font-size:36px;color:var(--sky);margin-bottom:14px"></i>
+<h3><span data-i18n="fun.s24">Reset your demo balance to</span><span data-usd="10000">$10,000</span></h3>
+<p class="muted small mt-1 mb-2" data-i18n="fun.s25">Practice funds running low? Top back up instantly and keep practicing the system — risk-free, as always.</p>
+<button class="btn btn-primary btn-lg" id="topupBtn"><i class="fas fa-rotate"></i><span data-i18n="fun.s26">Top Up Demo Account</span></button>
+</div>
+</div>
+</div>
+<!-- history -->
+<div class="card">
+<b class="font-head" style="font-size:16px"><i class="fas fa-receipt" style="color:var(--gold)"></i><span data-i18n="fun.s27">Transaction History</span></b>
+<div class="mt-2" id="txList"><span class="skeleton" style="width:100%;height:120px"></span></div>
+</div>
+</div>
+</div>
+</section>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script src="/assets/js/qrcode.js"></script>
+<script>
     document.addEventListener('bb:ready', async () => {
       if (!BB.user) { location.href = '/login?next=' + encodeURIComponent('/funding'); return; }
       let data = null, selAsset = 'USDT', selWdAsset = 'USDT';

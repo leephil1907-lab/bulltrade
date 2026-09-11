@@ -1,83 +1,78 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Blockchain Bullhorn">
-  <meta property="og:title" content="Trading Bots — Blockchain Bullhorn">
-  <meta property="og:description" content="Automated trading bots that place and manage trades on your Blockchain Bullhorn account. Each bot requires a connection key and a minimum portfolio balance.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/trading-bots">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <title>Trading Bots — Blockchain Bullhorn</title>
-  <meta name="description" content="Automated trading bots that place and manage trades on your Blockchain Bullhorn account. Each bot requires a connection key and a minimum portfolio balance.">
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
-  <link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
-  <link rel="manifest" href="/manifest.webmanifest">
-  <meta name="theme-color" content="#ffffff">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
-  <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=16">
-  <script>document.documentElement.classList.add('js')</script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Trading Bots — Blockchain Bullhorn" property="og:title"/>
+<meta content="Automated trading bots that place and manage trades on your Blockchain Bullhorn account. Each bot requires a connection key and a minimum portfolio balance." property="og:description"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.onrender.com/trading-bots" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Trading Bots — Blockchain Bullhorn</title>
+<meta content="Automated trading bots that place and manage trades on your Blockchain Bullhorn account. Each bot requires a connection key and a minimum portfolio balance." name="description"/>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/assets/img/apple-touch-icon.png" rel="apple-touch-icon"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<meta content="#ffffff" name="theme-color"/>
+<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=16" rel="stylesheet"/>
+<script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
-  <header class="site-header" id="site-header"></header>
-  <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
-
-  <section class="page-hero">
-    <div class="container">
-      <div class="crumbs"><a href="/">Home</a> · Trading Bots</div>
-      <h1>Trading Bots 🤖</h1>
-      <p class="lead">Automated strategies that place and manage trades on your account — momentum scouting, commodity swings, compounding and aggressive momentum. Every bot requires an admin-issued <b>connection key</b> and a <b>minimum live portfolio balance</b> before it starts working for you.</p>
-    </div>
-  </section>
-
-  <section class="section-tight reveal">
-    <div class="container">
-      <div class="grid grid-3">
-        <div class="card"><div class="feat-icon"><i class="fas fa-key"></i></div><h3>Connection Key Required</h3><p>Every bot is gated behind a connection key. Request yours below — our team reviews each request manually and issues your personal key by email.</p></div>
-        <div class="card"><div class="feat-icon"><i class="fas fa-scale-balanced"></i></div><h3>Portfolio Requirement</h3><p>Each bot requires a specific minimum live portfolio balance. Start with Bull Scout at $2,500 and unlock the bigger engines as your portfolio grows.</p></div>
-        <div class="card"><div class="feat-icon"><i class="fas fa-hand"></i></div><h3>You Stay in Control</h3><p>Bots mirror into your allocation proportionally with their own take-profit and stop-loss discipline. Stop a bot anytime — positions close and funds return to your wallet.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section-tight reveal">
-    <div class="container">
-      <div id="myBots" style="display:none" class="mb-3">
-        <div class="flex-between mb-2"><h2 style="font-size:22px"><i class="fas fa-robot" style="color:var(--gold)"></i> My Active Bots</h2></div>
-        <div id="allocList"></div>
-      </div>
-
-      <div class="flex-between mb-2">
-        <h2 style="font-size:22px"><i class="fas fa-trophy" style="color:var(--gold)"></i> Meet the Bots</h2>
-        <span class="muted small">Stats computed live from each bot's actual platform trades</span>
-      </div>
-      <div id="botList">
-        <div class="card"><span class="skeleton" style="width:100%;height:120px"></span></div>
-        <div class="card mt-2"><span class="skeleton" style="width:100%;height:120px"></span></div>
-      </div>
-
-      <div class="card mt-3" id="botActivityCard">
-        <div class="flex-between mb-2" style="flex-wrap:wrap;gap:8px">
-          <h2 style="font-size:20px"><i class="fas fa-satellite-dish" style="color:var(--gold)"></i> Live Bot Activity</h2>
-          <span class="muted small" id="botActCount"></span>
-        </div>
-        <div id="botActivity"><span class="skeleton" style="width:100%;height:150px"></span></div>
-      </div>
-
-      <div class="card mt-3" style="background:var(--red-dim);border-color:rgba(255,82,104,.25)">
-        <h3><i class="fas fa-triangle-exclamation" style="color:var(--red)"></i> Risk notice</h3>
-        <p class="muted mt-1" style="font-size:13.5px">Trading bots are automated strategy tools — not financial advice and not a guarantee of profit. Bot performance shown is from platform demo trading; live results vary with market conditions. You can stop any bot at any time. Never allocate funds you cannot afford to have at risk.</p>
-      </div>
-    </div>
-  </section>
-
-  <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=19"></script>
-  <script>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+<section class="page-hero">
+<div class="container">
+<div class="crumbs"><a data-i18n="mkt.s1" href="/">Home</a> · Trading Bots</div>
+<h1 data-i18n="tbo.s1">Trading Bots 🤖</h1>
+<p class="lead" data-i18n-html="tbo.h2">Automated strategies that place and manage trades on your account — momentum scouting, commodity swings, compounding and aggressive momentum. Every bot requires an admin-issued <b>connection key</b> and a <b>minimum live portfolio balance</b> before it starts working for you.</p>
+</div>
+</section>
+<section class="section-tight reveal">
+<div class="container">
+<div class="grid grid-3">
+<div class="card"><div class="feat-icon"><i class="fas fa-key"></i></div><h3 data-i18n="tbo.s3">Connection Key Required</h3><p data-i18n="tbo.s4">Every bot is gated behind a connection key. Request yours below — our team reviews each request manually and issues your personal key by email.</p></div>
+<div class="card"><div class="feat-icon"><i class="fas fa-scale-balanced"></i></div><h3 data-i18n="tbo.s5">Portfolio Requirement</h3><p data-i18n-html="tbo.h6">Each bot requires a specific minimum live portfolio balance. Start with Bull Scout at <span data-usd="2500">$2,500</span> and unlock the bigger engines as your portfolio grows.</p></div>
+<div class="card"><div class="feat-icon"><i class="fas fa-hand"></i></div><h3 data-i18n="tbo.s7">You Stay in Control</h3><p data-i18n="tbo.s8">Bots mirror into your allocation proportionally with their own take-profit and stop-loss discipline. Stop a bot anytime — positions close and funds return to your wallet.</p></div>
+</div>
+</div>
+</section>
+<section class="section-tight reveal">
+<div class="container">
+<div class="mb-3" id="myBots" style="display:none">
+<div class="flex-between mb-2"><h2 style="font-size:22px"><i class="fas fa-robot" style="color:var(--gold)"></i><span data-i18n="tbo.s9">My Active Bots</span></h2></div>
+<div id="allocList"></div>
+</div>
+<div class="flex-between mb-2">
+<h2 style="font-size:22px"><i class="fas fa-trophy" style="color:var(--gold)"></i><span data-i18n="tbo.s10">Meet the Bots</span></h2>
+<span class="muted small" data-i18n="tbo.s11">Stats computed live from each bot's actual platform trades</span>
+</div>
+<div id="botList">
+<div class="card"><span class="skeleton" style="width:100%;height:120px"></span></div>
+<div class="card mt-2"><span class="skeleton" style="width:100%;height:120px"></span></div>
+</div>
+<div class="card mt-3" id="botActivityCard">
+<div class="flex-between mb-2" style="flex-wrap:wrap;gap:8px">
+<h2 style="font-size:20px"><i class="fas fa-satellite-dish" style="color:var(--gold)"></i><span data-i18n="tbo.s12">Live Bot Activity</span></h2>
+<span class="muted small" id="botActCount"></span>
+</div>
+<div id="botActivity"><span class="skeleton" style="width:100%;height:150px"></span></div>
+</div>
+<div class="card mt-3" style="background:var(--red-dim);border-color:rgba(255,82,104,.25)">
+<h3><i class="fas fa-triangle-exclamation" style="color:var(--red)"></i><span data-i18n="tbo.s13">Risk notice</span></h3>
+<p class="muted mt-1" data-i18n="tbo.s14" style="font-size:13.5px">Trading bots are automated strategy tools — not financial advice and not a guarantee of profit. Bot performance shown is from platform demo trading; live results vary with market conditions. You can stop any bot at any time. Never allocate funds you cannot afford to have at risk.</p>
+</div>
+</div>
+</section>
+<footer class="site-footer" id="site-footer"></footer>
+<script src="/assets/js/i18n-pages.js?v=20"></script>
+  <script src="/assets/js/common.js?v=20"></script>
+<script>
     let bots = [], minCopy = 50, ctx = null;
 
     document.addEventListener('bb:ready', () => {
