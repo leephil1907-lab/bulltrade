@@ -419,7 +419,13 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
     ok('i18n dictionary present (7 languages)', cjs.includes('const I18N') && cjs.includes('Español') && cjs.includes('हिन्दी') && cjs.includes('Deutsch'));
     ok('globe picker UI present', cjs.includes('globeBtn') && cjs.includes('data-lang') && cjs.includes('data-cur'));
     ok('language→currency smart pairing + manual override', cjs.includes('const LANG_CUR') && /fr:\s*'EUR'/.test(cjs) && cjs.includes('bbCurSet'), 'pairing');
-    ok('currency symbols + formatters converted', cjs.includes('BB.sym()') && cjs.includes("NGN: { f: '🇳🇬'") === false || cjs.includes('NGN'), 'sym');
+    ok('country→currency master mapping (196 countries)', cjs.includes('const CTRY') && cjs.includes('const COUNTRY_CUR') && /NG:\s*'NGN'/.test(cjs) && cjs.includes('setCountry'), 'country-cur');
+    ok('globe has searchable flag country list', cjs.includes('gmSearch') && cjs.includes('data-country') && cjs.includes('flagOf'), 'globe-country');
+    ok('currency symbols + formatters converted', cjs.includes('BB.sym()') && cjs.includes('NGN'), 'sym');
+    const trHtml = await (await fetch(BASE + '/trade')).text();
+    ok('swap modal converts fee/value to display currency', trHtml.includes('BB.fmtUSD(r.feeUsd)') && trHtml.includes('BB.fmtUSD(r.usdValue)'), 'swap-fx');
+    const suHtml = await (await fetch(BASE + '/signup')).text();
+    ok('signup country picker has flags + live currency hook', suHtml.includes('flagOf(x.c)') && suHtml.includes('BB.setCountry(pick.c)'), 'signup-country');
   }
 
   // ========== PWA + WEB PUSH ==========

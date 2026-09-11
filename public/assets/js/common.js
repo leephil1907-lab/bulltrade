@@ -53,6 +53,20 @@ window.BB = {
     BB.applyUsd();
     document.dispatchEvent(new CustomEvent('bb:fx'));
   },
+  country() { return localStorage.getItem('bbCountry') || (BB.user && (CTRY.find(x => x.n === BB.user.country) || {}).c) || null; },
+  setCountry(iso, opts = {}) {
+    if (!CTRY.some(x => x.c === iso)) return;
+    localStorage.setItem('bbCountry', iso);
+    // the country determines the display currency — unless the user picked one manually
+    if (!localStorage.getItem('bbCurSet')) {
+      const cur = COUNTRY_CUR[iso] || 'USD';
+      if (cur !== BB.cur) {
+        BB.setCur(cur, false);
+        if (opts.toast !== false) BB.toast(`💰 ${flagOf(iso)} Display currency set to ${CURS[cur].f} ${cur} — change it any time in this menu`, 'success');
+      }
+    }
+    renderHeader(); renderFooter();
+  },
   applyLang() {
     document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = BB.t(el.dataset.i18n); });
   },
@@ -273,6 +287,82 @@ const CURS = {
   PHP: { f: '🇵🇭', n: 'Philippine Peso', s: '₱', d: 2 }
 };
 
+// ---------- countries (name + ISO code; flag emoji derived from the code) ----------
+const CTRY = [
+  { n: 'Afghanistan', c: 'AF' }, { n: 'Albania', c: 'AL' }, { n: 'Algeria', c: 'DZ' }, { n: 'Andorra', c: 'AD' },
+  { n: 'Angola', c: 'AO' }, { n: 'Antigua and Barbuda', c: 'AG' }, { n: 'Argentina', c: 'AR' }, { n: 'Armenia', c: 'AM' },
+  { n: 'Australia', c: 'AU' }, { n: 'Austria', c: 'AT' }, { n: 'Azerbaijan', c: 'AZ' }, { n: 'Bahamas', c: 'BS' },
+  { n: 'Bahrain', c: 'BH' }, { n: 'Bangladesh', c: 'BD' }, { n: 'Barbados', c: 'BB' }, { n: 'Belarus', c: 'BY' },
+  { n: 'Belgium', c: 'BE' }, { n: 'Belize', c: 'BZ' }, { n: 'Benin', c: 'BJ' }, { n: 'Bhutan', c: 'BT' },
+  { n: 'Bolivia', c: 'BO' }, { n: 'Bosnia and Herzegovina', c: 'BA' }, { n: 'Botswana', c: 'BW' }, { n: 'Brazil', c: 'BR' },
+  { n: 'Brunei', c: 'BN' }, { n: 'Bulgaria', c: 'BG' }, { n: 'Burkina Faso', c: 'BF' }, { n: 'Burundi', c: 'BI' },
+  { n: 'Cabo Verde', c: 'CV' }, { n: 'Cambodia', c: 'KH' }, { n: 'Cameroon', c: 'CM' }, { n: 'Canada', c: 'CA' },
+  { n: 'Central African Republic', c: 'CF' }, { n: 'Chad', c: 'TD' }, { n: 'Chile', c: 'CL' }, { n: 'China', c: 'CN' },
+  { n: 'Colombia', c: 'CO' }, { n: 'Comoros', c: 'KM' }, { n: 'Congo (Brazzaville)', c: 'CG' },
+  { n: 'Congo (Democratic Republic of the)', c: 'CD' }, { n: 'Costa Rica', c: 'CR' }, { n: "Côte d'Ivoire", c: 'CI' },
+  { n: 'Croatia', c: 'HR' }, { n: 'Cuba', c: 'CU' }, { n: 'Cyprus', c: 'CY' }, { n: 'Czech Republic (Czechia)', c: 'CZ' },
+  { n: 'Denmark', c: 'DK' }, { n: 'Djibouti', c: 'DJ' }, { n: 'Dominica', c: 'DM' }, { n: 'Dominican Republic', c: 'DO' },
+  { n: 'Ecuador', c: 'EC' }, { n: 'Egypt', c: 'EG' }, { n: 'El Salvador', c: 'SV' }, { n: 'Equatorial Guinea', c: 'GQ' },
+  { n: 'Eritrea', c: 'ER' }, { n: 'Estonia', c: 'EE' }, { n: 'Eswatini', c: 'SZ' }, { n: 'Ethiopia', c: 'ET' },
+  { n: 'Fiji', c: 'FJ' }, { n: 'Finland', c: 'FI' }, { n: 'France', c: 'FR' }, { n: 'Gabon', c: 'GA' },
+  { n: 'Gambia', c: 'GM' }, { n: 'Georgia', c: 'GE' }, { n: 'Germany', c: 'DE' }, { n: 'Ghana', c: 'GH' },
+  { n: 'Greece', c: 'GR' }, { n: 'Grenada', c: 'GD' }, { n: 'Guatemala', c: 'GT' }, { n: 'Guinea', c: 'GN' },
+  { n: 'Guinea-Bissau', c: 'GW' }, { n: 'Guyana', c: 'GY' }, { n: 'Haiti', c: 'HT' }, { n: 'Honduras', c: 'HN' },
+  { n: 'Hungary', c: 'HU' }, { n: 'Iceland', c: 'IS' }, { n: 'India', c: 'IN' }, { n: 'Indonesia', c: 'ID' },
+  { n: 'Iran', c: 'IR' }, { n: 'Iraq', c: 'IQ' }, { n: 'Ireland', c: 'IE' }, { n: 'Israel', c: 'IL' },
+  { n: 'Italy', c: 'IT' }, { n: 'Jamaica', c: 'JM' }, { n: 'Japan', c: 'JP' }, { n: 'Jordan', c: 'JO' },
+  { n: 'Kazakhstan', c: 'KZ' }, { n: 'Kenya', c: 'KE' }, { n: 'Kiribati', c: 'KI' }, { n: 'Kuwait', c: 'KW' },
+  { n: 'Kyrgyzstan', c: 'KG' }, { n: 'Laos', c: 'LA' }, { n: 'Latvia', c: 'LV' }, { n: 'Lebanon', c: 'LB' },
+  { n: 'Lesotho', c: 'LS' }, { n: 'Liberia', c: 'LR' }, { n: 'Libya', c: 'LY' }, { n: 'Liechtenstein', c: 'LI' },
+  { n: 'Lithuania', c: 'LT' }, { n: 'Luxembourg', c: 'LU' }, { n: 'Madagascar', c: 'MG' }, { n: 'Malawi', c: 'MW' },
+  { n: 'Malaysia', c: 'MY' }, { n: 'Maldives', c: 'MV' }, { n: 'Mali', c: 'ML' }, { n: 'Malta', c: 'MT' },
+  { n: 'Marshall Islands', c: 'MH' }, { n: 'Mauritania', c: 'MR' }, { n: 'Mauritius', c: 'MU' }, { n: 'Mexico', c: 'MX' },
+  { n: 'Micronesia', c: 'FM' }, { n: 'Moldova', c: 'MD' }, { n: 'Monaco', c: 'MC' }, { n: 'Mongolia', c: 'MN' },
+  { n: 'Montenegro', c: 'ME' }, { n: 'Morocco', c: 'MA' }, { n: 'Mozambique', c: 'MZ' }, { n: 'Myanmar (Burma)', c: 'MM' },
+  { n: 'Namibia', c: 'NA' }, { n: 'Nauru', c: 'NR' }, { n: 'Nepal', c: 'NP' }, { n: 'Netherlands', c: 'NL' },
+  { n: 'New Zealand', c: 'NZ' }, { n: 'Nicaragua', c: 'NI' }, { n: 'Niger', c: 'NE' }, { n: 'Nigeria', c: 'NG' },
+  { n: 'North Korea', c: 'KP' }, { n: 'North Macedonia', c: 'MK' }, { n: 'Norway', c: 'NO' }, { n: 'Oman', c: 'OM' },
+  { n: 'Pakistan', c: 'PK' }, { n: 'Palau', c: 'PW' }, { n: 'Palestine', c: 'PS' }, { n: 'Panama', c: 'PA' },
+  { n: 'Papua New Guinea', c: 'PG' }, { n: 'Paraguay', c: 'PY' }, { n: 'Peru', c: 'PE' }, { n: 'Philippines', c: 'PH' },
+  { n: 'Poland', c: 'PL' }, { n: 'Portugal', c: 'PT' }, { n: 'Qatar', c: 'QA' }, { n: 'Romania', c: 'RO' },
+  { n: 'Russia', c: 'RU' }, { n: 'Rwanda', c: 'RW' }, { n: 'Saint Kitts and Nevis', c: 'KN' }, { n: 'Saint Lucia', c: 'LC' },
+  { n: 'Saint Vincent and the Grenadines', c: 'VC' }, { n: 'Samoa', c: 'WS' }, { n: 'San Marino', c: 'SM' },
+  { n: 'Sao Tome and Principe', c: 'ST' }, { n: 'Saudi Arabia', c: 'SA' }, { n: 'Senegal', c: 'SN' },
+  { n: 'Serbia', c: 'RS' }, { n: 'Seychelles', c: 'SC' }, { n: 'Sierra Leone', c: 'SL' }, { n: 'Singapore', c: 'SG' },
+  { n: 'Slovakia', c: 'SK' }, { n: 'Slovenia', c: 'SI' }, { n: 'Solomon Islands', c: 'SB' }, { n: 'Somalia', c: 'SO' },
+  { n: 'South Africa', c: 'ZA' }, { n: 'South Korea', c: 'KR' }, { n: 'South Sudan', c: 'SS' }, { n: 'Spain', c: 'ES' },
+  { n: 'Sri Lanka', c: 'LK' }, { n: 'Sudan', c: 'SD' }, { n: 'Suriname', c: 'SR' }, { n: 'Sweden', c: 'SE' },
+  { n: 'Switzerland', c: 'CH' }, { n: 'Syria', c: 'SY' }, { n: 'Taiwan', c: 'TW' }, { n: 'Tajikistan', c: 'TJ' },
+  { n: 'Tanzania', c: 'TZ' }, { n: 'Thailand', c: 'TH' }, { n: 'Timor-Leste', c: 'TL' }, { n: 'Togo', c: 'TG' },
+  { n: 'Tonga', c: 'TO' }, { n: 'Trinidad and Tobago', c: 'TT' }, { n: 'Tunisia', c: 'TN' },
+  { n: 'Turkey (Türkiye)', c: 'TR' }, { n: 'Turkmenistan', c: 'TM' }, { n: 'Tuvalu', c: 'TV' }, { n: 'Uganda', c: 'UG' },
+  { n: 'Ukraine', c: 'UA' }, { n: 'United Arab Emirates', c: 'AE' }, { n: 'United Kingdom', c: 'GB' },
+  { n: 'United States', c: 'US' }, { n: 'Uruguay', c: 'UY' }, { n: 'Uzbekistan', c: 'UZ' }, { n: 'Vanuatu', c: 'VU' },
+  { n: 'Vatican City (Holy See)', c: 'VA' }, { n: 'Venezuela', c: 'VE' }, { n: 'Vietnam', c: 'VN' },
+  { n: 'Yemen', c: 'YE' }, { n: 'Zambia', c: 'ZM' }, { n: 'Zimbabwe', c: 'ZW' }
+];
+const flagOf = c => c && /^[A-Z]{2}$/.test(c)
+  ? String.fromCodePoint(...[...c].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65)) : '🏳️';
+// country → display currency (the master mapping; unsupported currencies fall back to USD)
+const COUNTRY_CUR = {
+  NG: 'NGN', US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', JP: 'JPY', CN: 'CNY', IN: 'INR',
+  ZA: 'ZAR', BR: 'BRL', MX: 'MXN', AE: 'AED', SA: 'SAR', TR: 'TRY', CH: 'CHF', KE: 'KES',
+  GH: 'GHS', PH: 'PHP',
+  FR: 'EUR', DE: 'EUR', ES: 'EUR', IT: 'EUR', PT: 'EUR', NL: 'EUR', BE: 'EUR', AT: 'EUR',
+  IE: 'EUR', GR: 'EUR', FI: 'EUR', SK: 'EUR', SI: 'EUR', LU: 'EUR', MT: 'EUR', CY: 'EUR',
+  EE: 'EUR', LV: 'EUR', LT: 'EUR', HR: 'EUR',
+  AD: 'EUR', MC: 'EUR', SM: 'EUR', VA: 'EUR', ME: 'EUR',
+  BJ: 'EUR', BF: 'EUR', CV: 'EUR', CM: 'EUR', CF: 'EUR', TD: 'EUR', KM: 'EUR', CG: 'EUR',
+  GA: 'EUR', GQ: 'EUR', GN: 'EUR', ML: 'EUR', NE: 'EUR', SN: 'EUR', TG: 'EUR',
+  MA: 'EUR', DZ: 'EUR', TN: 'EUR',
+  LS: 'ZAR', SZ: 'ZAR', NA: 'ZAR',
+  BT: 'INR', NP: 'INR',
+  KI: 'AUD', NR: 'AUD', TV: 'AUD', PG: 'AUD',
+  SO: 'KES', SS: 'KES',
+  EC: 'USD', SV: 'USD', PA: 'USD', ZW: 'USD', TL: 'USD', FM: 'USD', MH: 'USD', PW: 'USD',
+  LI: 'CHF'
+};
+
 // sensible default currency per language (used only until the user picks one manually)
 const LANG_CUR = { en: 'USD', es: 'EUR', fr: 'EUR', pt: 'EUR', de: 'EUR', zh: 'CNY', hi: 'INR' };
 
@@ -295,7 +385,7 @@ const I18N = {
     'hero.stat1': 'TikTok Community', 'hero.stat2': 'Power of Publish Family', 'hero.stat3': 'Live-Tracked Assets', 'hero.stat4': 'Markets & Support',
     'auth.welcomeBack': 'Welcome Back', 'auth.signupTitle': 'Join the Blockchain Bullhorn',
     'pwa.installTitle': 'Get the Blockchain Bullhorn app', 'pwa.installSub': 'Fast, full-screen, works offline', 'pwa.installGo': 'Install',
-    'globe.note': 'Language and currency are independent — combine freely (e.g. Français + Naira). Prices display in your chosen currency; accounts and trading stay in USD.'
+    'globe.note': 'Your country / region sets the display currency. Language and currency can still be changed independently — prices show in your chosen currency, while accounts and trading stay in USD.'
   },
   es: {
     'nav.markets': 'Mercados', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidad',
@@ -315,7 +405,7 @@ const I18N = {
     'hero.stat1': 'Comunidad de TikTok', 'hero.stat2': 'Familia Power of Publish', 'hero.stat3': 'Activos en vivo', 'hero.stat4': 'Mercados y soporte 24/7',
     'auth.welcomeBack': 'Bienvenido de nuevo', 'auth.signupTitle': 'Únete al Blockchain Bullhorn',
     'pwa.installTitle': 'Consigue la app Blockchain Bullhorn', 'pwa.installSub': 'Rápida, a pantalla completa, funciona sin conexión', 'pwa.installGo': 'Instalar',
-    'globe.note': 'El idioma y la moneda son independientes: combínalos libremente (p. ej. Français + Naira). Los precios se muestran en tu moneda elegida; las cuentas y el trading se mantienen en USD.'
+    'globe.note': 'Tu país / región determina la moneda de visualización. El idioma y la moneda pueden cambiarse de forma independiente — los precios se muestran en tu moneda elegida; las cuentas y el trading se mantienen en USD.'
   },
   fr: {
     'nav.markets': 'Marchés', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Communauté',
@@ -335,7 +425,7 @@ const I18N = {
     'hero.stat1': 'Communauté TikTok', 'hero.stat2': 'Famille Power of Publish', 'hero.stat3': 'Actifs suivis en direct', 'hero.stat4': 'Marchés & support 24/7',
     'auth.welcomeBack': 'Bon retour', 'auth.signupTitle': 'Rejoignez le Blockchain Bullhorn',
     'pwa.installTitle': "Obtenez l'app Blockchain Bullhorn", 'pwa.installSub': 'Rapide, plein écran, fonctionne hors ligne', 'pwa.installGo': 'Installer',
-    'globe.note': 'La langue et la devise sont indépendantes — combinez librement (ex. Français + Naira). Les prix s\'affichent dans la devise choisie ; les comptes et le trading restent en USD.'
+    'globe.note': 'Votre pays / région détermine la devise d\'affichage. La langue et la devise restent modifiables indépendamment — les prix s\'affichent dans la devise choisie ; les comptes et le trading restent en USD.',
   },
   pt: {
     'nav.markets': 'Mercados', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidade',
@@ -355,7 +445,7 @@ const I18N = {
     'hero.stat1': 'Comunidade TikTok', 'hero.stat2': 'Família Power of Publish', 'hero.stat3': 'Ativos ao vivo', 'hero.stat4': 'Mercados e suporte 24/7',
     'auth.welcomeBack': 'Bem-vindo de volta', 'auth.signupTitle': 'Junte-se ao Blockchain Bullhorn',
     'pwa.installTitle': 'Baixe o app Blockchain Bullhorn', 'pwa.installSub': 'Rápido, tela cheia, funciona offline', 'pwa.installGo': 'Instalar',
-    'globe.note': 'Idioma e moeda são independentes — combine livremente (ex. Français + Naira). Os preços são exibidos na moeda escolhida; as contas e o trading permanecem em USD.'
+    'globe.note': 'Seu país / região determina a moeda de exibição. Idioma e moeda podem ser alterados independentemente — os preços são exibidos na moeda escolhida; as contas e o trading permanecem em USD.'
   },
   de: {
     'nav.markets': 'Märkte', 'nav.trading': 'Trading', 'nav.bots': 'Trading-Bots', 'nav.community': 'Community',
@@ -375,7 +465,7 @@ const I18N = {
     'hero.stat1': 'TikTok-Community', 'hero.stat2': 'Power of Publish Familie', 'hero.stat3': 'Live-verfolgte Assets', 'hero.stat4': 'Märkte & Support 24/7',
     'auth.welcomeBack': 'Willkommen zurück', 'auth.signupTitle': 'Werde Teil des Blockchain Bullhorn',
     'pwa.installTitle': 'Hol dir die Blockchain Bullhorn App', 'pwa.installSub': 'Schnell, im Vollbild, funktioniert offline', 'pwa.installGo': 'Installieren',
-    'globe.note': 'Sprache und Währung sind unabhängig — frei kombinierbar (z. B. Français + Naira). Preise werden in der gewählten Währung angezeigt; Konten und Trading bleiben in USD.'
+    'globe.note': 'Dein Land / deine Region legt die Anzeigewährung fest. Sprache und Währung lassen sich unabhängig ändern — Preise werden in der gewählten Währung angezeigt; Konten und Trading bleiben in USD.'
   },
   zh: {
     'nav.markets': '市场', 'nav.trading': '交易', 'nav.bots': '交易机器人', 'nav.community': '社区',
@@ -395,7 +485,7 @@ const I18N = {
     'hero.stat1': 'TikTok 社区', 'hero.stat2': 'Power of Publish 家族', 'hero.stat3': '实时追踪资产', 'hero.stat4': '市场与支持 24/7',
     'auth.welcomeBack': '欢迎回来', 'auth.signupTitle': '加入 Blockchain Bullhorn',
     'pwa.installTitle': '获取 Blockchain Bullhorn 应用', 'pwa.installSub': '快速、全屏、离线可用', 'pwa.installGo': '安装',
-    'globe.note': '语言与货币相互独立，可自由组合（如 Français + Naira）。价格以所选货币显示；账户与交易以美元（USD）结算。'
+    'globe.note': '您的国家/地区决定显示货币。语言与货币可独立更改 — 价格以所选货币显示；账户与交易以美元（USD）结算。'
   },
   hi: {
     'nav.markets': 'बाज़ार', 'nav.trading': 'ट्रेडिंग', 'nav.bots': 'ट्रेडिंग बॉट्स', 'nav.community': 'कम्युनिटी',
@@ -415,7 +505,7 @@ const I18N = {
     'hero.stat1': 'TikTok कम्युनिटी', 'hero.stat2': 'Power of Publish परिवार', 'hero.stat3': 'लाइव-ट्रैक किए एसेट', 'hero.stat4': 'मार्केट और सहायता 24/7',
     'auth.welcomeBack': 'वापसी पर स्वागत है', 'auth.signupTitle': 'Blockchain Bullhorn से जुड़ें',
     'pwa.installTitle': 'Blockchain Bullhorn ऐप पाएं', 'pwa.installSub': 'तेज़, फ़ुल-स्क्रीन, ऑफ़लाइन काम करता है', 'pwa.installGo': 'इंस्टॉल करें',
-    'globe.note': 'भाषा और मुद्रा स्वतंत्र हैं — ज़रूरत के अनुसार जोड़ें (जैसे Français + Naira)। कीमतें आपकी चुनी मुद्रा में दिखती हैं; खाते और ट्रेडिंग USD में रहते हैं।'
+    'globe.note': 'आपका देश / क्षेत्र प्रदर्शन मुद्रा तय करता है। भाषा और मुद्रा स्वतंत्र रूप से बदली जा सकती हैं — कीमतें आपकी चुनी मुद्रा में दिखती हैं; खाते और ट्रेडिंग USD में रहते हैं।'
   }
 };
 
@@ -448,10 +538,16 @@ function renderHeader() {
 
 function renderHeaderActions() {
   const el = $('#headerActions'); if (!el) return;
+  const bbC = BB.country();
   const GLOBE = `
     <div class="globe-wrap" id="globeWrap">
-      <button class="globe-btn" id="globeBtn" aria-label="Language and currency" aria-haspopup="true">🌐 <b>${BB.lang.toUpperCase()}</b><i class="fas fa-chevron-down" style="font-size:8px;margin-left:4px"></i></button>
+      <button class="globe-btn" id="globeBtn" aria-label="Country, language and currency" aria-haspopup="true">${bbC ? flagOf(bbC) : '🌐'} <b>${BB.lang.toUpperCase()}</b><i class="fas fa-chevron-down" style="font-size:8px;margin-left:4px"></i></button>
       <div class="globe-menu" id="globeMenu">
+        <div class="gm-head">🌍 Country / Region <small style="letter-spacing:0;text-transform:none">— sets your currency</small></div>
+        <input class="input gm-search" id="gmSearch" placeholder="Search country…" autocomplete="off">
+        <div class="gm-countries" id="gmCountries">
+          ${CTRY.map(x => `<button class="gm-item${x.c === bbC ? ' active' : ''}" data-country="${x.c}"><span class="gm-flag">${flagOf(x.c)}</span>${x.n}</button>`).join('')}
+        </div>
         <div class="gm-head">🌐 Language</div>
         ${LANGS.map(l => `<button class="gm-item${l.c === BB.lang ? ' active' : ''}" data-lang="${l.c}"><span class="gm-flag">${l.f}</span>${l.n}</button>`).join('')}
         <div class="gm-head">💰 Currency</div>
@@ -504,10 +600,19 @@ function bindGlobe() {
   document.addEventListener('click', () => menu.classList.remove('open'));
   menu.addEventListener('click', e => {
     e.stopPropagation();
+    const co = e.target.closest('[data-country]');
+    if (co) { BB.setCountry(co.dataset.country); return; }  // sets currency too, re-renders
     const l = e.target.closest('[data-lang]');
     if (l) { BB.setLang(l.dataset.lang); return; }          // re-renders header incl. picker
     const c = e.target.closest('[data-cur]');
     if (c) { BB.setCur(c.dataset.cur); renderHeader(); renderFooter(); } // refresh active states
+  });
+  const search = $('#gmSearch');
+  if (search) search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    $$('#gmCountries .gm-item').forEach(b => {
+      b.style.display = !q || b.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
   });
 }
 
@@ -975,7 +1080,14 @@ async function bootCommon() {
     BB.api('/api/fx', { silent: true })
   ]);
   if (settingsR.ok) BB.settings = Object.assign(BB.settings, settingsR);
-  if (meR.ok && meR.user) BB.user = meR.user;
+  if (meR.ok && meR.user) {
+    BB.user = meR.user;
+    // the country on the user's account determines the display currency
+    if (!localStorage.getItem('bbCurSet')) {
+      const iso = (CTRY.find(x => x.n === BB.user.country) || {}).c;
+      if (iso && !localStorage.getItem('bbCountry')) BB.setCountry(iso, { toast: false });
+    }
+  }
   if (fxR.ok && fxR.rates) {
     BB.fx.rates = fxR.rates; BB.fx.ready = true;
     BB.fx.rate = fxR.rates[BB.cur] || 1;

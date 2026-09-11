@@ -228,7 +228,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=15"></script>
+  <script src="/assets/js/common.js?v=16"></script>
   <script src="/assets/js/countries.js"></script>
   <script>
     document.addEventListener('bb:ready', () => {
@@ -239,9 +239,13 @@
       const showAlert = m => { alertEl.textContent = m; alertEl.classList.add('show'); alertEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); };
       const clearAlert = () => alertEl.classList.remove('show');
 
-      // populate countries
+      // populate countries (CTRY: {n: name, c: ISO} — flags + currency follow)
       const cs = $('#suCountry');
-      COUNTRIES.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; cs.appendChild(o); });
+      COUNTRIES.forEach(x => { const o = document.createElement('option'); o.value = x.n; o.textContent = flagOf(x.c) + '  ' + x.n; cs.appendChild(o); });
+      cs.addEventListener('change', () => {
+        const pick = COUNTRIES.find(x => x.n === cs.value);
+        if (pick) BB.setCountry(pick.c);   // sets the display currency to the country's currency
+      });
 
       // password eye + meter
       $('#suPwEye').addEventListener('click', () => {

@@ -203,7 +203,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=15"></script>
+  <script src="/assets/js/common.js?v=16"></script>
   <script src="/assets/js/chart.js?v=7"></script>
   <script>
     document.addEventListener('bb:ready', async () => {
@@ -488,9 +488,9 @@
           const r = await BB.api(`/api/swap/quote?from=${encodeURIComponent(q.from)}&to=${encodeURIComponent(q.to)}&amount=${encodeURIComponent(q.amount)}`, { silent: true });
           if (!r.ok) { $('#sqRecv', bd).textContent = r.error || '—'; return; }
           $('#sqRate', bd).textContent = `1 ${r.from.symbol} ≈ ${r.rate.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${r.to.symbol}`;
-          $('#sqFee', bd).textContent = `$${r.feeUsd.toFixed(2)}`;
+          $('#sqFee', bd).textContent = BB.fmtUSD(r.feeUsd);
           $('#sqRecv', bd).textContent = `${r.receiveQty.toLocaleString(undefined, { maximumFractionDigits: 8 })} ${r.to.symbol}`;
-          $('#sqVal', bd).textContent = `$${r.usdValue.toFixed(2)}`;
+          $('#sqVal', bd).textContent = BB.fmtUSD(r.usdValue);
         };
         fromSel.addEventListener('change', updBals); toSel.addEventListener('change', updBals);
         [fromSel, toSel].forEach(sel => sel.addEventListener('change', quote));
