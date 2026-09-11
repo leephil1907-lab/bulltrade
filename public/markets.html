@@ -17,7 +17,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=15">
+  <link rel="stylesheet" href="/assets/css/main.css?v=16">
   <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
@@ -127,7 +127,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=13"></script>
+  <script src="/assets/js/common.js?v=14"></script>
   <script src="/assets/js/chart.js?v=7"></script>
   <script>
     document.addEventListener('bb:ready', () => {
@@ -237,7 +237,7 @@
             </div>
           </div>
           <div class="coin-stats mt-2">
-            <div><small>Prev close</small><b class="num">${a.prevClose ? '$' + BB.fmtPrice(a.prevClose) : '—'}</b></div>
+            <div><small>Prev close</small><b class="num">${a.prevClose ? BB.sym() + BB.fmtPrice(a.prevClose) : '—'}</b></div>
             <div><small>Market cap</small><b class="num">${a.marketCap ? '$' + (a.marketCap / 1e9).toFixed(2) + 'B' : '—'}</b></div>
             <div><small>Volume 24h</small><b class="num">${a.volume24h ? '$' + (a.volume24h / 1e6).toFixed(1) + 'M' : '—'}</b></div>
             <div><small>Max leverage</small><b class="num">${a.maxLeverage || 5}×</b></div>

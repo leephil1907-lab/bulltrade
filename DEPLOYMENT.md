@@ -189,3 +189,11 @@ every 20s), and Admin → Trading Bots shows key requests, allocations and per-b
 - **Google Search Console**: when the property is added, leave *International Targeting → Country* **unset** (this is the default) — "unlisted" means worldwide. Do NOT select a target country. Skip Google Business Profile unless a local presence is specifically wanted (it is a local-SEO tool).
 - Marketing keywords should be worldwide ("best demo trading app", "how to trade gold online", "crypto trading for beginners") rather than any single country.
 - Future multi-language: only add `hreflang` + translated pages when non-English audiences justify it.
+
+## 28. Languages & display currencies (globe picker)
+- **Header globe button (🌐 EN)** opens the language + currency picker. Languages (flag-matched): 🇬🇧 English, 🇪🇸 Español, 🇫🇷 Français, 🇵🇹 Português, 🇩🇪 Deutsch, 🇨🇳 中文, 🇮🇳 हिन्दी. Currencies (flag-matched, 19): USD, EUR, GBP, CAD, AUD, JPY, CNY, INR, NGN, ZAR, BRL, MXN, AED, SAR, TRY, CHF, KES, GHS, PHP.
+- Translation coverage (client-side, `I18N` dictionary in common.js + `data-i18n`/`data-i18n-html` attributes): site chrome (nav, user menu, footer incl. fraud alert), homepage hero/CTAs/stats, login/signup headings, install banner. Page bodies beyond the homepage remain English this pass — extend by adding `data-i18n` attributes + dictionary keys.
+- **Currency is display-only**: all accounts, wallets and trading remain USD; `BB.fmtUSD`/`BB.fmtPrice` convert at render time using `/api/fx` (open.er-api.com, 12h server cache in `settings.fx`, hardcoded seed fallback). Static marketing prices use `<span data-usd="10000">$10,000</span>`. Switching currency dispatches `bb:fx` (pages re-render on their poll cycles). The admin panel intentionally stays USD/English.
+- Choice persists in localStorage (`bbLang`, `bbCur`); `<html lang>` updates for accessibility/SEO.
+- No hreflang: translations are client-side on the same URLs (Google indexes the English source; JSON-LD remains the global signal).
+- Flag emoji note: Windows desktop Chrome renders regional-letter pairs instead of flag emoji (a Windows limitation); all mobile platforms and macOS show real flags.

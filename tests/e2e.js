@@ -406,6 +406,21 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', `/api/chat/messages?after=0`, null, userCookie);
   ok('user receives admin reply', r.data.messages.some(m => m.from === 'admin'));
 
+  // ========== I18N + FX (language & currency picker) ==========
+  {
+    r = await req('GET', '/api/fx');
+    ok('fx rates served (EUR + NGN present)', r.data.ok && r.data.rates && r.data.rates.EUR > 0 && r.data.rates.NGN > 0, r.data.rates && r.data.rates.EUR);
+    let res = await fetch(BASE + '/');
+    const idx = await res.text();
+    ok('homepage has i18n attributes (hero translated)', idx.includes('data-i18n="hero.lead"') && idx.includes('data-i18n-html="hero.h1"'), 'hero');
+    ok('homepage has data-usd conversion marker', idx.includes('data-usd="10000"'), 'mentorship price');
+    res = await fetch(BASE + '/assets/js/common.js?v=14');
+    const cjs = await res.text();
+    ok('i18n dictionary present (7 languages)', cjs.includes('const I18N') && cjs.includes('Español') && cjs.includes('हिन्दी') && cjs.includes('Deutsch'));
+    ok('globe picker UI present', cjs.includes('globeBtn') && cjs.includes('data-lang') && cjs.includes('data-cur'));
+    ok('currency symbols + formatters converted', cjs.includes('BB.sym()') && cjs.includes("NGN: { f: '🇳🇬'") === false || cjs.includes('NGN'), 'sym');
+  }
+
   // ========== PWA + WEB PUSH ==========
   {
     let res = await fetch(BASE + '/sw.js');

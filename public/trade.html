@@ -17,7 +17,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=15">
+  <link rel="stylesheet" href="/assets/css/main.css?v=16">
   <style>
     .trade-layout { display: grid; grid-template-columns: 250px 1fr 320px; gap: 16px; align-items: start; }
     .asset-list { max-height: 560px; overflow-y: auto; }
@@ -203,7 +203,7 @@
   </section>
 
   <footer class="site-footer" id="site-footer"></footer>
-  <script src="/assets/js/common.js?v=13"></script>
+  <script src="/assets/js/common.js?v=14"></script>
   <script src="/assets/js/chart.js?v=7"></script>
   <script>
     document.addEventListener('bb:ready', async () => {
@@ -336,7 +336,7 @@
       function renderHead() {
         if (!asset) return;
         $('#headAsset').innerHTML = `${BB.assetIcon(asset, 34)}<div><b style="font-size:15px">${BB.esc(asset.name)}</b><span>${BB.esc(asset.symbol)} · ${asset.category.toUpperCase()}</span></div>`;
-        $('#headPrice').textContent = '$' + BB.fmtPrice(asset.price);
+        $('#headPrice').textContent = BB.sym() + BB.fmtPrice(asset.price);
         $('#headChg').innerHTML = `<span class="${BB.chgClass(asset.changePct)}">${BB.chgIcon(asset.changePct)} ${BB.fmtPct(asset.changePct)} · 24h</span>`;
         $('#levSlider').max = asset.maxLeverage || 1;
         $('#levMax').textContent = (asset.maxLeverage || 1) + '×';
@@ -398,7 +398,7 @@
         $('#sumFee').textContent = BB.fmtUSD(fee);
         const px = otype === 'limit' ? (parseFloat($('#limitPrice').value) || (asset ? asset.price : 0)) : (asset ? asset.price : 0);
         const liq = side === 'buy' ? px * (1 - 0.9 / lev) : px * (1 + 0.9 / lev);
-        $('#sumLiq').textContent = px ? '$' + BB.fmtPrice(liq) : '—';
+        $('#sumLiq').textContent = px ? BB.sym() + BB.fmtPrice(liq) : '—';
       }
       $('#orderAmount').addEventListener('input', updateQty);
       $('#limitPrice').addEventListener('input', updateQty);
@@ -551,7 +551,7 @@
             <div class="row"><span>Size</span><b class="num">${p.qty.toFixed(6)}</b></div>
             <div class="row"><span>Entry</span><b class="num">$${BB.fmtPrice(p.entry)}</b></div>
             <div class="row"><span>Mark</span><b class="num">$${BB.fmtPrice(p.currentPrice)}</b></div>
-            <div class="row"><span>TP / SL</span><b class="num muted">${p.tp ? '$' + BB.fmtPrice(p.tp) : '—'} / ${p.sl ? '$' + BB.fmtPrice(p.sl) : '—'}${p.trailPct ? ` <span class="badge badge-green" style="margin-left:4px">TRAIL ${p.trailPct}%</span>` : ''}</b></div>
+            <div class="row"><span>TP / SL</span><b class="num muted">${p.tp ? BB.sym() + BB.fmtPrice(p.tp) : '—'} / ${p.sl ? BB.sym() + BB.fmtPrice(p.sl) : '—'}${p.trailPct ? ` <span class="badge badge-green" style="margin-left:4px">TRAIL ${p.trailPct}%</span>` : ''}</b></div>
             <div class="row"><span>Liq. price</span><b class="num muted">$${BB.fmtPrice(p.liquidationPrice)}</b></div>
             <div class="row" style="border-top:1px dashed var(--line);margin-top:6px;padding-top:8px;align-items:center">
               <span>P/L</span>

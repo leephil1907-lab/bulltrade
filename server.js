@@ -861,6 +861,28 @@ api['GET /api/settings/public'] = async (req, res) => {
 };
 
 // ---- admin ----
+// ---- FX rates (display-currency conversion; accounts are held in USD) ----
+const FX_SEED = { USD: 1, EUR: 0.90, GBP: 0.78, CAD: 1.37, AUD: 1.52, JPY: 150, CNY: 7.15, INR: 88, NGN: 1550, ZAR: 18.2, BRL: 5.45, MXN: 18.4, AED: 3.67, SAR: 3.75, TRY: 42, CHF: 0.88, KES: 129, GHS: 15.5, PHP: 58 };
+api['GET /api/fx'] = async (req, res) => {
+  const s = D.db().settings || (D.db().settings = {});
+  const fx = s.fx;
+  const fresh = fx && fx.rates && fx.base === 'USD' && (Date.now() - fx.updatedAt < 12 * 3600 * 1000);
+  if (fresh) return ok(res, { base: 'USD', rates: fx.rates, updatedAt: fx.updatedAt });
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD', { headers: { accept: 'application/json' } });
+    const j = await r.json();
+    if (j && j.result === 'success' && j.rates && j.rates.EUR) {
+      s.fx = { base: 'USD', rates: j.rates, updatedAt: Date.now() };
+      D.save();
+      return ok(res, { base: 'USD', rates: j.rates, updatedAt: s.fx.updatedAt });
+    }
+    throw new Error('unexpected FX payload');
+  } catch (e) {
+    if (fx && fx.rates) return ok(res, { base: 'USD', rates: fx.rates, updatedAt: fx.updatedAt, stale: true });
+    return ok(res, { base: 'USD', rates: FX_SEED, updatedAt: 0, stale: true });
+  }
+};
+
 // ---- web push ----
 api['GET /api/push/config'] = async (req, res) => {
   const push = require('./lib/push');
