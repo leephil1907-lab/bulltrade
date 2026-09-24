@@ -38,6 +38,22 @@ to PostgreSQL with database transactions and unique/idempotency constraints.
 
 The current implementation deliberately preserves the existing application architecture while making cash mutations journaled and auditable.
 
+## CRM / HubSpot integration
+
+Bulltrade can optionally synchronize customer-service CRM data with HubSpot without making HubSpot authoritative for financial state.
+
+- New registrations create or update a HubSpot Contact when `HUBSPOT_ACCESS_TOKEN` is configured.
+- Signup/KYC status is synchronized to the Contact lifecycle/status fields.
+- `POST /api/support/ticket` records the local support request and asynchronously creates a HubSpot Ticket associated with the customer Contact.
+- HubSpot failures never block authentication, trading, wallet mutations or ledger operations.
+- Wallet balances, orders, positions, executions and the financial ledger remain Bulltrade-owned.
+
+Required environment variable for CRM sync:
+
+- `HUBSPOT_ACCESS_TOKEN`
+
+The token must be stored only in the server deployment environment. Never expose it to browser code or commit it to Git.
+
 ## Required production environment
 
 At minimum configure:
