@@ -1,6 +1,6 @@
 # 🐂 The Blockchain Bullhorn
 
-A production-grade crypto education and multi-asset **trading platform** — live markets, demo & live trading, copy trading, community onboarding and manual KYC/finances, wrapped in the brand look of [blockchainbullhorn.com](https://blockchainbullhorn.com) (light theme, Quattrocento Sans + PT Serif).
+A
 
 Built with **zero npm dependencies** — plain Node.js 18+ serving 21 pages, a REST API and a file-backed database.
 
