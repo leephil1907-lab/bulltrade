@@ -156,6 +156,29 @@ api['POST /api/auth/signup'] = async (req, res, body, cookies) => {
     { 'Set-Cookie': U.cookieStr(Auth.SESSION_COOKIE, t, { maxAge: 7 * 24 * 3600 }) });
 };
 
+api['POST /api/support/ticket'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const subject = String(body.subject || '').trim();
+  const content = String(body.content || body.message || '').trim();
+  if (!subject || !content) return fail(res, 400, 'Subject and message are required.');
+  if (content.length > 6000) return fail(res, 400, 'Support message is too long.');
+  const ticket = D.insert('chats', {
+    id: U.uid('chat_'), userId: user.id, subject: subject.slice(0, 255),
+    message: content, status: 'open', createdAt: Date.now(), updatedAt: Date.now()
+  });
+  if (HubSpot.enabled()) {
+    HubSpot.syncContact(user, { lifecyclestage: 'customer' }).then(async (crm) => {
+      if (crm && crm.ok && crm.contactId) {
+        await HubSpot.createSupportTicket({
+          subject, content, priority: body.priority, category: body.category,
+          contactId: crm.contactId
+        });
+      }
+    }).catch(() => {});
+  }
+  ok(res, { ticket, message: 'Support request received.' });
+};
+
 api['POST /api/auth/login'] = async (req, res, body, cookies) => {
   const email = String(body.email || '').trim().toLowerCase();
   const password = String(body.password || '');
