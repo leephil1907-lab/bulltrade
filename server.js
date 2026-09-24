@@ -1158,8 +1158,8 @@ api['POST /api/admin/user-action'] = async (req, res, body, cookies) => {
   switch (body.action) {
     case 'ban': u.banned = true; D.logAudit(admin.id, 'user.ban', u.id, body.reason || ''); break;
     case 'unban': u.banned = false; D.logAudit(admin.id, 'user.unban', u.id, ''); break;
-    case 'make-admin': u.role = 'admin'; D.logAudit(admin.id, 'user.makeAdmin', u.id, ''); break;
-    case 'revoke-admin': u.role = 'user'; D.logAudit(admin.id, 'user.revokeAdmin', u.id, ''); break;
+    case 'make-admin': return fail(res, 403, 'Additional administrator accounts are disabled. Bulltrade uses one unified Super Admin control center.');
+    case 'revoke-admin': return fail(res, 403, 'Administrator role changes are managed outside the user workflow to preserve the single Super Admin control plane.');
     case 'forcelogout': {
       const before = D.db().sessions.length;
       D.db().sessions = D.db().sessions.filter(x => x.userId !== u.id);
