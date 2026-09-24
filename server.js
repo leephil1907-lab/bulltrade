@@ -216,13 +216,17 @@ api['POST /api/auth/forgot'] = async (req, res, body) => {
   if (!user) return ok(res, { sent: true, message: 'If an account exists for that email, a recovery link has been created.' });
   const t = U.token(20);
   D.insert('resets', { token: t, userId: user.id, expiresAt: Date.now() + 3600 * 1000, used: false });
-  ok(res, {
-    sent: true,
-    // NOTE: SMTP is not configured on this deployment, so the secure recovery link is
-    // returned directly. With SMTP configured this would be emailed instead.
-    resetUrl: `/reset-password?token=${t}`,
-    message: 'Recovery link created. Email delivery is not configured on this deployment, so use the link below (valid 1 hour).'
-  });
+  const resetUrl = `/reset-password?token=${t}`;
+  const sent = await mailer.sendMail({
+    to: user.email,
+    subject: '🔐 Password reset — Blockchain Bullhorn',
+    html: mailer.templates.wrap('🔐 Reset your password', 'A password reset was requested for your account. This link expires in 1 hour.', resetUrl, 'Reset Password')
+  }).catch(() => ({ sent: false }));
+  // Never disclose reset tokens through the API in production. In development,
+  // returning the URL keeps local testing possible when mail transport is absent.
+  const payload = { sent: true, message: 'If an account exists for that email, a recovery link has been created.' };
+  if (!sent.sent && process.env.NODE_ENV !== 'production') payload.resetUrl = resetUrl;
+  ok(res, payload);
 };
 
 api['POST /api/auth/reset'] = async (req, res, body) => {
