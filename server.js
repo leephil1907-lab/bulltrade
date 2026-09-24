@@ -51,7 +51,7 @@ function serveFile(res, filePath, code = 200) {
     let body = buf;
     if (ext === '.html') {
       const html = buf.toString('utf8');
-      body = Buffer.from(html.replace('</head>', '  <link rel="stylesheet" href="/assets/css/premium.css?v=1">\\n</head>'));
+      body = Buffer.from(html.replace('</head>', '  <link rel="stylesheet" href="/assets/css/premium.css?v=1">\n</head>'));
     }
     const cache = ['.woff2', '.png', '.jpg', '.jpeg', '.webp', '.ico', '.svg'].includes(ext) ? 'public, max-age=86400' : 'no-cache';
     res.writeHead(code, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': cache });
