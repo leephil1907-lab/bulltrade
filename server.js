@@ -413,6 +413,36 @@ api['GET /api/markets/candles'] = async (req, res, body, cookies, query) => {
 };
 
 // ---- trading ----
+api['GET /api/me/capabilities'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const kyc = kycApproved(user);
+  const t = D.db().settings.trading || {};
+  const live = trading.equity(user.id, 'live');
+  ok(res, { capabilities: {
+    view: true,
+    demoTrading: t.enabled !== false,
+    liveTrading: t.enabled !== false && t.liveEnabled !== false && kyc,
+    deposits: kyc,
+    withdrawals: t.enabled !== false && kyc,
+    bots: kyc,
+    kycStatus: kyc ? 'approved' : ((D.find('kyc', k => k.userId === user.id) || {}).status || 'not_submitted'),
+    frozen: !!user.banned,
+    liveEquity: live.equity
+  }, trading: t });
+};
+
+api['GET /api/dashboard/summary'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const live = trading.equity(user.id, 'live');
+  const demo = trading.equity(user.id, 'demo');
+  const positions = D.filter('positions', p => p.userId === user.id);
+  const pending = D.filter('transactions', t => t.userId === user.id && t.status === 'pending').length;
+  const recent = D.filter('trades', t => t.userId === user.id && t.action === 'close')
+    .sort((a,b) => b.at - a.at).slice(0, 10);
+  const ledger = D.ledgerEntries(user.id, null, 20);
+  ok(res, { live, demo, positions, pendingTransactions: pending, recentTrades: recent, ledger });
+};
+
 api['GET /api/trading/state'] = async (req, res, body, cookies, query) => {
   const user = requireUser(req, res, cookies); if (!user) return;
   const qMode = query.get('mode');
@@ -424,7 +454,7 @@ api['GET /api/trading/state'] = async (req, res, body, cookies, query) => {
     return Object.assign({}, p, { currentPrice: price, pnl: U.round(pnl), pnlPct: U.round(pnl / p.margin * 100), liquidationPrice: U.round(p.side === 'buy' ? p.entry * (1 - 0.9 / p.leverage) : p.entry * (1 + 0.9 / p.leverage), 6) });
   };
   ok(res, {
-    mode, equity: trading.equity(user.id, mode),
+    mode, equity: trading.equity(user.id, mode), tradingControls: D.db().settings.trading || {},
     positions: book.positions.map(decorate),
     mirrored: book.mirrored.map(decorate),
     orders: book.orders, recentTrades: book.trades, feeRate: trading.FEE_RATE
@@ -1016,7 +1046,10 @@ api['GET /api/admin/overview'] = async (req, res, body, cookies) => {
       totalTrades: db.trades.length,
       communityPending: db.community_apps.filter(a => a.status === 'pending').length,
       leaderPending: db.bot_requests.filter(r => r.status === 'pending').length, // bot connection-key requests
-      copyAllocations: db.copy_allocations.filter(a => a.active).length
+      copyAllocations: db.copy_allocations.filter(a => a.active).length,
+      ledgerEntries: db.ledger.length,
+      ledgerMismatches: users.filter(u => u.role !== 'admin').reduce((n, u) =>
+        n + ['demo','live'].filter(m => !D.reconcileWallet(u.id, m).balanced).length, 0)
     },
     recentUsers,
     topGainers: movers.slice(0, 5),
@@ -1443,6 +1476,13 @@ api['POST /api/admin/settings'] = async (req, res, body, cookies) => {
   if (isFinite(Number(b.minWithdraw))) s.minWithdraw = Math.max(1, Number(b.minWithdraw));
   if (typeof b.supportEmail === 'string') s.supportEmail = b.supportEmail.trim().slice(0, 120);
   if (typeof b.siteUrl === 'string') s.siteUrl = b.siteUrl.trim().slice(0, 200);
+  if (b.trading && typeof b.trading === 'object') {
+    s.trading = s.trading || { enabled: true, liveEnabled: true, maxLeverage: 10, maxOrderUsd: 1000000 };
+    if (typeof b.trading.enabled === 'boolean') s.trading.enabled = b.trading.enabled;
+    if (typeof b.trading.liveEnabled === 'boolean') s.trading.liveEnabled = b.trading.liveEnabled;
+    if (isFinite(Number(b.trading.maxLeverage))) s.trading.maxLeverage = Math.max(1, Math.min(100, Number(b.trading.maxLeverage)));
+    if (isFinite(Number(b.trading.maxOrderUsd))) s.trading.maxOrderUsd = Math.max(10, Math.min(100000000, Number(b.trading.maxOrderUsd)));
+  }
   if (b.contest && typeof b.contest === 'object') {
     s.contest = s.contest || { enabled: true, prize: '' };
     s.contest.enabled = !!b.contest.enabled;
@@ -1484,6 +1524,20 @@ api['POST /api/admin/test-email'] = async (req, res, body, cookies) => {
     : 'No transport is configured. Set up Email Delivery (relay, SendGrid or SMTP) in Settings first.');
   if (!r.sent) return fail(res, 502, 'Send failed: ' + (r.error || 'unknown error'));
   ok(res, { message: 'Test email sent to ' + to });
+};
+
+api['GET /api/admin/ledger'] = async (req, res, body, cookies, query) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const userId = String(query.get('userId') || '');
+  if (userId) {
+    return ok(res, { entries: D.ledgerEntries(userId, query.get('mode') || null, 250),
+      reconcile: ['demo','live'].map(mode => D.reconcileWallet(userId, mode)) });
+  }
+  const rows = D.db().users.filter(u => u.role !== 'admin').map(u => ({
+    userId: u.id, email: u.email, demo: D.reconcileWallet(u.id, 'demo'),
+    live: D.reconcileWallet(u.id, 'live')
+  }));
+  ok(res, { entries: D.db().ledger.slice().sort((a,b) => b.createdAt-a.createdAt).slice(0,250), users: rows });
 };
 
 api['GET /api/admin/audit'] = async (req, res, body, cookies) => {
