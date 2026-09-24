@@ -625,6 +625,16 @@
           <div class="field"><label>BTC payment wallet</label><input class="input ppay-in" data-coin="BTC" value="${BB.esc((s.productPaymentAddresses || {}).BTC || '')}" placeholder="bc1…"></div>
           <div class="field"><label>USDT ERC-20 payment wallet</label><input class="input ppay-in" data-coin="USDT-ERC20" value="${BB.esc((s.productPaymentAddresses || {})['USDT-ERC20'] || '')}" placeholder="0x…"></div>
         </div>
+        <div class="admin-card"><h3><i class="fas fa-shield-halved" style="color:var(--gold)"></i> Trading Risk Controls</h3>
+          <p class="muted small mb-2">Server-authoritative controls. These are enforced by the trading API, not just the browser.</p>
+          <div class="checkline mb-1"><input type="checkbox" id="setTradingOn" ${s.trading && s.trading.enabled !== false ? 'checked' : ''}> <span>Trading engine enabled</span></div>
+          <div class="checkline mb-2"><input type="checkbox" id="setLiveTradingOn" ${s.trading && s.trading.liveEnabled !== false ? 'checked' : ''}> <span>Live trading enabled</span></div>
+          <div class="form-row">
+            <div class="field"><label>Global max leverage</label><input class="input num" id="setMaxLev" type="number" min="1" max="100" value="${(s.trading && s.trading.maxLeverage) || 10}"></div>
+            <div class="field"><label>Global max order ($)</label><input class="input num" id="setMaxOrder" type="number" min="10" value="${(s.trading && s.trading.maxOrderUsd) || 1000000}"></div>
+          </div>
+          <p class="muted small">Turning off live trading leaves demo mode available. KYC remains a server-side gate for live accounts.</p>
+        </div>
         <div class="admin-card"><h3><i class="fas fa-sliders" style="color:var(--gold)"></i> Limits</h3>
           <div class="form-row">
             <div class="field"><label>Min deposit ($)</label><input class="input num" id="setMinDep" type="number" value="${s.minDeposit}"></div>
@@ -750,6 +760,8 @@
             depositAddresses: {}, minDeposit: R('setMinDep').value, minWithdraw: R('setMinWd').value,
             demoStartBalance: R('setDemoBal').value, supportEmail: R('setSupport').value, siteUrl: R('setSiteUrl').value,
             contest: { enabled: R('setContestOn').checked, prize: R('setContestPrize').value },
+            trading: { enabled: R('setTradingOn').checked, liveEnabled: R('setLiveTradingOn').checked,
+              maxLeverage: R('setMaxLev').value, maxOrderUsd: R('setMaxOrder').value },
             smtp: { host: R('setSmtpHost').value, port: R('setSmtpPort').value, user: R('setSmtpUser').value, pass: R('setSmtpPass').value, from: R('setSmtpFrom').value },
             email: { transport: R('setEmailTransport').value, sendgridKey: R('setSendgridKey').value, relayUrl: R('setRelayUrl').value, relaySecret: R('setRelaySecret').value }
           }
