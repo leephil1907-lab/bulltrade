@@ -1136,7 +1136,10 @@ api['POST /api/admin/balance'] = async (req, res, body, cookies) => {
   const w = D.wallet(body.userId, mode, false);
   if (!w) return fail(res, 404, 'Wallet not found');
   if (w.usd + amount < 0) return fail(res, 400, 'Adjustment would make balance negative');
-  w.usd = U.round(w.usd + amount);
+  const changed = amount > 0
+    ? D.creditWallet(body.userId, mode, amount, { type: 'admin_adjustment', referenceId: body.userId, note: body.note || `Admin adjustment by ${admin.email}` })
+    : D.debitWallet(body.userId, mode, Math.abs(amount), { type: 'admin_adjustment', referenceId: body.userId, note: body.note || `Admin adjustment by ${admin.email}` });
+  if (!changed) return fail(res, 400, 'Adjustment could not be applied because the balance changed.');
   D.insert('transactions', {
     id: U.uid('tx_'), userId: body.userId, type: 'adjust', asset: 'USD', amountUsd: U.round(amount),
     status: 'completed', createdAt: Date.now(), updatedAt: Date.now(),
@@ -1178,7 +1181,10 @@ api['POST /api/admin/user-action'] = async (req, res, body, cookies) => {
     case 'reset-demo': {
       const w = D.wallet(u.id, 'demo', true);
       const start = Number((D.db().settings || {}).demoStartBalance) || 10000;
-      w.usd = U.round(start); w.manualPnl = 0;
+      const delta = U.round(start - w.usd);
+      if (delta > 0) D.creditWallet(u.id, 'demo', delta, { type: 'demo_reset', referenceId: u.id, note: `Demo wallet reset by ${admin.email}` });
+      else if (delta < 0) D.debitWallet(u.id, 'demo', Math.abs(delta), { type: 'demo_reset', referenceId: u.id, note: `Demo wallet reset by ${admin.email}` });
+      w.manualPnl = 0;
       D.insert('transactions', { id: U.uid('tx_'), userId: u.id, type: 'adjust', asset: 'USD', amountUsd: 0, status: 'completed', createdAt: Date.now(), updatedAt: Date.now(), note: `Demo wallet reset to $${start} by admin`, adminId: admin.id });
       D.logAudit(admin.id, 'user.resetDemo', u.id, `demo reset to $${start}`);
       break;
