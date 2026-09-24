@@ -7,8 +7,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f7efdd",
-  "theme_color": "#ffffff",
+  "background_color": "#0e171d",
+  "theme_color": "#1ba94b",
   "categories": ["finance", "education", "business"],
   "icons": [
     { "src": "/assets/img/favicon-64.png", "sizes": "64x64", "type": "image/png" },
