@@ -1578,6 +1578,10 @@ function serveKycFile(req, res, cookies, query) {
 // ---------------- request router ----------------
 const server = http.createServer(async (req, res) => {
   try {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     const pathname = decodeURIComponent(url.pathname);
     const cookies = U.parseCookies(req);
