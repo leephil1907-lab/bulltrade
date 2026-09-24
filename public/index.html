@@ -373,5 +373,6 @@
       document.querySelectorAll('[data-buy]').forEach(el => el.addEventListener('click', () => openCheckout(el.dataset.buy)));
     });
   </script>
+<script>(function(){const b=document.createElement('div');b.id='bbScrollProgress';b.style.cssText='position:fixed;top:0;left:0;height:2px;width:0;z-index:10001;pointer-events:none;background:linear-gradient(90deg,#1ba94b,#d3a877,#2e91fc);transition:width .12s ease';document.body.appendChild(b);function u(){const h=document.documentElement.scrollHeight-innerHeight;b.style.width=(h>0?scrollY/h*100:0)+'%'}addEventListener('scroll',u,{passive:true});addEventListener('resize',u);u()})()</script>
 </body>
 </html>
