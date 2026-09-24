@@ -77,6 +77,20 @@ const ROUTES = {
 // ---------------- API handlers ----------------
 const api = {};
 
+function healthSnapshot() {
+  const db = D.db();
+  return {
+    service: 'bulltrade',
+    ok: true,
+    uptime: Math.round(process.uptime()),
+    time: new Date().toISOString(),
+    database: { users: db.users.length, ledgerEntries: db.ledger.length },
+    markets: { lastRefresh: markets.lastRefresh || 0, assets: markets.ASSETS.length },
+    trading: db.settings.trading || {}
+  };
+}
+
+
 function requireUser(req, res, cookies, optional) {
   const user = Auth.userFromRequest(req, cookies);
   if (!user) { if (!optional) fail(res, 401, 'Please log in to continue.'); return null; }
@@ -1596,6 +1610,13 @@ const server = http.createServer(async (req, res) => {
     const pathname = decodeURIComponent(url.pathname);
     const cookies = U.parseCookies(req);
 
+    // ---- health probes ----
+    if (req.method === 'GET' && pathname === '/healthz') return json(res, 200, healthSnapshot());
+    if (req.method === 'GET' && pathname === '/readyz') {
+      const ready = !!D.db() && markets.ASSETS.length > 0;
+      return json(res, ready ? 200 : 503, Object.assign(healthSnapshot(), { ready }));
+    }
+
     // ---- API ----
     if (pathname.startsWith('/api/')) {
       // admin binary file route
@@ -1663,3 +1684,12 @@ const server = http.createServer(async (req, res) => {
     console.log(`Admin panel: http://localhost:${PORT}/admin`);
   });
 })().catch(e => { console.error('Boot failed:', e); process.exit(1); });
+
+function shutdown(signal) {
+  console.log('[server] ' + signal + ' received — flushing database');
+  try { D.flush(); } catch (e) { console.error('[server] flush failed:', e.message); }
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 5000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
