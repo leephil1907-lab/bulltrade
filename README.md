@@ -4,6 +4,8 @@ A
 
 Built with **zero npm dependencies** — plain Node.js 18+ serving 21 pages, a REST API and a file-backed database.
 
+> **Live execution status:** real-money exchange execution is disabled. Trading orders use Bulltrade's internal demo/simulation engine until an approved exchange adapter, transactional persistence and order reconciliation are implemented and verified. Market quotes are not an execution connection.
+
 ## Features
 
 **Markets & data**
