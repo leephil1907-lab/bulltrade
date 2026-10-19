@@ -1,4 +1,4 @@
-name: Database Safety
+name: Bulltrade Safety Checks
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  db-safety:
+  safety-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -17,4 +17,6 @@ jobs:
         with:
           node-version: 20
       - name: Run database corruption regression test
-        run: node tests/db-safety.js
+        run: npm run test:db-safety
+      - name: Ensure simulated trading cannot be mistaken for live execution
+        run: npm run test:live-guard
