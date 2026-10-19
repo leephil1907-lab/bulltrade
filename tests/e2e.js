@@ -190,9 +190,9 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('swap quote USD→BTC (0.5% fee)', r.data.ok && r.data.receiveQty > 0 && r.data.feeUsd === 1, { recv: r.data.receiveQty, fee: r.data.feeUsd });
   r = await req('POST', '/api/swap/execute', { from: 'usd', to: 'cg-bitcoin', amount: 200, mode: 'demo' }, userCookie);
   ok('swap executed USD→BTC', r.data.ok && r.data.balances.coins['cg-bitcoin'] > 0, r.data.balances);
+  const btcQty = r.data.balances.coins['cg-bitcoin'];
   r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
   ok('USD→coin swap preserves wallet/ledger reconciliation', r.data.reconciliation.demo.balanced && r.data.reconciliation.demo.walletBalance === r.data.reconciliation.demo.journalBalance, r.data.reconciliation.demo);
-  const btcQty = r.data.balances.coins['cg-bitcoin'];
   r = await req('POST', '/api/swap/execute', { from: 'usd', to: 'cg-bitcoin', amount: 9999999, mode: 'demo' }, userCookie);
   ok('insufficient balance blocked', r.status === 400);
   r = await req('POST', '/api/swap/execute', { from: 'cg-bitcoin', to: 'cg-ethereum', amount: btcQty / 2, mode: 'demo' }, userCookie);
