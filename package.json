@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node tests/e2e.js",
-    "test:links": "node tests/links.js"
+    "test:links": "node tests/links.js",
+    "test:db-safety": "node tests/db-safety.js"
   },
   "engines": {
     "node": ">=18"
