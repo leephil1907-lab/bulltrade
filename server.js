@@ -17,6 +17,7 @@ const mailer = require('./lib/mailer');
 const gamify = require('./lib/gamify');
 const markets = require('./lib/markets');
 const trading = require('./lib/trading');
+const FinancialSafety = require('./lib/financial-safety');
 const Backup = require('./lib/backup');
 const bots = require('./lib/bots');
 
@@ -538,6 +539,7 @@ api['POST /api/funding/deposit'] = async (req, res, body, cookies) => {
     if (!buf || buf.length < 100) return fail(res, 400, 'The uploaded proof file appears to be empty.');
     if (buf.length > PROOF_MAX) return fail(res, 400, 'Proof file must be under 5MB.');
     if (!requireKyc(res, user, 'submit deposits')) return;
+    if (!FinancialSafety.requireLiveMoneyReady(res, fail)) return;
     try {
       const dir = path.join(D.UPLOAD_DIR, user.id);
       fs.mkdirSync(dir, { recursive: true });
@@ -610,6 +612,7 @@ api['GET /api/store/purchases'] = (req, res, body, cookies) => {
 api['POST /api/funding/withdraw'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies); if (!user) return;
   if (!requireKyc(res, user, 'make withdrawals')) return;
+  if (!FinancialSafety.requireLiveMoneyReady(res, fail)) return;
   const amount = Number(body.amountUsd);
   const asset = String(body.asset || '');
   const address = String(body.address || '').trim();
@@ -1155,6 +1158,7 @@ api['POST /api/admin/balance'] = async (req, res, body, cookies) => {
   const amount = Number(body.amountUsd);
   if (!isFinite(amount) || amount === 0) return fail(res, 400, 'Enter a non-zero amount');
   const mode = body.mode === 'demo' ? 'demo' : 'live';
+  if (mode === 'live' && !FinancialSafety.requireLiveMoneyReady(res, fail)) return;
   const idempotencyKey = String(body.idempotencyKey || req.headers['idempotency-key'] || '').trim();
   if (idempotencyKey) {
     const prior = D.find('transactions', t => t.type === 'adjust' && t.adminId === admin.id && t.idempotencyKey === idempotencyKey);
@@ -1291,6 +1295,7 @@ api['POST /api/admin/tx'] = async (req, res, body, cookies) => {
   const admin = requireAdmin(req, res, cookies); if (!admin) return;
   const tx = D.find('transactions', t => t.id === body.txId);
   if (!tx || tx.status !== 'pending') return fail(res, 404, 'Pending transaction not found');
+  if (['deposit', 'withdraw'].includes(tx.type) && !FinancialSafety.requireLiveMoneyReady(res, fail)) return;
   if (body.action === 'approve') {
     if (tx.type === 'deposit') {
       D.creditWallet(tx.userId, 'live', tx.amountUsd, { type: 'deposit_approval', referenceId: tx.id, note: `Approved deposit ${tx.asset}` });
