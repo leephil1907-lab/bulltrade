@@ -21,6 +21,8 @@ This phase focuses on product integrity rather than visual effects.
 - **Graceful shutdown**: SIGTERM/SIGINT flush the data store before process exit.
 - **HTTP hardening headers**: basic anti-sniffing, frame, referrer and permissions headers are applied globally.
 
+See [`EXCHANGE_INTEGRATION.md`](./EXCHANGE_INTEGRATION.md) for the staged, provider-neutral plan and safety gates required before connecting a real exchange. Market quotes do not mean exchange execution is available.
+
 ## Current architecture boundary
 
 The repository still uses a JSON/file-backed hot data store. The ledger is an append-only journal layered onto that store; it is **not yet a PostgreSQL transaction boundary**.
