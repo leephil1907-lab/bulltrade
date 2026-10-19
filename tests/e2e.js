@@ -325,6 +325,8 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('activation passes KYC, blocked without approved key', r.status === 400 && /key/i.test(r.data.error || ''), r.data.error);
   r = await req('POST', '/api/funding/deposit', { asset: 'BTC', amountUsd: 100, txid: '0x1234567890abcdef1234567890abcdef12345678', proof: { mime: 'image/png', name: 'payment-proof.png', data: PROOF_PNG } }, userCookie);
   ok('deposit accepted after KYC → pending', r.data.ok, r.data);
+  r = await req('POST', '/api/funding/deposit', { asset: 'BTC', amountUsd: 100, txid: '0x1234567890abcdef1234567890abcdef12345678', proof: { mime: 'image/png', name: 'payment-proof.png', data: PROOF_PNG } }, userCookie);
+  ok('duplicate deposit transaction hash rejected', r.status === 409, r.data);
   // approve deposit
   r = await req('GET', '/api/admin/transactions', null, adminCookie);
   ok('tx list has pending deposit', r.data.ok && r.data.transactions.some(t => t.status === 'pending' && t.type === 'deposit'));
@@ -333,11 +335,17 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('deposit approved', r.data.ok);
   r = await req('GET', '/api/funding/summary', null, userCookie);
   ok('live wallet credited $100', r.data.live.free === 100, r.data.live.free);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('approved deposit credits wallet and ledger together', r.data.reconciliation.live.balanced && r.data.reconciliation.live.walletBalance === 100 && r.data.reconciliation.live.journalBalance === 100, r.data.reconciliation.live);
   // withdraw now allowed
-  r = await req('POST', '/api/funding/withdraw', { asset: 'USDT', amountUsd: 60, address: 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE' }, userCookie);
+  r = await req('POST', '/api/funding/withdraw', { asset: 'USDT', amountUsd: 60, address: 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE', idempotencyKey: 'withdrawal-ci-idempotency-01' }, userCookie);
   ok('withdraw accepted after KYC', r.data.ok, r.data);
+  r = await req('POST', '/api/funding/withdraw', { asset: 'USDT', amountUsd: 60, address: 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE', idempotencyKey: 'withdrawal-ci-idempotency-01' }, userCookie);
+  ok('withdrawal retry is idempotent', r.data.ok && r.data.replayed === true, r.data);
   r = await req('GET', '/api/funding/summary', null, userCookie);
   ok('live wallet 40 after withdraw hold', r.data.live.free === 40, r.data.live.free);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('withdrawal hold is journaled', r.data.reconciliation.live.balanced && r.data.reconciliation.live.walletBalance === 40 && r.data.reconciliation.live.journalBalance === 40, r.data.reconciliation.live);
   // reject the withdrawal
   r = await req('GET', '/api/admin/transactions', null, adminCookie);
   const wd = r.data.transactions.find(t => t.status === 'pending' && t.type === 'withdraw');
@@ -345,6 +353,8 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('withdrawal rejected + refunded', r.data.ok);
   r = await req('GET', '/api/funding/summary', null, userCookie);
   ok('live wallet back to 100', r.data.live.free === 100, r.data.live.free);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('withdrawal rejection refund is journaled', r.data.reconciliation.live.balanced && r.data.reconciliation.live.walletBalance === 100 && r.data.reconciliation.live.journalBalance === 100, r.data.reconciliation.live);
   // live trade now allowed
   r = await req('POST', '/api/trading/order', { assetId: 'cg-bitcoin', side: 'buy', type: 'market', mode: 'live', notional: 50, leverage: 1 }, userCookie);
   ok('live order allowed after KYC', r.data.ok, r.data);
