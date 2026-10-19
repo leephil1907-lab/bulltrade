@@ -20,3 +20,5 @@ jobs:
         run: npm run test:db-safety
       - name: Ensure simulated trading cannot be mistaken for live execution
         run: npm run test:live-guard
+      - name: Verify exchange adapter fails closed by default
+        run: npm run test:exchange-adapter
