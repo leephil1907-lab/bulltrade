@@ -1,8 +1,9 @@
 # Render.com blueprint — FREE tier deployment (no credit card, no persistent disk).
 #
-# Data persistence: free instances lose the filesystem on every deploy, so the
-# app syncs data/db.json + data/uploads/ to a PRIVATE GitHub repository
-# (BACKUP_REPO + BACKUP_TOKEN) and restores them automatically on boot.
+# Data persistence: free instances lose the filesystem on every deploy. The app can
+# sync data/db.json to a PRIVATE GitHub repository (BACKUP_REPO + BACKUP_TOKEN).
+# KYC/deposit uploads are excluded from GitHub sync by default; configure private,
+# durable object storage before accepting production identity documents.
 #
 # Set these env vars when prompted: ADMIN_EMAIL, ADMIN_PASSWORD, JWT_SECRET,
 # BACKUP_REPO, BACKUP_TOKEN.
@@ -30,6 +31,8 @@ services:
         sync: false
       - key: BACKUP_TOKEN
         sync: false
+      - key: BACKUP_UPLOADS_ENABLED
+        value: "false"
     # ---- paid upgrade (always-on + persistent disk) ----
     # plan: starter
     # disk:
