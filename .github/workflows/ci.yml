@@ -32,7 +32,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Seed isolated funding fixtures
         run: |
-          node -e "const D=require('./lib/db'); D.load(); const d=D.db(); d.settings.depositAddresses.BTC='bc1qtestonly000000000000000000000000000000'; d.settings.productPaymentAddresses['USDT-ERC20']='0x1111111111111111111111111111111111111111'; D.save();"
+          node -e "const D=require('./lib/db'); D.load(); const d=D.db(); d.settings.depositAddresses.BTC='bc1qtestonly000000000000000000000000000000'; d.settings.depositAddresses.USDT='TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE'; d.settings.productPaymentAddresses['USDT-ERC20']='0x1111111111111111111111111111111111111111'; D.save();"
       - name: Start application
         run: |
           node server.js > /tmp/bulltrade-server.log 2>&1 &
