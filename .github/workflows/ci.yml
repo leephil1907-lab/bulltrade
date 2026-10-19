@@ -14,6 +14,20 @@ permissions:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: bulltrade_test
+          POSTGRES_USER: bulltrade
+          POSTGRES_PASSWORD: bulltrade_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bulltrade -d bulltrade_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     timeout-minutes: 15
     env:
       NODE_ENV: test
@@ -21,6 +35,7 @@ jobs:
       ADMIN_EMAIL: ci-admin@example.test
       ADMIN_PASSWORD: Bulltrade-CI-Only-ChangeMe-2026!
       JWT_SECRET: ci-only-not-for-production
+      DATABASE_URL: postgres://bulltrade:bulltrade_test_password@127.0.0.1:5432/bulltrade_test
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -30,6 +45,10 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+      - name: Apply PostgreSQL financial schema
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/001_financial_core.sql
+      - name: Run PostgreSQL money integration tests
+        run: npm run test:pg
       - name: Seed isolated funding fixtures
         run: |
           node -e "const D=require('./lib/db'); D.load(); const d=D.db(); d.settings.depositAddresses.BTC='bc1qtestonly000000000000000000000000000000'; d.settings.depositAddresses.USDT='TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE'; d.settings.productPaymentAddresses['USDT-ERC20']='0x1111111111111111111111111111111111111111'; D.save();"
