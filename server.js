@@ -618,14 +618,21 @@ api['POST /api/funding/withdraw'] = async (req, res, body, cookies) => {
   if (!isFinite(amount) || amount < s.minWithdraw) return fail(res, 400, `Minimum withdrawal is $${s.minWithdraw}.`);
   if (address.length < 12) return fail(res, 400, 'Please enter a valid destination wallet address.');
   const eq = trading.equity(user.id, 'live');
-  if (amount > eq.free) return fail(res, 400, `Insufficient free balance. Available: $${eq.free}.`);
-  const w = D.wallet(user.id, 'live');
-  w.usd = U.round(w.usd - amount);
+  if (amount > eq.free) return fail(res, 400, `Insufficient free balance. Available: ${eq.free}.`);
+  const idempotencyKey = String(body.idempotencyKey || req.headers['idempotency-key'] || '').trim();
+  if (idempotencyKey) {
+    const prior = D.find('transactions', t => t.userId === user.id && t.type === 'withdraw' && t.idempotencyKey === idempotencyKey);
+    if (prior) return ok(res, { message: 'Withdrawal request already recorded.', transactionId: prior.id, status: prior.status, replayed: true });
+  }
+  const txId = U.uid('tx_');
+  if (!D.debitWallet(user.id, 'live', amount, {
+    type: 'withdrawal_hold', referenceId: txId, note: 'Withdrawal funds held pending review'
+  })) return fail(res, 400, 'Insufficient wallet balance.');
   D.insert('transactions', {
-    id: U.uid('tx_'), userId: user.id, type: 'withdraw', asset, amountUsd: U.round(amount),
-    address, status: 'pending', createdAt: Date.now(), updatedAt: Date.now()
+    id: txId, userId: user.id, type: 'withdraw', asset, amountUsd: U.round(amount),
+    address, status: 'pending', idempotencyKey: idempotencyKey || undefined,
+    createdAt: Date.now(), updatedAt: Date.now()
   });
-  D.save();
   ok(res, { message: 'Withdrawal request submitted. Funds are on hold and will be sent after review.' });
 };
 
@@ -816,6 +823,16 @@ api['POST /api/copy/stop'] = async (req, res, body, cookies) => {
   const r = trading.stopCopy(user, body.allocationId);
   if (r.error) return fail(res, r.status, r.error);
   ok(res, r);
+};
+
+api['GET /api/accounting/reconciliation'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  ok(res, {
+    reconciliation: {
+      demo: D.reconcileWallet(user.id, 'demo'),
+      live: D.reconcileWallet(user.id, 'live')
+    }
+  });
 };
 
 api['GET /api/swap/assets'] = async (req, res) => {
@@ -1136,13 +1153,18 @@ api['POST /api/admin/balance'] = async (req, res, body, cookies) => {
   const w = D.wallet(body.userId, mode, false);
   if (!w) return fail(res, 404, 'Wallet not found');
   if (w.usd + amount < 0) return fail(res, 400, 'Adjustment would make balance negative');
-  w.usd = U.round(w.usd + amount);
+  const txId = U.uid('tx_');
+  const journalMeta = {
+    type: 'admin_adjustment', referenceId: txId,
+    note: body.note || `Admin adjustment by ${admin.email}`
+  };
+  if (amount > 0) D.creditWallet(body.userId, mode, amount, journalMeta);
+  else if (!D.debitWallet(body.userId, mode, Math.abs(amount), journalMeta)) return fail(res, 400, 'Adjustment would make balance negative');
   D.insert('transactions', {
-    id: U.uid('tx_'), userId: body.userId, type: 'adjust', asset: 'USD', amountUsd: U.round(amount),
+    id: txId, userId: body.userId, type: 'adjust', asset: 'USD', amountUsd: U.round(amount),
     status: 'completed', createdAt: Date.now(), updatedAt: Date.now(),
     note: body.note || `Admin adjustment by ${admin.email}`, adminId: admin.id
   });
-  D.save();
   D.logAudit(admin.id, 'balance.adjust', body.userId, `${amount > 0 ? '+' : ''}${amount} ${mode} — ${body.note || ''}`);
   ok(res, { message: `Balance adjusted (${amount > 0 ? '+' : ''}$${U.round(amount)} ${mode}).`, newBalance: w.usd });
 };
@@ -1176,11 +1198,14 @@ api['POST /api/admin/user-action'] = async (req, res, body, cookies) => {
       break;
     }
     case 'reset-demo': {
+      const reset = trading.resetDemo(u);
+      if (reset && reset.error) return fail(res, reset.status || 400, reset.error);
       const w = D.wallet(u.id, 'demo', true);
       const start = Number((D.db().settings || {}).demoStartBalance) || 10000;
-      w.usd = U.round(start); w.manualPnl = 0;
-      D.insert('transactions', { id: U.uid('tx_'), userId: u.id, type: 'adjust', asset: 'USD', amountUsd: 0, status: 'completed', createdAt: Date.now(), updatedAt: Date.now(), note: `Demo wallet reset to $${start} by admin`, adminId: admin.id });
-      D.logAudit(admin.id, 'user.resetDemo', u.id, `demo reset to $${start}`);
+      w.manualPnl = 0;
+      D.save();
+      D.insert('transactions', { id: U.uid('tx_'), userId: u.id, type: 'adjust', asset: 'USD', amountUsd: 0, status: 'completed', createdAt: Date.now(), updatedAt: Date.now(), note: `Demo wallet reset to ${start} by admin`, adminId: admin.id });
+      D.logAudit(admin.id, 'user.resetDemo', u.id, `demo reset to ${start}`);
       break;
     }
     case 'delete': {
