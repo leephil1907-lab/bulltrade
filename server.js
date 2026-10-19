@@ -149,13 +149,6 @@ api['POST /api/auth/signup'] = async (req, res, body, cookies) => {
     const r = submitKyc(result.user, body.idType || 'passport', kycDocs, body.kycDetails || {});
     kycStatus = r.ok ? 'pending' : 'not_submitted';
   }
-  const kycDocs = Array.isArray(body.kycDocs) ? body.kycDocs : null;
-  let kycStatus = 'not_submitted';
-  if (kycDocs && kycDocs.length) {
-    const { submitKyc } = require('./lib/kyc');
-    const kycResult = submitKyc(result.user, body.idType || 'passport', kycDocs, body.kycDetails || {});
-    kycStatus = kycResult.ok ? 'pending' : 'not_submitted';
-  }
   if (HubSpot.enabled()) {
     HubSpot.syncContact(result.user, { lifecyclestage: 'lead', hs_lead_status: kycStatus }).catch(() => {});
   }
