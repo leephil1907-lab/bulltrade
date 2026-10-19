@@ -5,7 +5,7 @@
 This phase focuses on product integrity rather than visual effects.
 
 - **Server-authoritative trading controls**: global trading enable/disable, live-trading kill switch, global maximum leverage, and global maximum order size.
-- **Live-trading fail-safe**: live-mode orders are rejected unless `LIVE_TRADING_ENABLED=true` is explicitly set in the server environment; admin/database settings alone cannot enable live mode.
+- **Live-trading fail-safe**: all live-mode orders are rejected in the current simulator, regardless of environment or admin settings. The engine only simulates fills against cached quotes and internal JSON wallets; no real exchange execution adapter is connected. This guard must not be removed until provider execution, order-state reconciliation, transactional persistence and safety tests are implemented.
 - **Database corruption fail-closed**: malformed/unreadable database files now stop startup rather than silently seeding a fresh database. `BULLTRADE_DATA_DIR` supports isolated regression testing.
 - **Database safety regression test**: run `npm run test:db-safety` to check that corrupt JSON is preserved and startup fails clearly.
 - **Capability API**: `GET /api/me/capabilities` exposes server-derived permissions for demo/live trading, funding, withdrawals, bots, KYC state and account status.
@@ -81,7 +81,7 @@ Readiness check:
 
 `GET /readyz`
 
-Before enabling live trading, verify:
+Live trading must remain unavailable until a real provider adapter is connected and approved. Before enabling live trading, verify:
 
 - wallet and ledger balances reconcile
 - deposits cannot be credited twice
