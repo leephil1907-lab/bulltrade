@@ -138,6 +138,8 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   // close position
   r = await req('POST', '/api/trading/close', { positionId: posId }, userCookie);
   ok('close position ok', r.data.ok && typeof r.data.pnl === 'number', r.data);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('trade settlement reconciles wallet and ledger', r.data.reconciliation.demo.balanced, r.data.reconciliation.demo);
   
   // sell/short works
   r = await req('POST', '/api/trading/order', { assetId: 'yh-AAPL', side: 'sell', type: 'market', mode: 'demo', notional: 300, leverage: 3 }, userCookie);
