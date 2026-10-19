@@ -5,6 +5,8 @@
 This phase focuses on product integrity rather than visual effects.
 
 - **Server-authoritative trading controls**: global trading enable/disable, live-trading kill switch, global maximum leverage, and global maximum order size.
+- **Exchange adapter boundary**: a provider-neutral execution contract is now defined and tested, but no real provider is registered; all methods fail closed by default. Run `npm run test:exchange-adapter`.
+- **Vercel deployment assessment**: `VERCEL_DEPLOYMENT_ASSESSMENT.md` explains why the full application is not deployable on Vercel as-is and outlines the required database, upload, API and worker migration.
 - **Live-trading fail-safe**: all live-mode orders are rejected in the current simulator, regardless of environment or admin settings. The engine only simulates fills against cached quotes and internal JSON wallets; no real exchange execution adapter is connected. This guard must not be removed until provider execution, order-state reconciliation, transactional persistence and safety tests are implemented.
 - **Database corruption fail-closed**: malformed/unreadable database files now stop startup rather than silently seeding a fresh database. `BULLTRADE_DATA_DIR` supports isolated regression testing.
 - **Database safety regression test**: run `npm run test:db-safety` to check that corrupt JSON is preserved and startup fails clearly.
