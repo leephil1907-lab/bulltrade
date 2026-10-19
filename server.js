@@ -528,6 +528,7 @@ api['POST /api/funding/deposit'] = async (req, res, body, cookies) => {
   if (!String(s.depositAddresses[asset]).trim()) return fail(res, 400, `${asset} deposits are not yet available — please use another coin or contact support.`);
   if (!isFinite(amount) || amount < s.minDeposit) return fail(res, 400, `Minimum deposit is $${s.minDeposit}.`);
   if (txid.length < 10) return fail(res, 400, 'Please paste your transaction hash (TXID) so we can verify the transfer.');
+  if (D.find('transactions', t => t.type === 'deposit' && String(t.txid || '').toLowerCase() === txid.toLowerCase() && ['pending', 'completed'].includes(t.status))) return fail(res, 409, 'This transaction hash has already been submitted.');
   // proof screenshot / receipt (image or PDF, max 5MB) — required
   let proof = null;
   const p = body.proof || {};
@@ -1278,7 +1279,7 @@ api['POST /api/admin/tx'] = async (req, res, body, cookies) => {
   if (!tx || tx.status !== 'pending') return fail(res, 404, 'Pending transaction not found');
   if (body.action === 'approve') {
     if (tx.type === 'deposit') {
-      D.creditWallet(tx.userId, 'live', tx.amountUsd);
+      D.creditWallet(tx.userId, 'live', tx.amountUsd, { type: 'deposit_approval', referenceId: tx.id, note: `Approved deposit ${tx.asset}` });
       tx.status = 'completed';
     } else if (tx.type === 'withdraw') {
       tx.status = 'completed';
@@ -1300,7 +1301,7 @@ api['POST /api/admin/tx'] = async (req, res, body, cookies) => {
     }
     ok(res, { message: 'Transaction approved' });
   } else if (body.action === 'reject') {
-    if (tx.type === 'withdraw') D.creditWallet(tx.userId, 'live', tx.amountUsd); // refund hold
+    if (tx.type === 'withdraw') D.creditWallet(tx.userId, 'live', tx.amountUsd, { type: 'withdrawal_refund', referenceId: tx.id, note: 'Withdrawal rejected; held funds returned' });
     tx.status = 'rejected';
     tx.adminNote = body.note || '';
     tx.updatedAt = Date.now();
