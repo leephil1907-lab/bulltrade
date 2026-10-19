@@ -50,6 +50,9 @@ jobs:
         run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/001_financial_core.sql
       - name: Run PostgreSQL money integration tests
         run: npm run test:pg
+      - name: Verify live-money fail-closed guard
+        run: |
+          NODE_ENV=production BULLTRADE_TEST_ALLOW_LIVE_MONEY=true node -e "if (!require('./lib/financial-safety').liveMoneyBlocked()) process.exit(1)"
       - name: Seed isolated funding fixtures
         run: |
           node -e "const D=require('./lib/db'); D.load(); const d=D.db(); d.settings.depositAddresses.BTC='bc1qtestonly000000000000000000000000000000'; d.settings.depositAddresses.USDT='TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE'; d.settings.productPaymentAddresses['USDT-ERC20']='0x1111111111111111111111111111111111111111'; D.save();"
