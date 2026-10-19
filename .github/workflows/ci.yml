@@ -1,0 +1,77 @@
+name: Bulltrade CI
+
+on:
+  push:
+    branches:
+      - hardening/ledger-reset-reconciliation
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: bulltrade_test
+          POSTGRES_USER: bulltrade
+          POSTGRES_PASSWORD: bulltrade_test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bulltrade -d bulltrade_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    timeout-minutes: 15
+    env:
+      NODE_ENV: test
+      BULLTRADE_TEST_ALLOW_LIVE_MONEY: 'true'
+      PORT: 3000
+      ADMIN_EMAIL: ci-admin@example.test
+      ADMIN_PASSWORD: Bulltrade-CI-Only-ChangeMe-2026!
+      JWT_SECRET: ci-only-not-for-production
+      DATABASE_URL: postgres://bulltrade:bulltrade_test_password@127.0.0.1:5432/bulltrade_test
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Apply PostgreSQL financial schema
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f migrations/001_financial_core.sql
+      - name: Run PostgreSQL money integration tests
+        run: npm run test:pg
+      - name: Verify live-money fail-closed guard
+        run: |
+          NODE_ENV=production BULLTRADE_TEST_ALLOW_LIVE_MONEY=true node -e "if (!require('./lib/financial-safety').liveMoneyBlocked()) process.exit(1)"
+      - name: Seed isolated funding fixtures
+        run: |
+          node -e "const D=require('./lib/db'); D.load(); const d=D.db(); d.settings.depositAddresses.BTC='bc1qtestonly000000000000000000000000000000'; d.settings.depositAddresses.USDT='TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE'; d.settings.productPaymentAddresses['USDT-ERC20']='0x1111111111111111111111111111111111111111'; D.save();"
+      - name: Start application
+        run: |
+          node server.js > /tmp/bulltrade-server.log 2>&1 &
+          echo $! > /tmp/bulltrade-server.pid
+          for i in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:3000/ >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/bulltrade-server.log
+          exit 1
+      - name: Run end-to-end suite
+        run: npm test
+      - name: Run link checks
+        run: npm run test:links
+      - name: Print server log on failure
+        if: failure()
+        run: cat /tmp/bulltrade-server.log
