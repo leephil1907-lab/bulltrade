@@ -621,8 +621,6 @@ api['POST /api/funding/withdraw'] = async (req, res, body, cookies) => {
   if (!String(s.depositAddresses[asset]).trim()) return fail(res, 400, `${asset} withdrawals are not yet available — please choose another coin or contact support.`);
   if (!isFinite(amount) || amount < s.minWithdraw) return fail(res, 400, `Minimum withdrawal is $${s.minWithdraw}.`);
   if (address.length < 12) return fail(res, 400, 'Please enter a valid destination wallet address.');
-  const eq = trading.equity(user.id, 'live');
-  if (amount > eq.free) return fail(res, 400, `Insufficient free balance. Available: ${eq.free}.`);
   const idempotencyKey = String(body.idempotencyKey || req.headers['idempotency-key'] || '').trim();
   if (idempotencyKey) {
     const prior = D.find('transactions', t => t.userId === user.id && t.type === 'withdraw' && t.idempotencyKey === idempotencyKey);
@@ -631,6 +629,8 @@ api['POST /api/funding/withdraw'] = async (req, res, body, cookies) => {
       return ok(res, { message: 'Withdrawal request already recorded.', transactionId: prior.id, status: prior.status, replayed: true });
     }
   }
+  const eq = trading.equity(user.id, 'live');
+  if (amount > eq.free) return fail(res, 400, `Insufficient free balance. Available: ${eq.free}.`);
   const txId = U.uid('tx_');
   if (!D.debitWallet(user.id, 'live', amount, {
     type: 'withdrawal_hold', referenceId: txId, note: 'Withdrawal funds held pending review'
