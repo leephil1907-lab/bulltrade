@@ -24,3 +24,5 @@ jobs:
         run: npm run test:live-guard
       - name: Verify exchange adapter fails closed by default
         run: npm run test:exchange-adapter
+      - name: Verify Vercel API proxy fails closed
+        run: npm run test:vercel-proxy
