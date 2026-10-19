@@ -10,7 +10,8 @@
     "test:links": "node tests/links.js",
     "test:db-safety": "node tests/db-safety.js",
     "test:live-guard": "node tests/live-trading-guard.js",
-    "test:exchange-adapter": "node tests/exchange-adapter.js"
+    "test:exchange-adapter": "node tests/exchange-adapter.js",
+    "test:vercel-proxy": "node tests/vercel-proxy.js"
   },
   "engines": {
     "node": ">=18"
