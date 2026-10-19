@@ -75,6 +75,19 @@ At minimum configure:
 
 Do not store production secrets in `data/db.json`, the public directory, Git history, or client-side JavaScript.
 
+## Deployment architecture
+
+The current deployment plan is documented in `FRONTEND_BACKEND_DEPLOYMENT.md`.
+The static multi-page frontend can be served by Vercel, while the full Node.js
+API must run on a persistent Node host. The Vercel `/api/*` proxy requires
+`BULLTRADE_BACKEND_URL` to point to the HTTPS backend URL.
+
+Do not accept production KYC uploads until private durable object storage and
+retention/deletion controls are in place. GitHub backup now refuses data
+synchronization unless the repository is confirmed private, and sensitive
+uploads are excluded from GitHub backup by default. A private Git repository
+is still only a temporary database backup—not a production database.
+
 ## Deployment checks
 
 Health check:
