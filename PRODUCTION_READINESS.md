@@ -5,6 +5,9 @@
 This phase focuses on product integrity rather than visual effects.
 
 - **Server-authoritative trading controls**: global trading enable/disable, live-trading kill switch, global maximum leverage, and global maximum order size.
+- **Live-trading fail-safe**: live-mode orders are rejected unless `LIVE_TRADING_ENABLED=true` is explicitly set in the server environment; admin/database settings alone cannot enable live mode.
+- **Database corruption fail-closed**: malformed/unreadable database files now stop startup rather than silently seeding a fresh database. `BULLTRADE_DATA_DIR` supports isolated regression testing.
+- **Database safety regression test**: run `npm run test:db-safety` to check that corrupt JSON is preserved and startup fails clearly.
 - **Capability API**: `GET /api/me/capabilities` exposes server-derived permissions for demo/live trading, funding, withdrawals, bots, KYC state and account status.
 - **Dashboard summary API**: `GET /api/dashboard/summary` consolidates portfolio state, positions, pending transactions, recent trades and ledger activity.
 - **Append-only money journal**: `lib/ledger.js` records wallet credits/debits. Legacy wallet balances receive an opening-balance migration entry.
