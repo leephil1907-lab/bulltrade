@@ -77,6 +77,8 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', '/api/auth/me', null, userCookie);
   ok('me returns user', r.data.ok && r.data.user && r.data.user.email === email);
   ok('demo wallet funded $10k', r.data.demo && r.data.demo.free === 10000, r.data.demo);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('initial demo wallet reconciles to ledger', r.data.reconciliation && r.data.reconciliation.demo.balanced && r.data.reconciliation.demo.difference === 0, r.data.reconciliation);
   // dup signup
   r = await req('POST', '/api/auth/signup', { name: 'x', email, password: 'Trader1234!', agree: true });
   ok('duplicate signup rejected', r.status === 409);
@@ -131,6 +133,8 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   // cancel order
   r = await req('POST', '/api/trading/cancel', { orderId }, userCookie);
   ok('cancel order ok', r.data.ok);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('limit order cancellation releases reserved funds exactly once', r.data.reconciliation.demo.balanced, r.data.reconciliation.demo);
   // close position
   r = await req('POST', '/api/trading/close', { positionId: posId }, userCookie);
   ok('close position ok', r.data.ok && typeof r.data.pnl === 'number', r.data);
@@ -143,6 +147,8 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('close short ok', r.data.ok);
   r = await req('POST', '/api/trading/reset-demo', {}, userCookie);
   ok('demo reset restores $10k', r.data.ok);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('demo reset restores wallet and ledger to the same $10k', r.data.reconciliation.demo.balanced && r.data.reconciliation.demo.walletBalance === 10000 && r.data.reconciliation.demo.journalBalance === 10000, r.data.reconciliation.demo);
   r = await req('GET', '/api/trading/state', null, userCookie);
   ok('state clean after reset', r.data.positions.length === 0 && r.data.equity.free === 10000);
 
@@ -184,11 +190,15 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('swap quote USD→BTC (0.5% fee)', r.data.ok && r.data.receiveQty > 0 && r.data.feeUsd === 1, { recv: r.data.receiveQty, fee: r.data.feeUsd });
   r = await req('POST', '/api/swap/execute', { from: 'usd', to: 'cg-bitcoin', amount: 200, mode: 'demo' }, userCookie);
   ok('swap executed USD→BTC', r.data.ok && r.data.balances.coins['cg-bitcoin'] > 0, r.data.balances);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('USD→coin swap preserves wallet/ledger reconciliation', r.data.reconciliation.demo.balanced && r.data.reconciliation.demo.walletBalance === r.data.reconciliation.demo.journalBalance, r.data.reconciliation.demo);
   const btcQty = r.data.balances.coins['cg-bitcoin'];
   r = await req('POST', '/api/swap/execute', { from: 'usd', to: 'cg-bitcoin', amount: 9999999, mode: 'demo' }, userCookie);
   ok('insufficient balance blocked', r.status === 400);
   r = await req('POST', '/api/swap/execute', { from: 'cg-bitcoin', to: 'cg-ethereum', amount: btcQty / 2, mode: 'demo' }, userCookie);
   ok('coin→coin swap works', r.data.ok && r.data.balances.coins['cg-ethereum'] > 0 && r.data.balances.coins['cg-bitcoin'] < btcQty, r.data.balances);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('coin→coin swap leaves USD ledger balanced', r.data.reconciliation.demo.balanced, r.data.reconciliation.demo);
   r = await req('POST', '/api/swap/execute', { from: 'usd', to: 'usd', amount: 10, mode: 'demo' }, userCookie);
   ok('same-coin swap blocked', r.status === 400);
   r = await req('GET', '/api/trading/state?mode=demo', null, userCookie);
@@ -286,6 +296,14 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', `/api/admin/users?q=${email}`, null, adminCookie);
   ok('user search finds test user', r.data.ok && r.data.users.length === 1);
   const userId = r.data.users[0].id;
+  r = await req('POST', '/api/admin/balance', { userId, mode: 'live', amountUsd: 25, note: 'CI journal reconciliation test', idempotencyKey: 'ci-adjust-credit-1' }, adminCookie);
+  ok('admin credit adjustment recorded', r.data.ok && r.data.newBalance === 25, r.data);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('admin credit adjustment reconciles', r.data.reconciliation.live.balanced && r.data.reconciliation.live.walletBalance === 25 && r.data.reconciliation.live.journalBalance === 25, r.data.reconciliation.live);
+  r = await req('POST', '/api/admin/balance', { userId, mode: 'live', amountUsd: -10, note: 'CI journal reconciliation test', idempotencyKey: 'ci-adjust-debit-1' }, adminCookie);
+  ok('admin debit adjustment recorded', r.data.ok && r.data.newBalance === 15, r.data);
+  r = await req('GET', '/api/accounting/reconciliation', null, userCookie);
+  ok('admin debit adjustment reconciles', r.data.reconciliation.live.balanced && r.data.reconciliation.live.walletBalance === 15 && r.data.reconciliation.live.journalBalance === 15, r.data.reconciliation.live);
   r = await req('GET', `/api/admin/user?id=${userId}`, null, adminCookie);
   ok('user detail with kyc docs', r.data.ok && r.data.kyc && r.data.kyc.docs.length === 2, r.data.kyc);
   const docId = r.data.kyc.docs[0].id;
