@@ -16,6 +16,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Check JavaScript syntax
+        run: find . -name '*.js' -not -path './node_modules/*' -print0 | xargs -0 -n1 node --check
       - name: Run database corruption regression test
         run: npm run test:db-safety
       - name: Ensure simulated trading cannot be mistaken for live execution
