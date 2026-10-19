@@ -1,0 +1,51 @@
+name: Bulltrade CI
+
+on:
+  push:
+    branches:
+      - hardening/ledger-reset-reconciliation
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      ADMIN_EMAIL: ci-admin@example.test
+      ADMIN_PASSWORD: Bulltrade-CI-Only-ChangeMe-2026!
+      JWT_SECRET: ci-only-not-for-production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Start application
+        run: |
+          node server.js > /tmp/bulltrade-server.log 2>&1 &
+          echo $! > /tmp/bulltrade-server.pid
+          for i in $(seq 1 45); do
+            if curl --fail --silent http://127.0.0.1:3000/healthz >/dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/bulltrade-server.log
+          exit 1
+      - name: Run end-to-end suite
+        run: npm test
+      - name: Run link checks
+        run: npm run test:links
+      - name: Print server log on failure
+        if: failure()
+        run: cat /tmp/bulltrade-server.log
