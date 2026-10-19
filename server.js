@@ -623,7 +623,10 @@ api['POST /api/funding/withdraw'] = async (req, res, body, cookies) => {
   const idempotencyKey = String(body.idempotencyKey || req.headers['idempotency-key'] || '').trim();
   if (idempotencyKey) {
     const prior = D.find('transactions', t => t.userId === user.id && t.type === 'withdraw' && t.idempotencyKey === idempotencyKey);
-    if (prior) return ok(res, { message: 'Withdrawal request already recorded.', transactionId: prior.id, status: prior.status, replayed: true });
+    if (prior) {
+      if (Number(prior.amountUsd) !== U.round(amount) || prior.asset !== asset || prior.address !== address) return fail(res, 409, 'Idempotency key was already used for a different withdrawal.');
+      return ok(res, { message: 'Withdrawal request already recorded.', transactionId: prior.id, status: prior.status, replayed: true });
+    }
   }
   const txId = U.uid('tx_');
   if (!D.debitWallet(user.id, 'live', amount, {
@@ -643,8 +646,9 @@ api['POST /api/funding/demo-topup'] = async (req, res, body, cookies) => {
   const target = Number(D.db().settings.demoStartBalance) || 10000;
   if (w.usd >= target) return fail(res, 400, `Demo balance is already at $${target.toLocaleString()}.`);
   const add = target - w.usd;
-  D.creditWallet(user.id, 'demo', add);
-  D.insert('transactions', { id: U.uid('tx_'), userId: user.id, type: 'demo_topup', asset: 'USD', amountUsd: U.round(add), status: 'completed', createdAt: Date.now(), updatedAt: Date.now() });
+  const txId = U.uid('tx_');
+  D.creditWallet(user.id, 'demo', add, { type: 'demo_topup', referenceId: txId, note: 'Demo wallet topped up to configured starting balance' });
+  D.insert('transactions', { id: txId, userId: user.id, type: 'demo_topup', asset: 'USD', amountUsd: U.round(add), status: 'completed', createdAt: Date.now(), updatedAt: Date.now() });
   ok(res, { message: `Demo wallet topped up to $${target.toLocaleString()}.` });
 };
 
@@ -1151,6 +1155,15 @@ api['POST /api/admin/balance'] = async (req, res, body, cookies) => {
   const amount = Number(body.amountUsd);
   if (!isFinite(amount) || amount === 0) return fail(res, 400, 'Enter a non-zero amount');
   const mode = body.mode === 'demo' ? 'demo' : 'live';
+  const idempotencyKey = String(body.idempotencyKey || req.headers['idempotency-key'] || '').trim();
+  if (idempotencyKey) {
+    const prior = D.find('transactions', t => t.type === 'adjust' && t.adminId === admin.id && t.idempotencyKey === idempotencyKey);
+    if (prior) {
+      if (prior.userId !== body.userId || prior.mode !== mode || Number(prior.amountUsd) !== U.round(amount)) return fail(res, 409, 'Idempotency key was already used for a different adjustment.');
+      const current = D.wallet(body.userId, mode, false);
+      return ok(res, { message: 'Adjustment already applied.', transactionId: prior.id, replayed: true, newBalance: current ? current.usd : 0 });
+    }
+  }
   const w = D.wallet(body.userId, mode, false);
   if (!w) return fail(res, 404, 'Wallet not found');
   if (w.usd + amount < 0) return fail(res, 400, 'Adjustment would make balance negative');
@@ -1162,7 +1175,8 @@ api['POST /api/admin/balance'] = async (req, res, body, cookies) => {
   if (amount > 0) D.creditWallet(body.userId, mode, amount, journalMeta);
   else if (!D.debitWallet(body.userId, mode, Math.abs(amount), journalMeta)) return fail(res, 400, 'Adjustment would make balance negative');
   D.insert('transactions', {
-    id: txId, userId: body.userId, type: 'adjust', asset: 'USD', amountUsd: U.round(amount),
+    id: txId, userId: body.userId, type: 'adjust', asset: 'USD', amountUsd: U.round(amount), mode,
+    idempotencyKey: idempotencyKey || undefined,
     status: 'completed', createdAt: Date.now(), updatedAt: Date.now(),
     note: body.note || `Admin adjustment by ${admin.email}`, adminId: admin.id
   });
