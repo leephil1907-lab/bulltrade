@@ -1137,6 +1137,7 @@ function initVerifiedActivityNotifications() {
   let queue = [];
   let timer = null;
   let active = null;
+  let cardTimer = null;
   let seen = new Set();
   try { seen = new Set(JSON.parse(localStorage.getItem('bbVerifiedActivitySeen') || '[]').slice(-80)); } catch (_) {}
   const remember = id => {
@@ -1148,6 +1149,7 @@ function initVerifiedActivityNotifications() {
     timer = setTimeout(showNext, delay);
   };
   const dismiss = () => {
+    if (cardTimer) { clearTimeout(cardTimer); cardTimer = null; }
     if (active) {
       active.classList.remove('bb-show');
       const old = active;
@@ -1197,7 +1199,8 @@ function initVerifiedActivityNotifications() {
     document.body.appendChild(card);
     active = card;
     requestAnimationFrame(() => card.classList.add('bb-show'));
-    setTimeout(() => {
+    cardTimer = setTimeout(() => {
+      cardTimer = null;
       if (active === card) dismiss();
       schedule(22000);
     }, 6500);
@@ -1217,10 +1220,7 @@ function initVerifiedActivityNotifications() {
     if (queue.length) schedule(9000);
     else schedule(90000);
   }
-  // Start after a short delay so this never competes with the page's first paint.
-  schedule(12000);
-  // The timer fetches once initially, then polls again only when there is no queued activity.
-  const firstTimer = timer;
+  // Fetch after first paint so this never competes with core page loading.
   timer = setTimeout(async () => {
     timer = null;
     await fetchEvents();
