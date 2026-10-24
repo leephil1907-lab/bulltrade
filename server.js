@@ -936,6 +936,29 @@ api['GET /api/bots/activity'] = async (req, res) => {
 };
 
 
+// ---- privacy-safe social proof: verified recent account activity only ----
+api['GET /api/public/activity'] = async (req, res) => {
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+  const allowedAssets = new Set(['USDT', 'USDT-ERC20', 'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'LTC', 'DOGE', 'TRX', 'ZEC']);
+  const crypto = require('crypto');
+  const events = D.filter('transactions', t => {
+    const at = Number(t.updatedAt || t.createdAt || 0);
+    return t && t.status === 'completed' &&
+      (t.type === 'deposit' || t.type === 'withdraw') &&
+      at >= cutoff && at <= Date.now() &&
+      allowedAssets.has(String(t.asset || '').toUpperCase());
+  }).sort((a, b) => Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0))
+    .slice(0, 12)
+    .map(t => ({
+      id: crypto.createHash('sha256').update(String(t.id || '')).digest('hex').slice(0, 16),
+      type: t.type,
+      asset: String(t.asset).toUpperCase(),
+      at: Number(t.updatedAt || t.createdAt || 0)
+    }));
+  // Never expose names, emails, user IDs, wallet addresses, amounts, or pending transactions.
+  ok(res, { events });
+};
+
 // ---- public settings ----
 api['GET /api/settings/public'] = async (req, res) => {
   const s = D.db().settings;
