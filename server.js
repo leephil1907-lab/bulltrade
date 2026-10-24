@@ -110,7 +110,7 @@ function kycApproved(user) {
 }
 function requireKyc(res, user, what) {
   if (kycApproved(user)) return true;
-  fail(res, 403, `KYC verification is required before you can ${what}. Verify your identity once — it takes about 2 minutes — and live trading, bots and transactions unlock.`, { kycRequired: true });
+  fail(res, 403, `KYC verification is required before you can ${what}. Verify your identity to unlock eligible account features. Real-money trading is not available until exchange execution is connected and verified.`, { kycRequired: true });
   return false;
 }
 
