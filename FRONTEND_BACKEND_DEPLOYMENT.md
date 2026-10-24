@@ -8,11 +8,12 @@
 
 ## Vercel setup
 
-1. Import `leephil1907-lab/bulltrade` into Vercel.
-2. Keep the project root at the repository root; the static output directory is `public`.
-3. Add the environment variable `BULLTRADE_BACKEND_URL` with the exact HTTPS base URL of the deployed backend (no trailing path such as `/api`).
-4. Deploy a preview first. If this variable is missing, API calls deliberately return HTTP 503 instead of silently pretending the app is connected.
-5. Configure the production domain only after login, logout, signup, session cookies, admin routes and API calls pass staging checks.
+1. Import `leephil1907-lab/bulltrade` into Vercel and grant the Vercel GitHub App access to this private repository if prompted.
+2. Keep the project root at the repository root, use the **Other** framework preset, and keep the static output directory set to `public` (the repository's `vercel.json` already declares this).
+3. Deploy `fix/db-corruption-safe` as a **Preview** deployment first; do not merge the pull request or assign the production domain just to inspect the preview.
+4. For a fully working preview, set `BULLTRADE_BACKEND_URL` to an isolated staging backend over HTTPS (the base URL only, without `/api`). Do **not** point a preview deployment at a production database or live customer accounts. If the variable is omitted, the frontend can still be inspected, but API calls intentionally return HTTP 503.
+5. Test signup, login/logout, session cookies, market data, demo trades, funding-request status, admin authorization and error handling against staging.
+6. Configure the production domain and production backend only after those checks pass. Vercel can host the frontend and proxy, but it does not replace the persistent Node backend or database.
 
 ## Backend setup
 
