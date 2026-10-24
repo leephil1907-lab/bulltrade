@@ -1118,12 +1118,12 @@ function initVerifiedActivityNotifications() {
   document.head.appendChild(style);
 
   const iconFor = type => type === 'withdraw' ? 'fa-arrow-up' : 'fa-arrow-down';
-  const titleFor = type => type === 'withdraw' ? 'Withdrawal processed' : 'Deposit confirmed';
+  const titleFor = type => type === 'withdraw' ? 'Withdrawal processed' : 'Deposit approved';
   const messageFor = event => {
     const asset = /^[A-Z0-9-]{2,12}$/.test(String(event.asset || '')) ? event.asset : 'crypto';
     return event.type === 'withdraw'
       ? 'A member’s ' + asset + ' withdrawal was processed.'
-      : 'A member’s ' + asset + ' deposit was confirmed.';
+      : 'A member’s ' + asset + ' deposit was approved.';
   };
   const relativeTime = timestamp => {
     const delta = Math.max(0, Date.now() - Number(timestamp || 0));
