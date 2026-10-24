@@ -38,3 +38,23 @@ body.admin-body { background: var(--admin-bg); }
 .kpi { background: #fff; border: 1px solid var(--line-soft); border-radius: 9px; padding: 9px 15px; font-family: var(--font-head); font-size: 12.5px; color: var(--ink-soft); box-shadow: var(--shadow-soft); }
 .kpi b { color: var(--ink); }
 @media (max-width: 900px) { .admin-shell { grid-template-columns: 1fr; } .admin-side { position: static; height: auto; } .chat-admin-layout { grid-template-columns: 1fr; } }
+
+/* ---- Registered users: card layout on small screens (no hidden columns) ---- */
+.u-cards { display: grid; gap: 12px; }
+.u-card { border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: #fffdf8; }
+.u-card .u-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.u-card .u-name { font-family: var(--font-head); font-weight: 700; color: var(--ink); font-size: 15px; }
+.u-card .u-mail { color: var(--muted); font-size: 12px; word-break: break-all; }
+.u-card .u-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.u-card .u-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; margin-top: 12px; }
+.u-card .u-grid div { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.u-card .u-grid b { display: block; font-family: var(--font-head); font-size: 13px; color: var(--ink); text-transform: none; letter-spacing: 0; }
+.u-card .u-actions { margin-top: 12px; display: flex; gap: 8px; }
+.u-card .u-actions .btn { flex: 1; justify-content: center; }
+@media (max-width: 760px) { .u-table-desktop { display: none; } }
+@media (min-width: 761px) { .u-cards { display: none; } }
+
+/* ---- KYC document lightbox ---- */
+.doc-lightbox { position: fixed; inset: 0; z-index: 9999; background: rgba(24, 12, 7, .87); display: flex; align-items: center; justify-content: center; padding: 24px; cursor: zoom-out; }
+.doc-lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 10px; box-shadow: 0 24px 60px rgba(0, 0, 0, .55); background: #fff; }
+.doc-lb-close { position: absolute; top: 16px; right: 20px; width: 40px; height: 40px; border: 0; border-radius: 50%; background: #fff; color: #3f140c; font-size: 24px; line-height: 1; cursor: pointer; box-shadow: 0 6px 18px rgba(0, 0, 0, .3); }

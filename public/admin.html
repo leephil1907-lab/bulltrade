@@ -15,10 +15,10 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  <link rel="stylesheet" href="/assets/css/fonts.css">
+  <link rel="stylesheet" href="/assets/css/fonts.css?v=2">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=26">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=7">
+  <link rel="stylesheet" href="/assets/css/main.css?v=29">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=9">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="robots" content="noindex, nofollow"/>
   <link rel="canonical" href="__SITE_URL__/admin"/>
@@ -86,12 +86,15 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=30"></script>
+  <script src="/assets/js/common.js?v=31"></script>
+<script src="/assets/js/tour.js?v=2"></script>
   <script>
     'use strict';
     let VIEW = 'overview';
     let ME = null;
-    function R(id, scope) { return (scope || document).getElementById(id); }
+    // NB: Element.getBoundingClientRect exists but Element.getElementById does NOT —
+    // passing a scope used to throw and left every drawer control dead.
+    function R(id, scope) { return scope ? scope.querySelector(`[id="${id}"]`) : document.getElementById(id); }
 
     async function api(path, opts = {}) {
       const res = await fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin' }, opts, { body: opts.body ? JSON.stringify(opts.body) : undefined }));
@@ -144,6 +147,9 @@
       set('cntCommunity', r.stats.communityPending);
       set('cntCopy', r.stats.leaderPending);
       set('cntChats', r.stats.unreadChats);
+      $$('[data-goto]').forEach(b => b.addEventListener('click', e => {
+        e.preventDefault(); switchView(b.dataset.goto);
+      }));
       // market kpis
       const mk = R('marketKpis');
       if (mk && r.topGainers.length) {
@@ -187,6 +193,30 @@
       const r = await api('/api/admin/overview');
       if (!r.ok) return root.innerHTML = '<div class="admin-card">Failed to load.</div>';
       const s = r.stats;
+      // Everything waiting on a human decision. Nothing on this platform approves
+      // itself — KYC, deposits, withdrawals, purchases, bot keys and community
+      // applications all sit here until an admin acts on them.
+      const waiting = s.approvalsWaiting || 0;
+      const queue = [
+        ['kyc', 'KYC documents', s.kycPending],
+        ['txs', 'Deposits', s.depositsPending],
+        ['txs', 'Withdrawals', s.withdrawalsPending],
+        ['txs', 'Purchases', s.productsPending || 0],
+        ['copy', 'Bot key requests', s.leaderPending],
+        ['community', 'Community applications', s.communityPending]
+      ].filter(row => row[2] > 0);
+      const banner = waiting > 0
+        ? `<div class="admin-card" style="border-left:4px solid #d98324;background:#fff9f1">
+             <h3 style="margin-bottom:6px"><i class="fas fa-inbox" style="color:#d98324"></i> ${waiting} action${waiting === 1 ? '' : 's'} waiting for your approval</h3>
+             <p class="muted small" style="margin-bottom:10px">Nothing is approved automatically — every one of these needs a manual decision from you.</p>
+             <div style="display:flex;gap:8px;flex-wrap:wrap">
+               ${queue.map(q => `<a class="btn btn-outline btn-sm" href="#" data-goto="${q[0]}">${q[1]} <b style="color:#b4451f">${q[2]}</b></a>`).join('')}
+             </div>
+           </div>`
+        : `<div class="admin-card" style="border-left:4px solid #1ba94b;background:#f6fdf8">
+             <h3 style="margin:0"><i class="fas fa-check-circle" style="color:#1ba94b"></i> All caught up</h3>
+             <p class="muted small" style="margin:4px 0 0">No KYC, deposit, withdrawal, purchase, bot-key or community request is waiting on you.</p>
+           </div>`;
       const cards = [
         ['fa-users', 'Total Users', s.totalUsers], ['fa-user-plus', 'New (7d)', s.newUsersWeek],
         ['fa-id-card', 'KYC Pending', s.kycPending], ['fa-money-bill-transfer', 'Tx Pending', s.depositsPending + s.withdrawalsPending],
@@ -196,15 +226,16 @@
         ['fa-robot', 'Active Bot Allocations', s.copyAllocations], ['fa-comments', 'Unread Chats', s.unreadChats]
       ];
       root.innerHTML = `
+        ${banner}
         <div class="stat-grid">${cards.map(([i, l, v]) => `<div class="stat-c"><div class="l"><i class="fas ${i}" style="color:var(--gold)"></i> ${l}</div><div class="v">${v}</div></div>`).join('')}</div>
         <div class="grid grid-2">
           <div class="admin-card"><h3><i class="fas fa-user-clock" style="color:var(--gold)"></i> Newest Users</h3>
             <div class="table-wrap" style="border:none"><table class="dt"><thead><tr><th>User</th><th>Joined</th><th>KYC</th><th>Community</th></tr></thead><tbody>
             ${r.recentUsers.map(u => `<tr style="cursor:pointer" data-user="${u.id}">
-              <td><b class="font-head">${BB.esc(u.name || u.email)}</b><br><small class="muted">${BB.esc(u.email)}</small></td>
+              <td><b class="font-head">${BB.esc(u.name || u.email)}</b>${u.isBot ? ' <span class="pill badge badge-blue" style="font-size:9px">BOT</span>' : ''}${u.banned ? ' <span class="pill badge badge-red" style="font-size:9px">SUSPENDED</span>' : ''}<br><small class="muted">${BB.esc(u.email)}</small></td>
               <td class="muted small">${BB.timeAgo(u.joinedAt)}</td>
-              <td><span class="pill badge ${u.kyc === 'approved' ? 'badge-green' : u.kyc === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.kyc}</span></td>
-              <td class="muted small">${u.joinedAt ? BB.timeAgo(u.joinedAt) : ''}</td></tr>`).join('')}
+              <td><span class="pill badge ${u.kyc === 'approved' ? 'badge-green' : u.kyc === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.kyc.replace('_', ' ')}</span></td>
+              <td class="muted small">${u.communityStatus && u.communityStatus !== 'none' ? `<span class="pill badge ${u.communityStatus === 'approved' ? 'badge-green' : u.communityStatus === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.communityStatus}</span>` : '<span class="muted">—</span>'}</td></tr>`).join('')}
             </tbody></table></div></div>
           <div class="admin-card"><h3><i class="fas fa-arrows-up-down" style="color:var(--gold)"></i> Market Movers (live)</h3>
             <div class="grid grid-2" style="gap:10px">
@@ -219,20 +250,66 @@
 
     async function viewUsers() {
       const root = R('viewRoot');
+      const CHIPS = [['all','All accounts'],['kyc_pending','KYC pending'],['unverified','Not verified'],['suspended','Suspended'],['bots','Bot accounts'],['admins','Admins']];
+      let FILTER = 'all', ROWS = [];
       root.innerHTML = `<div class="admin-card">
-        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
           <input class="input" id="uSearch" placeholder="Search by name or email…" style="max-width:320px">
           <button class="btn btn-primary btn-sm" id="uRefresh"><i class="fas fa-rotate"></i> Refresh</button>
+          <span class="muted small" id="uCount"></span>
         </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">${CHIPS.map(([k, l]) => `
+          <button class="btn btn-sm ${k === 'all' ? 'btn-primary' : 'btn-outline'}" data-filter="${k}">${l} <b data-c="${k}"></b></button>`).join('')}</div>
+        <p class="muted small" style="margin:-4px 0 12px"><i class="fas fa-circle-info"></i> Every account created on the site is listed here. Open <b>Manage</b> to review KYC documents, adjust balances or P/L, email the user, suspend, force-logout, send a password reset, reset the demo wallet or delete the account — all actions are written to the audit log.</p>
         <div id="uTable"></div></div>`;
-      const load = async () => {
-        const q = R('uSearch').value.trim();
-        const r = await api('/api/admin/users' + (q ? `?q=${encodeURIComponent(q)}` : ''));
-        if (!r.ok) return;
-        R('uTable').innerHTML = `<div class="table-wrap"><table class="dt"><thead><tr>
+      const match = u => FILTER === 'all' ? true
+        : FILTER === 'kyc_pending' ? u.kycStatus === 'pending'
+        : FILTER === 'unverified' ? (u.kycStatus === 'not_submitted' || u.kycStatus === 'rejected')
+        : FILTER === 'suspended' ? !!u.banned
+        : FILTER === 'bots' ? !!u.isBot
+        : FILTER === 'admins' ? u.role === 'admin' : true;
+      const paint = () => {
+        const rows = ROWS.filter(match);
+        const counts = {
+          all: ROWS.length,
+          kyc_pending: ROWS.filter(u => u.kycStatus === 'pending').length,
+          unverified: ROWS.filter(u => u.kycStatus === 'not_submitted' || u.kycStatus === 'rejected').length,
+          suspended: ROWS.filter(u => u.banned).length,
+          bots: ROWS.filter(u => u.isBot).length,
+          admins: ROWS.filter(u => u.role === 'admin').length
+        };
+        Object.entries(counts).forEach(([k, v]) => { const el = root.querySelector(`[data-c="${k}"]`); if (el) el.textContent = v; });
+        R('uCount').textContent = `${rows.length} of ${ROWS.length} account(s) shown`;
+        root.querySelectorAll('[data-filter]').forEach(b => {
+          b.className = 'btn btn-sm ' + (b.dataset.filter === FILTER ? 'btn-primary' : 'btn-outline');
+        });
+        R('uTable').innerHTML = `<div class="u-cards">${rows.map(u => `
+          <div class="u-card">
+            <div class="u-head">
+              <div><div class="u-name">${BB.esc(u.name || '—')}</div><div class="u-mail">${BB.esc(u.email)}</div>
+                <div class="u-pills">
+                  ${u.banned ? '<span class="pill badge badge-red">SUSPENDED</span>' : ''}
+                  ${u.role === 'admin' ? '<span class="pill badge badge-blue">ADMIN</span>' : ''}
+                  ${u.isBot ? '<span class="pill badge badge-gold">BOT</span>' : ''}
+                  <span class="pill badge ${u.kycStatus === 'approved' ? 'badge-green' : u.kycStatus === 'pending' ? 'badge-gold' : u.kycStatus === 'rejected' ? 'badge-red' : 'badge-gray'}">KYC ${u.kycStatus.replace('_', ' ')}</span>
+                  <span class="pill badge ${u.communityStatus === 'approved' ? 'badge-green' : u.communityStatus === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.communityStatus}</span>
+                </div></div>
+            </div>
+            <div class="u-grid">
+              <div>Country<b>${BB.esc(u.country || '—')}</b></div>
+              <div>Joined<b>${new Date(u.joinedAt).toLocaleDateString()}</b></div>
+              <div>Last login<b>${u.lastLogin ? BB.timeAgo(u.lastLogin) : 'never'}</b></div>
+              <div>Leader<b>${u.copyLeader || '—'}</b></div>
+              <div>Live equity<b>$${u.liveEquity.toLocaleString()}</b></div>
+              <div>Demo equity<b>$${u.demoEquity.toLocaleString()}</b></div>
+              <div>Positions<b>${u.positions}</b></div>
+            </div>
+            <div class="u-actions"><button class="btn btn-primary btn-sm" data-open="${u.id}"><i class="fas fa-sliders"></i> Manage account</button></div>
+          </div>`).join('')}</div>
+        <div class="table-wrap u-table-desktop"><table class="dt"><thead><tr>
           <th>User</th><th>Country</th><th>Joined</th><th>Last Login</th><th>KYC</th><th>Community</th><th>Leader</th><th>Live Eq</th><th>Demo Eq</th><th>Pos</th><th></th></tr></thead><tbody>
-          ${r.users.map(u => `<tr>
-            <td><b class="font-head">${BB.esc(u.name || '—')}</b><br><small class="muted">${BB.esc(u.email)}</small>${u.banned ? ' <span class="pill badge-red">BANNED</span>' : ''}${u.role === 'admin' ? ' <span class="pill badge-blue">ADMIN</span>' : ''}</td>
+          ${rows.map(u => `<tr>
+            <td><b class="font-head">${BB.esc(u.name || '—')}</b><br><small class="muted">${BB.esc(u.email)}</small>${u.banned ? ' <span class="pill badge-red">BANNED</span>' : ''}${u.role === 'admin' ? ' <span class="pill badge-blue">ADMIN</span>' : ''}${u.isBot ? ' <span class="pill badge-gold">BOT</span>' : ''}</td>
             <td class="muted small">${BB.esc(u.country || '—')}</td>
             <td class="muted small">${new Date(u.joinedAt).toLocaleDateString()}</td>
             <td class="muted small">${u.lastLogin ? BB.timeAgo(u.lastLogin) : 'never'}</td>
@@ -243,9 +320,16 @@
             <td class="num">$${u.demoEquity.toLocaleString()}</td>
             <td class="num">${u.positions}</td>
             <td><button class="btn btn-outline btn-sm" data-open="${u.id}">Manage</button></td></tr>`).join('')}
-        </tbody></table></div>${r.users.length ? '' : '<div class="empty-state">No users found.</div>'}`;
+        </tbody></table></div>${rows.length ? '' : '<div class="empty-state">No accounts match this filter.</div>'}`;
         $$('[data-open]').forEach(b => b.addEventListener('click', () => openUser(b.dataset.open)));
       };
+      const load = async () => {
+        const q = R('uSearch').value.trim();
+        const r = await api('/api/admin/users' + (q ? `?q=${encodeURIComponent(q)}` : ''));
+        if (!r.ok) return;
+        ROWS = r.users; paint();
+      };
+      root.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { FILTER = b.dataset.filter; paint(); }));
       R('uSearch').addEventListener('input', load);
       R('uRefresh').addEventListener('click', load);
       load();
@@ -365,6 +449,18 @@
         if (act === 'ban' && !confirm(`Suspend ${u.email}? They will be blocked from logging in.`)) return;
         const r2 = await api('/api/admin/user-action', { method: 'POST', body: { userId: u.id, action: act } });
         if (r2.ok) { toast(act.replace('-', ' ') + ' ✓', 'success'); bd.remove(); if (act !== 'forcelogout' && act !== 'reset-password') openUser(userId); } else toast(r2.error, 'error');
+      }));
+      // KYC document lightbox — reviewing identity proofs at 2-column thumbnail
+      // size is not good enough for a manual approval decision.
+      $$('.doc-thumb', bd).forEach(img => img.addEventListener('click', () => {
+        const lb = document.createElement('div');
+        lb.className = 'doc-lightbox';
+        lb.innerHTML = `<img src="${img.src}" alt="KYC document"><button class="doc-lb-close" aria-label="Close">&times;</button>`;
+        const close = () => { lb.remove(); document.removeEventListener('keydown', onKey); };
+        const onKey = e => { if (e.key === 'Escape') close(); };
+        lb.addEventListener('click', e => { if (e.target === lb || e.target.classList.contains('doc-lb-close')) close(); });
+        document.addEventListener('keydown', onKey);
+        document.body.appendChild(lb);
       }));
       const kycA = R('kycA', bd), kycR = R('kycR', bd);
       if (kycA) kycA.addEventListener('click', async () => {

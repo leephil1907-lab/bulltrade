@@ -21,9 +21,9 @@
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="Blockchain Bullhorn" name="apple-mobile-web-app-title"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
-<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fonts.css?v=2" rel="stylesheet"/>
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
-<link href="/assets/css/main.css?v=26" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=29" rel="stylesheet"/>
 <script>document.documentElement.classList.add('js')</script>
   <meta name="robots" content="index, follow, max-image-preview:large"/>
   <link rel="canonical" href="__SITE_URL__/trading-bots"/>
@@ -84,7 +84,8 @@
 </section>
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=30"></script>
+  <script src="/assets/js/common.js?v=31"></script>
+<script src="/assets/js/tour.js?v=2"></script>
 <script>
     let bots = [], minCopy = 50, ctx = null;
 
@@ -166,7 +167,7 @@
             <div class="lstat"><small>Demo ROI</small><b class="${(d.roi || 0) >= 0 ? 'up' : 'down'}">${d.roi != null ? (d.roi >= 0 ? '+' : '') + d.roi.toFixed(1) + '%' : '—'}</b></div>
             <div class="lstat"><small>Win rate</small><b>${d.winRate != null ? d.winRate.toFixed(1) + '%' : '—'}</b></div>
             <div class="lstat"><small>Trades</small><b>${d.trades}</b></div>
-            <div class="lstat"><small>Running for</small><b>${s.copiers} user(s)</b></div>
+            <div class="lstat"><small>Followers</small><b>${(s.followers != null ? s.followers : s.copiers).toLocaleString()}</b></div>
           </div>
           <div style="text-align:center">
             ${BB.sparkline(d.series, 120, 36)}

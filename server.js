@@ -579,19 +579,24 @@ api['POST /api/funding/deposit'] = async (req, res, body, cookies) => {
   const asset = String(body.asset || '');
   const txid = String(body.txid || '').trim();
   const s = D.db().settings;
-  if (!(asset in s.depositAddresses)) return fail(res, 400, 'Choose a valid deposit asset.');
-  if (!String(s.depositAddresses[asset]).trim()) return fail(res, 400, `${asset} deposits are not yet available — please use another coin or contact support.`);
+  // 1) Validate what the user typed/attached first, so a malformed form always
+  //    gets a useful message.
   if (!isFinite(amount) || amount < s.minDeposit) return fail(res, 400, `Minimum deposit is $${s.minDeposit}.`);
   if (txid.length < 10) return fail(res, 400, 'Please paste your transaction hash (TXID) so we can verify the transfer.');
-  // proof screenshot / receipt (image or PDF, max 5MB) — required
-  let proof = null;
   const p = body.proof || {};
   if (!p.data || !PROOF_TYPES[p.mime]) return fail(res, 400, 'Please upload a screenshot or receipt of your completed transaction (JPG, PNG, WEBP or PDF).');
+  const proofBuf = Buffer.from(String(p.data), 'base64');
+  if (!proofBuf || proofBuf.length < 100) return fail(res, 400, 'The uploaded proof file appears to be empty.');
+  if (proofBuf.length > PROOF_MAX) return fail(res, 400, 'Proof file must be under 5MB.');
+  // 2) KYC gate comes before wallet/asset availability: an unverified account
+  //    must never be told "this coin isn't available" or be shown address state.
+  if (!requireKyc(res, user, 'submit deposits')) return;
+  // 3) Only now reveal whether this asset/address is configured.
+  if (!(asset in s.depositAddresses)) return fail(res, 400, 'Choose a valid deposit asset.');
+  if (!String(s.depositAddresses[asset]).trim()) return fail(res, 400, `${asset} deposits are not yet available — please use another coin or contact support.`);
+  let proof = null;
   {
-    const buf = Buffer.from(String(p.data), 'base64');
-    if (!buf || buf.length < 100) return fail(res, 400, 'The uploaded proof file appears to be empty.');
-    if (buf.length > PROOF_MAX) return fail(res, 400, 'Proof file must be under 5MB.');
-    if (!requireKyc(res, user, 'submit deposits')) return;
+    const buf = proofBuf;
     try {
       const dir = path.join(D.UPLOAD_DIR, user.id);
       fs.mkdirSync(dir, { recursive: true });
@@ -1208,7 +1213,12 @@ api['GET /api/admin/overview'] = async (req, res, body, cookies) => {
     return s + eq;
   }, 0) + openPositions.filter(p => p.mode === 'live').reduce((s, p) => s + p.margin, 0);
   const recentUsers = users.slice().sort((a, b) => b.joinedAt - a.joinedAt).slice(0, 8)
-    .map(u => ({ id: u.id, email: u.email, name: u.name, joinedAt: u.joinedAt, kyc: (D.find('kyc', k => k.userId === u.id) || {}).status || 'not_submitted', role: u.role }));
+    .map(u => ({
+      id: u.id, email: u.email, name: u.name, joinedAt: u.joinedAt, role: u.role,
+      kyc: (D.find('kyc', k => k.userId === u.id) || {}).status || 'not_submitted',
+      isBot: !!u.isBot, banned: !!u.banned, lastLogin: u.lastLogin,
+      communityStatus: (D.find('community_apps', a => a.userId === u.id) || { status: 'none' }).status
+    }));
   const movers = markets.snapshot().assets.filter(a => a.price != null).sort((a, b) => (b.changePct || 0) - (a.changePct || 0));
   ok(res, {
     stats: {
@@ -1224,6 +1234,13 @@ api['GET /api/admin/overview'] = async (req, res, body, cookies) => {
       totalTrades: db.trades.length,
       communityPending: db.community_apps.filter(a => a.status === 'pending').length,
       leaderPending: db.bot_requests.filter(r => r.status === 'pending').length, // bot connection-key requests
+      productsPending: db.transactions.filter(t => t.type === 'product' && t.status === 'pending').length,
+      approvalsWaiting: db.kyc.filter(k => k.status === 'pending').length
+        + deposits.filter(t => t.status === 'pending').length
+        + withdraws.filter(t => t.status === 'pending').length
+        + db.transactions.filter(t => t.type === 'product' && t.status === 'pending').length
+        + db.bot_requests.filter(r => r.status === 'pending').length
+        + db.community_apps.filter(a => a.status === 'pending').length,
       copyAllocations: db.copy_allocations.filter(a => a.active).length,
       ledgerEntries: db.ledger.length,
       ledgerMismatches: users.filter(u => u.role !== 'admin').reduce((n, u) =>
@@ -1246,7 +1263,7 @@ api['GET /api/admin/users'] = async (req, res, body, cookies) => {
     const kyc = D.find('kyc', k => k.userId === u.id);
     const live = trading.equity(u.id, 'live'), demo = trading.equity(u.id, 'demo');
     return {
-      id: u.id, email: u.email, name: u.name, role: u.role, banned: !!u.banned,
+      id: u.id, email: u.email, name: u.name, role: u.role, banned: !!u.banned, isBot: !!u.isBot,
       joinedAt: u.joinedAt, lastLogin: u.lastLogin, country: u.country,
       kycStatus: kyc ? kyc.status : 'not_submitted',
       communityStatus: (D.find('community_apps', a => a.userId === u.id) || { status: 'none' }).status,

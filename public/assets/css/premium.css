@@ -22,7 +22,7 @@ body{background:radial-gradient(circle at 8% -4%,rgba(27,169,75,.09),transparent
 .page-hero{background:radial-gradient(circle at 80% 10%,rgba(211,168,119,.22),transparent 24rem),linear-gradient(135deg,#fff 0%,#f5efe5 100%)!important;border-bottom:1px solid rgba(16,24,32,.07)}
 .input,.select,.textarea,select{transition:border-color .2s,box-shadow .2s,background .2s}
 .input:focus,.select:focus,.textarea:focus,select:focus{border-color:rgba(27,169,75,.7)!important;box-shadow:0 0 0 4px rgba(27,169,75,.10)!important;background:#fff}
-.site-footer{background:linear-gradient(180deg,#17232b,#0e171d)!important;box-shadow:0 -20px 60px rgba(16,24,32,.10)}
+.site-footer{background:linear-gradient(180deg,#3f140c 0%,#2a160b 55%,#201007 100%)!important;box-shadow:0 -20px 60px rgba(63,20,12,.16)}
 .pulse-stat,.bubbles-panel,.coin-chart,.view-seg{box-shadow:0 18px 48px rgba(16,24,32,.08)!important}
 @media(max-width:720px){.hero-cta .btn{width:100%}.card{box-shadow:0 14px 38px rgba(18,27,34,.09)}}
 @media(prefers-reduced-motion:reduce){.hero-banner:after{animation:none!important}.card-hover:hover,.btn:hover,.dt tbody tr:hover{transform:none!important}}

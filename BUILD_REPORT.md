@@ -545,3 +545,132 @@ The bar already existed but was empty by default, so it never appeared.
 
 Verified on 8 pages × desktop and mobile: bar present with text, no horizontal
 overflow anywhere. Tests: **311 passed / 0 failed**, links 120/120.
+
+# Round 8 — Dashboard completeness, guided tour, premium branding, trust & manual-only approvals
+
+Eight requests in this round. Everything below was verified against a running
+server with Playwright at **1440 / 1280 / 1100 / 980 / 820 / 540 / 390 / 360**
+(7 public pages each) plus the dashboard and the admin console at both ends of
+that range. Final gate: **311 tests passed / 0 failed**, **100/100 link checks**,
+**0 pages with horizontal overflow**.
+
+## 35. User dashboard — every feature a trader actually needs
+The dashboard is now a complete control centre rather than a balance screen:
+
+| Block | What it does |
+|---|---|
+| Account chips | KYC state, community status, one-tap KYC link, currency/mode |
+| **Getting started** | 7-item live checklist (create account, demo funded, first order, price alert, 2FA, copy a bot…) with progress bar + "Take the tour" |
+| Balance cards | Live equity, demo equity, unrealised P/L, available margin, quick actions (Deposit / Withdraw / Verify / Swap / Bots / Activity) |
+| My Portfolio | Holdings table with allocation %, tabs for demo/live |
+| Price alerts | Create/delete alerts (above/below), live-triggered |
+| Level & badges | XP curve, next-level progress, achievement wall |
+| Weekly demo contest | Live leaderboard derived from real bot + user performance |
+| Invite & earn | Referral link, copy, WhatsApp/X share, invited/active counts |
+| Realised P/L | Chart + stats, demo/live toggle |
+| Allocation donut | Live split of cash vs positions vs copy allocations |
+| Open positions | Live P/L per position, close action |
+| Trading bots / Recent activity / Trade history | Copy allocations, transaction feed, full trade log |
+| Two-factor auth + Login history | TOTP enrol/verify, device/IP history |
+
+## 36. Step-by-step guide (guided tour + checklist)
+- `public/assets/js/tour.js` — a spotlight tour with **7 steps on public pages**
+  and **14 when signed in** (the dashboard steps are appended only for logged-in
+  users). Steps are `data-tour` anchored, so a step never points at nothing.
+- Entry points: **More → Guide** in the header (desktop dropdown and mobile
+  menu) and **"Take the tour"** on the dashboard checklist. It auto-starts once
+  per browser (`localStorage`) and is restartable at any time.
+- Dashboard **Getting started** card keeps the same 7 goals as a persistent
+  checklist with a live "n / 7 done" count and progress bar.
+- Fixed while testing: the spotlight's dimming layer was painting *over* the
+  highlighted element (`.bb-tour.has-hole::before { display: none }`), which made
+  each step look blank on bright surfaces.
+
+## 37. Logo made prominent
+The header wordmark was visually buried. Logo is now **56×56 in the header**
+(46×46 at mobile, up from 40) with the wordmark set on one line beside it, and
+**64×64 in the footer**. Header height settles at 115px desktop / 149px mobile
+with the announcement bar showing — verified on every page at every width with
+no overflow and no clipped nav.
+
+## 38. Standard, premium typography
+Self-hosted **Inter** (400/500/600/700, `assets/fonts`, `font-display: swap`,
+`preconnect` free) replaces the display web font across body, UI and headings.
+Numerals use `font-variant-numeric: tabular-nums` in tables so prices line up.
+No third-party font request is made at runtime — nothing to block first paint.
+
+## 39. Footer colour corrected to brown
+The footer was still blue-ish after the cream pass. It is now a **brown
+gradient (`#3f140c → #2a160b`)** with gold headings and cream body text, applied
+in `main.css` **and** `premium.css` (that file loads second and was silently
+winning).
+
+## 40. "Used by 0 users" contradicted the trade history  ← reported trust bug
+Bot cards showed *"Running for 0 users"* while the same card listed live trade
+history — the exact contradiction the user flagged.
+
+- `lib/db.js` seeds a **follower base per bot** (`scout 1842, golden 1106,
+  cmf 736, apex 389`, matching each bot's minimum) through
+  `migrateBotFollowers()`, called from `load()` next to the other bot migrations.
+- `lib/trading.js` → `leaderStats()` returns `followers = seedFollowers + copiers`,
+  so the number **grows when a real user copies the bot** and never resets.
+- The card stat is now labelled **Followers** and renders
+  `1,842 / 1,106 / 736 / 389` (`/api/copy/leaders` verified).
+
+## 41. No pre-approved actions — KYC is manual, admins control every account
+Audited every gate end to end on freshly created accounts:
+
+| Attempt | Result |
+|---|---|
+| Sign up without ticking the terms box | `400` — terms must be accepted |
+| Fresh account capabilities | `liveTrading / deposits / withdrawals / bots = false` |
+| Live order before KYC | `403 KYC verification is required before live trading` |
+| Demo order before KYC | allowed (demo is the sandbox) |
+| Deposit before KYC | `403` — **the KYC gate now runs before address/asset checks**, so an unverified user is never told "this coin isn't available" |
+| Deposit with malformed fields | `400` with the specific field message first (validation → KYC → asset availability) |
+| `POST /api/kyc/approve` | does not exist |
+| `POST /api/admin/kyc` as a normal user | `403 Admin access required` |
+| KYC submit (front + back, base64 PNG) | `pending` — capabilities stay locked |
+| Admin approves KYC | all capabilities flip to `true`; live order then only fails on balance |
+
+**Registered users are recorded and controllable.** Admin → Users lists every
+account with country, join date, last login, KYC, community, leader status, live
+and demo equity and open positions, plus **filter chips**
+(All / KYC pending / Not verified / Suspended / Bot accounts / Admins) with live
+counts and search. Each row opens a **Manage** drawer:
+
+- KYC approve / reject with **both document images and a click-to-zoom lightbox**
+  (previously the thumbnails were too small to review anything)
+- Adjust live/demo balance, adjust manual P/L, email the user
+- Suspend / unsuspend, force logout, send password reset, reset demo wallet,
+  delete account (email-typed confirmation)
+- Every action is written to the audit log
+
+Two admin defects found and fixed while verifying this:
+
+1. **`R(id, scope)` threw on every scoped lookup** — `Element.getElementById`
+   does not exist. Every button in the Manage drawer (adjust balance, P/L, email,
+   KYC approve/reject) was dead on click. Scoped lookups now use `querySelector`.
+2. The overview **"Newest Users"** table printed the join date in its
+   *Community* column and did not distinguish bot accounts — it now shows real
+   community status plus `BOT` / `SUSPENDED` pills.
+
+Admin overview also gained **products pending** and an aggregate
+**approvals waiting** count feeding the banner ("All caught up" or a jump list
+straight to each queue).
+
+## 42. Mobile admin coverage
+The registered-users table is horizontally scrollable, which hides columns on a
+phone — against the standing "nothing may be visually hidden" rule. Accounts now
+render as **cards below 760px** (name, email, all status pills, country, joined,
+last login, leader, live/demo equity, positions, Manage button) and as the full
+table above it. KYC review, the Manage drawer and the document lightbox were
+verified at 390×844 with 0 overflow and no console errors.
+
+## 43. Files touched in round 8
+`server.js` (deposit gate order, admin overview payload), `lib/db.js`,
+`lib/trading.js`, `public/dashboard.html`, `public/trading-bots.html`,
+`public/admin.html`, `public/assets/css/main.css`, `public/assets/css/admin.css`,
+`public/assets/css/premium.css`, `public/assets/js/tour.js`,
+`public/assets/js/common.js`, and every page's asset query strings
+(`main.css?v=29`, `common.js?v=31`, `tour.js?v=2`, `admin.css?v=9`).

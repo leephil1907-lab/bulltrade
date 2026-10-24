@@ -409,7 +409,7 @@ const COUNTRY_CUR = {
 
 const I18N = {
   en: {
-    'nav.markets': 'Markets', 'nav.trading': 'Trading', 'nav.bots': 'Trading Bots', 'nav.community': 'Community',
+    'nav.markets': 'Markets', 'nav.trading': 'Trading', 'nav.bots': 'Trading Bots', 'nav.community': 'Community', 'nav.guide': 'Guide',
     'nav.products': 'Products', 'nav.mentorship': 'Mentorship', 'nav.faq': 'FAQ', 'nav.contact': 'Contact',
     'hdr.login': 'Log In', 'hdr.signup': 'Sign Up Free', 'hdr.logout': 'Log Out', 'hdr.dashboard': 'Dashboard',
     'hdr.funding': 'Funding', 'hdr.kyc': 'KYC Verification', 'hdr.tradenow': 'Trade Now', 'hdr.notify': 'Notifications',
@@ -558,6 +558,7 @@ const NAV_PRIMARY = [
   ['/trading-bots', 'bots', 'fa-robot']
 ];
 const NAV_MORE = [
+  ['#tour', 'guide', 'fa-compass', '60-second walkthrough of the site'],
   ['/community', 'community', 'fa-users', 'Members only · apply to join'],
   ['/store', 'products', 'fa-shopping-bag', 'Courses, guides & bundles'],
   ['/mentorship', 'mentorship', 'fa-graduation-cap', 'Elite 1-on-1 coaching'],
@@ -644,6 +645,16 @@ function renderHeader() {
       }
     });
   }
+
+  // "Guide" opens the walkthrough instead of navigating
+  document.addEventListener('click', e => {
+    const g = e.target.closest && e.target.closest('a[href="#tour"]');
+    if (!g) return;
+    e.preventDefault();
+    const nav = $('#mainNav'); if (nav) nav.classList.remove('mobile-open');
+    const drop = $('#navDrop'); if (drop) drop.classList.remove('open');
+    if (window.BBTour) BBTour.restart();
+  });
 
   renderHeaderActions();
 }

@@ -15,9 +15,9 @@
 <title>Dashboard — The Blockchain Bullhorn</title>
 <link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
-<link href="/assets/css/fonts.css" rel="stylesheet"/>
+<link href="/assets/css/fonts.css?v=2" rel="stylesheet"/>
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
-<link href="/assets/css/main.css?v=26" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=29" rel="stylesheet"/>
 <style>
     .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .bal-card { position: relative; overflow: hidden; }
@@ -40,7 +40,22 @@
     .acct-row { display: flex; gap: 10px; flex-wrap: wrap; }
     .acct-chip { background: #fff; box-shadow: var(--shadow-soft); border: 1px solid var(--line); border-radius: 20px; padding: 6px 14px; font-family: var(--font-head); font-size: 12.5px; color: var(--ink-soft); display: inline-flex; gap: 7px; align-items: center; }
     .acct-chip i { color: var(--green-deep); }
-    @media (max-width: 1080px) { .dash-grid { grid-template-columns: 1fr 1fr; } .qa-row { grid-template-columns: repeat(3, 1fr); } }
+    /* getting-started checklist */
+    .gs-bar { height: 7px; border-radius: 7px; background: rgba(63,20,12,.09); overflow: hidden; }
+    .gs-bar i { display: block; height: 100%; border-radius: 7px; background: linear-gradient(90deg, var(--green-deep), #34c96a); transition: width .5s cubic-bezier(.2,.8,.25,1); }
+    .gs-count { font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--green-deep); background: rgba(27,169,75,.10); padding: 5px 11px; border-radius: 20px; }
+    .gs-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .gs-item { display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 11px; background: #fff; transition: border-color .18s, background .18s; }
+    .gs-item.done { background: rgba(27,169,75,.05); border-color: rgba(27,169,75,.30); }
+    .gs-item.next { border-color: var(--green); box-shadow: 0 0 0 2px rgba(27,169,75,.12); }
+    .gs-tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); flex: 0 0 auto; display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; margin-top: 1px; }
+    .gs-item.done .gs-tick { background: var(--green); border-color: var(--green); color: #fff; }
+    .gs-item b { display: block; font-family: var(--font-head); font-size: 13.5px; margin-bottom: 2px; }
+    .gs-item p { font-size: 12.3px; color: var(--ink-soft); line-height: 1.45; margin: 0 0 7px; }
+    .gs-item a.gs-go { font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--green-deep); display: inline-flex; gap: 5px; align-items: center; }
+    .gs-item a.gs-go:hover { text-decoration: underline; }
+    .gs-item.done a.gs-go { color: var(--ink-dim); }
+    @media (max-width: 1080px) { .dash-grid { grid-template-columns: 1fr 1fr; } .qa-row { grid-template-columns: repeat(3, 1fr); } .gs-list { grid-template-columns: 1fr; } }
     @media (max-width: 640px) { .dash-grid { grid-template-columns: 1fr; } .qa-row { grid-template-columns: 1fr 1fr; } }
   </style>
 <script>document.documentElement.classList.add('js')</script>
@@ -73,6 +88,19 @@
 </div>
 <!-- KYC status -->
 <div class="card mb-2" id="kycCard"></div>
+<!-- getting started checklist -->
+<div class="card mb-2" id="gettingStarted">
+  <div class="flex-between mb-2" style="flex-wrap:wrap;gap:10px">
+    <b class="font-head" style="font-size:16px"><i class="fas fa-tasks" style="color:var(--gold)"></i> Getting started</b>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span class="gs-count" id="gsCount">0 / 0</span>
+      <button class="btn btn-outline btn-sm" id="gsTour"><i class="fas fa-compass"></i> Take the tour</button>
+    </div>
+  </div>
+  <div class="gs-bar"><i id="gsBar" style="width:0%"></i></div>
+  <p class="muted small" id="gsNote" style="margin:10px 0 14px">A short checklist to get the most out of your account.</p>
+  <div class="gs-list" id="gsList"></div>
+</div>
 <!-- balances -->
 <div class="dash-grid mb-2" id="balCards">
 <div class="card bal-card"><span class="skeleton" style="width:140px;height:60px"></span></div>
@@ -244,7 +272,8 @@
 </section>
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=30"></script>
+  <script src="/assets/js/common.js?v=31"></script>
+<script src="/assets/js/tour.js?v=2"></script>
 <script src="/assets/js/qrcode.js"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -259,6 +288,67 @@
         <span class="acct-chip"><i class="fas fa-id-card"></i> KYC: ${BB.user.kycStatus.replace('_', ' ')}</span>
         <span class="acct-chip"><i class="fas fa-users"></i> Community: ${BB.user.communityStatus === 'approved' ? 'Member ✅' : BB.user.communityStatus === 'pending' ? 'In review' : 'Not applied'}</span>
         <span class="acct-chip"><i class="fas fa-gift"></i> Referral: ${BB.esc(BB.user.referralCode)}</span>`;
+
+      // ----- Getting started checklist -----
+      // Every item is driven by real account state, so it ticks itself off.
+      async function renderGettingStarted() {
+        const [sum, alerts] = await Promise.all([
+          BB.api('/api/dashboard/summary', { silent: true }),
+          BB.api('/api/alerts', { silent: true })
+        ]);
+        const demoCash = sum.ok && sum.demo ? Number(sum.demo.equity || 0) : 0;
+        const liveCash = sum.ok && sum.live ? Number(sum.live.equity || 0) : 0;
+        const positions = sum.ok ? (sum.positions || []).length : 0;
+        const trades = sum.ok ? (sum.recentTrades || []).length : 0;
+        const alertCount = alerts.ok ? (alerts.alerts || []).length : 0;
+        const me = await BB.api('/api/auth/me', { silent: true });
+        const twoFA = !!(me.ok && me.totpEnabled);
+        const copy = await BB.api('/api/copy/my', { silent: true });
+        const hasBot = !!(copy.ok && (copy.allocations || []).length);
+        const kyc = BB.user.kycStatus;
+
+        const items = [
+          { key: 'account', title: 'Create your account', desc: 'Done — welcome to the herd.', done: true, href: '', cta: '' },
+          { key: 'kyc', title: 'Verify your identity', done: kyc === 'approved',
+            desc: kyc === 'approved' ? 'Approved — live money is unlocked.'
+              : kyc === 'pending' ? 'Submitted — our team reviews every document by hand.'
+              : kyc === 'rejected' ? 'Not accepted — resubmit clearer photos.' : 'Required before live trading, deposits and bots.',
+            href: '/kyc', cta: kyc === 'approved' ? 'View status' : kyc === 'pending' ? 'View submission' : 'Start verification' },
+          { key: 'fund', title: 'Fund your account', done: liveCash > 0 || demoCash > 0,
+            desc: liveCash > 0 ? `Live balance: $${liveCash.toLocaleString(undefined,{maximumFractionDigits:2})}` : 'Deposit crypto, or practise with the free $10,000 demo.',
+            href: '/funding', cta: 'Funding options' },
+          { key: 'trade', title: 'Place your first trade', done: trades > 0 || positions > 0,
+            desc: positions > 0 ? `${positions} position(s) open right now.` : 'Open a position on the demo account — same live prices, no risk.',
+            href: '/trade', cta: 'Open the terminal' },
+          { key: 'alert', title: 'Set a price alert', done: alertCount > 0,
+            desc: alertCount > 0 ? `${alertCount} alert(s) armed.` : 'Get a notification when an asset hits your target price.',
+            href: '#alList', cta: 'Create an alert' },
+          { key: 'twofa', title: 'Turn on two-factor login', done: twoFA,
+            desc: twoFA ? 'Enabled — your account is protected.' : 'Strongly recommended before you move live funds.',
+            href: '#twofaBox', cta: twoFA ? 'Manage 2FA' : 'Enable 2FA' },
+          { key: 'bot', title: 'Explore a trading bot', done: hasBot, href: '/trading-bots',
+            desc: 'Hands-off strategies reviewed and issued to you by our team.', cta: 'Browse bots' }
+        ];
+        // total ignores items with no action needed
+        const doneCount = items.filter(i => i.done).length;
+        const nextIdx = items.findIndex(i => !i.done);
+        $('#gsCount').textContent = `${doneCount} / ${items.length} done`;
+        $('#gsBar').style.width = Math.round(doneCount / items.length * 100) + '%';
+        $('#gsNote').innerHTML = nextIdx === -1
+          ? '🎉 <b>All set.</b> Everything is wired up — the markets are yours.'
+          : `Next up: <b>${items[nextIdx].title}</b>. Steps tick themselves off as you go.`;
+        $('#gsList').innerHTML = items.map((i, n) => `
+          <div class="gs-item ${i.done ? 'done' : n === nextIdx ? 'next' : ''}">
+            <span class="gs-tick"><i class="fas fa-check"></i></span>
+            <div style="flex:1;min-width:0">
+              <b>${i.title}</b>
+              <p>${BB.esc(i.desc)}</p>
+              ${i.href ? `<a class="gs-go" href="${i.href}">${i.cta} <i class="fas fa-arrow-right" style="font-size:9px"></i></a>` : '<span class="gs-go muted">Complete</span>'}
+            </div>
+          </div>`).join('');
+      }
+      $('#gsTour').addEventListener('click', () => { if (window.BBTour) BBTour.restart(); });
+      renderGettingStarted();
 
       // ----- KYC card -----
       const kycStatus = BB.user.kycStatus;
