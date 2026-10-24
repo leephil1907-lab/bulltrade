@@ -180,9 +180,21 @@ h1, h2, h3, h4, h5, h6, .font-head { font-family: var(--font-head); line-height:
   background: var(--brown-600);
   overflow: hidden; position: relative; height: 38px; display: flex; align-items: center;
 }
-.ticker-track { display: flex; gap: 34px; white-space: nowrap; animation: marquee 55s linear infinite; padding-left: 100%; }
-.ticker-bar:hover .ticker-track { animation-play-state: paused; }
-@keyframes marquee { to { transform: translateX(-100%); } }
+/* Seamless marquee: two identical groups side by side, then translate by exactly
+   -50% (one full group). The old version used padding-left:100% + translateX(-100%),
+   which travelled the padded width and left a long empty gap — the ticker looked
+   misaligned and dropped off-screen. */
+.ticker-track {
+  display: flex; width: max-content; will-change: transform;
+  animation: marquee 70s linear infinite;
+}
+.ticker-bar:hover .ticker-track,
+.ticker-bar:focus-within .ticker-track { animation-play-state: paused; }
+.tick-group { display: flex; align-items: center; gap: 34px; padding-right: 34px; flex: 0 0 auto; }
+@keyframes marquee { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+}
 .tick-item { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-head); font-size: 13px; cursor: pointer; }
 .tick-item img { width: 17px; height: 17px; border-radius: 50%; }
 .tick-item .sym { color: #e8d9c4; font-weight: 700; }
@@ -419,10 +431,10 @@ select.input option { background: #fff; color: var(--ink); }
 .member-card .badges { display: flex; justify-content: center; gap: 7px; margin-top: 13px; flex-wrap: wrap; }
 
 /* ============ Footer (gold, like reference site) ============ */
-.site-footer { background: var(--gold); border-top: 1px solid rgba(63,20,12,.18); margin-top: 40px; color: var(--brown-900); }
+.site-footer { background: var(--gold); border-top: 1px solid rgba(63,20,12,.18); margin-top: 40px; color: #ece3d6; }
 .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 36px; padding: 56px 0 40px; }
 .footer-brand img { width: 52px; height: 52px; border-radius: 11px; margin-bottom: 14px; }
-.footer-brand p { color: #57231a; font-size: 13.5px; max-width: 300px; }
+.footer-brand p { color: rgba(236,227,214,.80); font-size: 13.5px; max-width: 320px; line-height: 1.62; }
 .socials { display: flex; gap: 10px; margin-top: 16px; }
 .socials a {
   width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -432,13 +444,13 @@ select.input option { background: #fff; color: var(--ink); }
 /* Facebook keeps its brand colour so the icon is instantly recognisable */
 .socials a.soc-fb { background: #1877f2; }
 .socials a.soc-fb:hover { background: #0b5ed7; box-shadow: 0 6px 14px rgba(24,119,242,.35); }
-.site-footer h5 { font-size: 13px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--brown-900); margin-bottom: 16px; }
-.footer-links a { display: block; color: #57231a; font-size: 13.5px; padding: 5px 0; font-family: var(--font-head); }
-.footer-links a:hover { color: var(--brown-900); text-decoration: underline; }
-.footer-news p { color: #57231a; font-size: 13px; margin-bottom: 12px; }
-.footer-bottom { border-top: 1px solid rgba(63,20,12,.22); padding: 20px 0; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: #57231a; font-family: var(--font-head); }
-.footer-fraud { background: rgba(255, 252, 247, 0.65); border: 1px solid rgba(63,20,12,.25); border-radius: 8px; padding: 12px 16px; font-size: 12.5px; color: #57231a; margin-top: 18px; }
-.footer-fraud a { color: var(--blue); }
+.site-footer h5 { font-size: 12.5px; letter-spacing: 1.8px; text-transform: uppercase; color: #d3a877; margin-bottom: 16px; font-weight: 700; }
+.footer-links a { display: block; color: rgba(236,227,214,.78); font-size: 13.5px; padding: 5px 0; font-family: var(--font-head); transition: color .18s, transform .18s; }
+.footer-links a:hover { color: #fff; text-decoration: underline; transform: translateX(2px); }
+.footer-news p { color: rgba(236,227,214,.78); font-size: 13px; margin-bottom: 12px; }
+.footer-bottom { border-top: 1px solid rgba(255,255,255,.14); padding: 20px 0; display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: rgba(236,227,214,.62); font-family: var(--font-head); }
+.footer-fraud { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: 12px 16px; font-size: 12.5px; color: #f3eadc; margin-top: 18px; line-height: 1.55; }
+.footer-fraud a { color: #ffd7a8; font-weight: 700; }
 
 /* ============ Toasts ============ */
 .toast-wrap { position: fixed; bottom: 22px; right: 22px; z-index: 9000; display: flex; flex-direction: column; gap: 10px; max-width: 360px; }
@@ -550,7 +562,10 @@ select.input option { background: #fff; color: var(--ink); }
 /* ============ Responsive ============ */
 @media (max-width: 1080px) {
   .main-nav { display: none; }
-  .nav-toggle { display: flex; align-items: center; justify-content: center; }
+  /* brand left · actions pushed right · burger pinned to the far right edge */
+  .nav-toggle { display: flex; align-items: center; justify-content: center; order: 3; margin-left: 0; }
+  .header-actions { order: 2; margin-left: auto; }
+  .header-inner { gap: 14px; }
   .main-nav.mobile-open {
     display: flex; position: fixed; top: calc(var(--header-h) + 38px); left: 0; right: 0;
     background: rgba(255, 255, 255, 0.985); backdrop-filter: blur(16px);
@@ -570,21 +585,44 @@ select.input option { background: #fff; color: var(--ink); }
   .grid-4 { grid-template-columns: 1fr; }
   .section { padding: 52px 0; }
   .form-row { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr; gap: 26px; }
+  .footer-grid { grid-template-columns: 1fr; gap: 26px; padding-bottom: 28px; }
+  /* the fixed chat launcher sits bottom-right — reserve space so it never
+     covers the copyright line or the strapline */
+  .site-footer { padding-bottom: 76px; }
+  .footer-bottom { flex-direction: column; gap: 8px; align-items: flex-start; text-align: left; padding-bottom: 8px; }
   .hero-under { padding: 24px 0 6px; }
   .hero-stats { gap: 20px; }
   .chat-window { right: 12px; bottom: 88px; }
   .chat-launcher { right: 12px; bottom: 14px; }
   /* header wraps to two rows on phones: brand + burger on top, auth buttons below —
      nothing sits off-screen anymore */
-  .header-inner { flex-wrap: wrap; height: auto; min-height: var(--header-h); padding: 9px 0; gap: 10px 12px; }
-  .brand img { width: 36px; height: 36px; }
-  .brand-name { font-size: 15px; }
+  .header-inner {
+    flex-wrap: wrap; height: auto; min-height: 0; padding: 8px 0 10px; gap: 8px 10px;
+    align-items: center;
+  }
+  .brand { gap: 9px; }
+  .brand img { width: 34px; height: 34px; }
+  .brand-name { font-size: 15px; line-height: 1.1; }
   .brand-name small { display: none; }
-  .nav-toggle { order: 3; margin-left: auto; width: 40px; height: 40px; }
-  .header-actions { order: 4; width: 100%; gap: 8px; }
-  .header-actions .btn { flex: 1; justify-content: center; }
-  .main-nav.mobile-open { position: absolute; top: 100%; max-height: calc(100vh - 170px); }
+  .nav-toggle { order: 3; margin-left: auto; width: 40px; height: 40px; flex-shrink: 0; }
+  /* second row: compact pickers + auth buttons on one line, always the same height */
+  .header-actions {
+    order: 4; width: 100%; margin-left: 0; gap: 8px; flex-wrap: nowrap;
+    justify-content: space-between; align-items: stretch;
+  }
+  .header-actions .globe-wrap { flex: 0 1 auto; min-width: 0; }
+  .header-actions .globe-btn {
+    width: 100%; height: 40px; padding: 0 10px; gap: 4px;
+    font-size: 12px; line-height: 1; justify-content: center; white-space: nowrap;
+  }
+  .header-actions .globe-btn b { font-size: 12px; }
+  .header-actions .globe-btn i { display: none; }
+  .header-actions .btn { flex: 1 1 0; min-width: 0; height: 40px; justify-content: center;
+    padding: 0 10px; font-size: 13px; line-height: 1; white-space: nowrap; }
+  .header-actions .btn i { margin-right: 4px; }
+  /* no 2-line wrapping inside the buttons */
+  .header-actions .btn span { display: inline; }
+  .main-nav.mobile-open { position: absolute; top: 100%; max-height: calc(100vh - 140px); }
 }
 
 

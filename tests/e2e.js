@@ -73,7 +73,16 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('setup: deposit addresses readable', sr.data.ok && !!sr.data.addresses && !!sr.data.addresses.BTC, sr.data.addresses);
 
   console.log('== MARKETS ==');
-  const mk = await req('GET', '/api/markets');
+  // The market feed is live and refreshed on boot, so a freshly started server may
+  // still be waiting on CoinGecko/Yahoo. Wait for quotes instead of asserting against
+  // a half-populated snapshot (this used to flake when CoinGecko returned 429).
+  let mk = await req('GET', '/api/markets');
+  for (let i = 0; i < 20; i++) {
+    const priced = (mk.data.assets || []).filter(a => a.price != null).length;
+    if (priced >= 55) break;
+    await new Promise(r => setTimeout(r, 1500));
+    mk = await req('GET', '/api/markets');
+  }
   ok('markets snapshot ok', mk.data.ok && Array.isArray(mk.data.assets));
   const withPrice = mk.data.assets.filter(a => a.price != null);
   ok(`prices loaded (${withPrice.length}/62 assets)`, withPrice.length >= 55, withPrice.length);

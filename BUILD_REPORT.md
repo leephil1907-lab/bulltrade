@@ -241,3 +241,74 @@ excluded — the admin console intentionally has no marketing footer).
 **Cache-busting:** bumped `common.js?v=22→23`, `main.css?v=16→17`, `premium.css?v=1→2`,
 otherwise browsers would serve the old cached footer for up to 24h and the icon
 would appear to be missing.
+
+---
+
+# Round 4 — Header layout, ticker, footer readability
+
+Verified with a real headless Chromium at 1440 / 1280 / 1100 / 980 / 820 / 430 / 390 px,
+signed-out **and** signed-in, with screenshots and measured geometry for each.
+
+## 12. Footer was unreadable (dark text on dark background)
+
+`premium.css` forces `.site-footer{background:linear-gradient(#17232b,#0e171d)!important}`
+— almost black — but every footer text colour was still the dark maroon (`#57231a`) tuned
+for the old gold background. Result: headings, links, description and copyright were all
+near-invisible.
+
+**Fix:** retuned the whole footer palette for the dark background — links to
+`rgba(236,227,214,.78)`, headings to gold `#d3a877`, body to `.80` white, copyright to
+`.62`, and the fraud-alert panel to a translucent white card with a light border.
+Hover now goes to pure white with a small x-offset instead of darkening.
+
+## 13. Ticker marquee was broken (items drifting off-screen)
+
+The track used `padding-left:100%` **and** `translateX(-100%)`. `-100%` resolves against the
+element's own width — which included the 100% padding — so each cycle travelled roughly
+double the content width and left a long empty gap; the strip appeared offset and coins
+scrolled in from off-screen.
+
+**Fix:** replaced with a proper seamless loop — two identical `.tick-group` blocks and
+`translateX(-50%)`, which is exactly one group width. Also:
+- `width: max-content` so the track never clips
+- pauses on `:hover` **and** `:focus-within` (keyboard users)
+- disabled under `prefers-reduced-motion`
+- second group `aria-hidden` so screen readers announce each coin once
+- falls back to the ticker's first letter if a logo is ever missing
+
+Prices and logos were already correct — verified all 26 ticker entries against
+`/api/markets` (symbol, price, and logo path all matched).
+
+## 14. Header cramped + misaligned across breakpoints
+
+- **Tablet (≤1080px):** the hamburger sat in the *middle* of the header with the actions
+  after it. Now: brand left → actions right → burger pinned to the far right edge.
+- **Phone (≤720px):** the second row was cramped and misaligned — "Sign Up Free" wrapped to
+  two lines and the buttons had mismatched heights (32px vs 49px). Now a single tidy row:
+  compact flag pickers (icon + code, chevron hidden), equal-height 40px buttons, and no
+  text wrapping.
+- Header height on phones dropped 118px → 107px.
+
+## 15. Bottom strapline hidden behind the chat button
+
+On phones the fixed chat launcher overlapped the copyright line. Added bottom padding to
+the footer and stacked `.footer-bottom` vertically so the copyright and
+"Grab the Bull by the HORNS" strapline are always clear of it.
+
+## 16. Test flakiness (found while verifying)
+
+The suite could fail `BTC price sane` / `BTC has sparkline` on a cold start, because a
+freshly launched server has no market cache and CoinGecko sometimes returns 429. The e2e
+suite now waits up to 30s for quotes to populate instead of asserting against a
+half-loaded snapshot. Two consecutive full runs: **311/311**.
+
+## 17. Files changed in round 4
+
+```
+public/assets/css/main.css     footer palette, seamless ticker, header breakpoints, footer spacing
+public/assets/js/common.js     ticker renders two .tick-group blocks
+tests/e2e.js                   wait for market quotes before asserting
+public/*.html                  cache bust: common.js v24, main.css v20
+server.js                      cache bust: premium.css v3
+BUILD_REPORT.md                this report
+```

@@ -706,12 +706,15 @@ async function loadTicker() {
     if (!tickerAssets.length) return;
     const items = tickerAssets.map(a => `
       <span class="tick-item" data-asset="${a.id}" title="Trade ${BB.esc(a.name)}">
-        ${a.logo ? `<img src="${a.logo}" alt="">` : ''}
+        ${a.logo ? `<img src="${a.logo}" alt="">` : `<span class="sym">${a.symbol.slice(0,1)}</span>`}
         <span class="sym">${a.symbol}</span>
         <span class="price">${BB.sym()}${BB.fmtPrice(a.price)}</span>
         <span class="chg ${BB.chgClass(a.changePct)}">${BB.chgIcon(a.changePct)} ${Math.abs(a.changePct || 0).toFixed(2)}%</span>
       </span>`).join('');
-    el.innerHTML = items + items; // duplicate for seamless loop
+    // Two identical groups: the track animates by exactly one group width (-50%),
+    // so the strip loops with no gap and no jump. The second group is aria-hidden
+    // so screen readers only announce each coin once.
+    el.innerHTML = `<div class="tick-group">${items}</div><div class="tick-group" aria-hidden="true">${items}</div>`;
     $$('.tick-item', el).forEach(t => t.addEventListener('click', () => location.href = '/trade?asset=' + t.dataset.asset));
   };
   if (!tickerAssets.length) {
