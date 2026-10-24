@@ -1702,7 +1702,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/manifest.webmanifest') return serveFile(res, page('manifest.webmanifest'));
     if (pathname === '/robots.txt') {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
-      return res.end('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\nSitemap: https://blockchainbullhorn.onrender.com/sitemap.xml\n');
+      return res.end('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\nSitemap: https://blockchainbullhorn.com/sitemap.xml\n');
     }
     if (pathname === '/sitemap.xml') return serveFile(res, page('sitemap.xml'));
 
