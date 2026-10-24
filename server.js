@@ -942,8 +942,9 @@ api['GET /api/public/activity'] = async (req, res) => {
   const allowedAssets = new Set(['USDT', 'USDT-ERC20', 'BTC', 'ETH', 'SOL', 'BNB', 'XRP', 'LTC', 'DOGE', 'TRX', 'ZEC']);
   const crypto = require('crypto');
   const events = D.filter('transactions', t => {
+    if (!t) return false;
     const at = Number(t.updatedAt || t.createdAt || 0);
-    return t && t.status === 'completed' &&
+    return t.status === 'completed' &&
       (t.type === 'deposit' || t.type === 'withdraw') &&
       at >= cutoff && at <= Date.now() &&
       allowedAssets.has(String(t.asset || '').toUpperCase());
