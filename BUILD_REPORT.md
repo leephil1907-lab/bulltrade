@@ -411,3 +411,73 @@ public/*.html                    canonical, robots, OG/Twitter, theme-color, ico
 tests/run.js                     market feed pre-warm
 BUILD_REPORT.md                  this report
 ```
+
+---
+
+# Round 6 — Mobile language/currency pickers + email delivery
+
+## 28. Language & currency options opened off-screen on mobile  ← reported bug
+The pickers themselves were in the header, but the **panel** did not appear.
+Measured at 390px: `#langMenu` opened at **x = −210** and `#curMenu` at **x = −138**
+→ 210px / 138px off the left edge of a 390px screen. You saw a sliver with one
+checkmark and nothing else, so tapping EN or USD looked broken.
+
+Cause: the panel is `position:absolute; right:0` inside a `~60px` wide button
+wrapper that sits at the left of the header row. Anchoring a 280px panel to the
+right edge of a 60px box at x=8 puts its left edge at −210.
+
+Fix: `placePicker()` positions the panel in viewport coordinates on every open —
+aligns to the button, clamps it inside `12px` padding, and caps its height so a
+long currency list scrolls instead of running off the bottom (landscape phones).
+It also repositions on rotate/resize/scroll and closes on Escape.
+
+Verified at **360×800, 390×844, 414×896, 768×1024 and 844×390 landscape**:
+every panel fully inside the viewport in all cases.
+
+## 29. Admin → Settings rendered blank  ← found while wiring email
+`let currentAnns = []` was declared *inside* `switchView()`, but `viewSettings()`
+and its event handlers reference it from outside that scope. Opening the Settings
+tab threw `ReferenceError: currentAnns is not defined` and the entire view failed
+to paint — the page where email delivery is configured. Moved the declaration to
+the top level of the admin script. The tab now renders its full content.
+
+## 30. Email/SMTP configuration was being wiped on every deploy
+`data/` is gitignored and Render's filesystem is ephemeral, so anything typed into
+Admin → Settings → Email Delivery lived only until the next deploy — then mail
+silently stopped working. This is why the SMTP details the owner entered were not
+in effect.
+
+Fix: `applyMailEnv()` in `lib/db.js` seeds the mail configuration from the
+environment on every boot, exactly like the wallet addresses already were. Env
+always wins over `db.json`.
+
+```
+SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASS / SMTP_FROM
+EMAIL_TRANSPORT=smtp|sendgrid|relay
+SENDGRID_API_KEY
+MAIL_RELAY_URL / MAIL_RELAY_SECRET
+SUPPORT_EMAIL / NOTIFY_EMAIL
+SITE_URL
+```
+
+Also added:
+- `settings.notifyEmail` (defaults to the support address) — owner notifications.
+- **New-lead notification**: every lead-magnet signup emails
+  `blockchainbullhornfaqs@gmail.com` as well as the subscriber.
+- Fixed the subscriber subject line ("Your The 5-Step…" → "The 5-Step… — your free download").
+- `GET /api/mail/status` + a **Delivery status banner** at the top of the Email
+  Delivery card: green "Delivery configured — SMTP · host:port · N sent, M failed
+  · notifications → address", or orange "Not configured — emails are being
+  journaled but not sent" with what to set.
+- `.env.example` and `render.yaml` document every mail variable.
+
+Verified end to end against a real SMTP server (STARTTLS + AUTH LOGIN + DATA):
+subscriber mail `sent`, owner notification `sent`, `/api/mail/status`
+`configured: true`, admin test send `sent: true`.
+
+## 31. Note on Render free tier
+It **blocks outbound SMTP ports 25/465/587**. Direct Gmail SMTP cannot connect
+there no matter how correct the App Password is. On the free tier use
+`EMAIL_TRANSPORT=sendgrid` (+ `SENDGRID_API_KEY`), or `EMAIL_TRANSPORT=relay`
+with the Apps Script web app — both go over HTTPS. The status banner reports the
+real provider error if a send fails, instead of failing silently.

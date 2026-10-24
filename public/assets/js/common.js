@@ -708,12 +708,71 @@ function renderHeaderActions() {
   bindPickers();
 }
 
+// The language/currency panels are anchored inside a very narrow button wrapper.
+// On phones that wrapper sits near the left edge, so a fixed `right: 0` on a 280px
+// panel put it at x = -210 — i.e. off the screen, which read as "the picker hides on
+// mobile". Position the panel in viewport coordinates on every open instead: align it
+// to the button, then clamp it inside the viewport, and cap its height so a long
+// currency list can scroll instead of running past the bottom of the screen.
+function placePicker(menu) {
+  if (!menu) return;
+  const wrap = menu.parentElement;
+  if (!wrap) return;
+  menu.style.left = '';
+  menu.style.right = '';
+  menu.style.maxHeight = '';
+  const pad = 12;
+  const wr = wrap.getBoundingClientRect();
+  const mw = menu.offsetWidth || 252;
+  const mh = menu.offsetHeight || 0;
+  const vw = document.documentElement.clientWidth || window.innerWidth;
+  const vh = window.innerHeight;
+  // horizontal: prefer the button's left edge, but never let the panel leave the screen
+  let left = Math.min(wr.left, vw - pad - mw);
+  left = Math.max(pad, left);
+  menu.style.left = Math.round(left - wr.left) + 'px';
+  menu.style.right = 'auto';
+  // vertical: if the panel would run past the bottom, shrink it and let it scroll
+  const top = wr.bottom + 8;
+  const room = vh - top - pad;
+  if (mh > room) menu.style.maxHeight = Math.max(160, room) + 'px';
+}
+
 function bindPickers() {
   const lb = $('#langBtn'); if (!lb) return;
   const lm = $('#langMenu'), cb = $('#curBtn'), cm = $('#curMenu');
-  lb.addEventListener('click', e => { e.stopPropagation(); cm.classList.remove('open'); lm.classList.toggle('open'); });
-  cb.addEventListener('click', e => { e.stopPropagation(); lm.classList.remove('open'); cm.classList.toggle('open'); });
+
+  const openOnly = (menu) => {
+    if (!menu.classList.contains('open')) {
+      menu.classList.add('open');
+      placePicker(menu);                       // measure after it is rendered
+    }
+  };
+  const toggle = (menu, other) => {
+    const willOpen = !menu.classList.contains('open');
+    other.classList.remove('open');
+    menu.classList.remove('open');
+    if (willOpen) openOnly(menu);
+  };
+
+  lb.addEventListener('click', e => { e.stopPropagation(); toggle(lm, cm); });
+  cb.addEventListener('click', e => { e.stopPropagation(); toggle(cm, lm); });
   document.addEventListener('click', () => { lm.classList.remove('open'); cm.classList.remove('open'); });
+
+  // keep an open panel glued to its button (rotation, resize, on-screen keyboard)
+  const reposition = () => { if (lm.classList.contains('open')) placePicker(lm);
+                             if (cm.classList.contains('open')) placePicker(cm); };
+  window.addEventListener('resize', reposition);
+  window.addEventListener('orientationchange', reposition);
+  window.addEventListener('scroll', reposition, { passive: true });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (lm.classList.contains('open')) { lm.classList.remove('open'); lb.focus(); }
+      if (cm.classList.contains('open')) { cm.classList.remove('open'); cb.focus(); }
+    }
+  });
+
   lm.addEventListener('click', e => {
     e.stopPropagation();
     const l = e.target.closest('[data-lang]');

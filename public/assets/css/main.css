@@ -920,7 +920,11 @@ html { scroll-behavior: smooth; }
 .gm-note { font-size: 11px; color: var(--ink-dim); line-height: 1.5; padding: 8px 10px; border-top: 1px solid var(--line-soft); margin-top: 6px; }
 
 @media (max-width: 720px) {
-  .globe-menu { right: -6px; width: min(280px, 92vw); }
+  /* The picker button is only ~60px wide and sits at the left edge of the row, so
+     anchoring the panel with `right: 0` pushed it off the left of the screen (x:-210
+     on a 390px phone) and it looked like the language/currency options were missing.
+     JS placePicker() positions it precisely; this is the pre-JS fallback. */
+  .globe-menu { right: auto; left: 0; width: min(280px, calc(100vw - 24px)); }
 }
 
 

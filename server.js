@@ -740,6 +740,44 @@ const LEAD_MAGNETS = {
 };
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+// Where owner-facing notifications go (new lead, etc.). Falls back to the public
+// support address so a single setting is enough.
+function notifyAddress() {
+  const s = D.db().settings || {};
+  const a = (s.notifyEmail || '').trim() || (s.supportEmail || '').trim();
+  return EMAIL_RE.test(a) ? a : '';
+}
+
+/** Fire-and-forget owner notification. Never blocks or breaks the caller. */
+function notifyOwner(subject, html) {
+  const to = notifyAddress();
+  if (!to) return;
+  mailer.sendMail({ to, subject, html }).catch(() => {});
+}
+
+/** Human-readable state of the mail configuration, for the admin panel. */
+function mailStatus() {
+  const s = D.db().settings || {};
+  const smtp = s.smtp || {};
+  const em = s.email || {};
+  const transport = em.transport || 'smtp';
+  const configured = transport === 'sendgrid' ? !!em.sendgridKey
+    : transport === 'relay' ? !!em.relayUrl
+    : !!(smtp.host && smtp.user && smtp.pass);
+  const outbox = D.filter('emails', () => true).sort((a, b) => b.at - a.at).slice(0, 10)
+    .map(e => ({ to: e.to, subject: e.subject, status: e.status, error: e.error, at: e.at }));
+  const sent = D.filter('emails', e => e.status === 'sent').length;
+  const failed = D.filter('emails', e => e.status === 'failed').length;
+  return {
+    transport, configured,
+    host: smtp.host || '', port: smtp.port || '', user: smtp.user || '',
+    from: smtp.from || smtp.user || '',
+    supportEmail: s.supportEmail || '', notifyEmail: notifyAddress(),
+    sendgrid: !!em.sendgridKey, relay: !!em.relayUrl,
+    sent, failed, outbox
+  };
+}
+
 api['POST /api/leads'] = async (req, res, body) => {
   const email = String(body.email || '').trim().toLowerCase().slice(0, 160);
   const magnet = LEAD_MAGNETS[String(body.magnet || 'quickstart')] ? String(body.magnet || 'quickstart') : 'quickstart';
@@ -756,13 +794,18 @@ api['POST /api/leads'] = async (req, res, body) => {
       ip: String((req.headers['x-forwarded-for'] || '').split(',')[0] || req.socket.remoteAddress || '').slice(0, 60),
       ua: String(req.headers['user-agent'] || '').slice(0, 200)
     });
+    // tell the owner a new address joined the list
+    notifyOwner(`New lead: ${email}`,
+      mailer.wrap(`<p><b>${email}</b> just claimed <b>${LEAD_MAGNETS[magnet].title}</b>.</p>
+        <p style="color:#6f5f4e;font-size:13px">Source: ${String(body.source || 'homepage').slice(0, 60)}<br>
+        Total on the list: ${D.filter('leads', () => true).length}</p>`));
   }
   const m = LEAD_MAGNETS[magnet];
   // best-effort email with the link (never blocks the response)
   try {
     mailer.sendMail({
       to: email,
-      subject: `Your ${m.title}`,
+      subject: `${m.title} — your free download`,
       html: mailer.wrap(`<p>Thanks for signing up! Your free download is ready.</p>
         <p style="margin:22px 0"><a href="${SITE_URL}${m.file}" style="background:#1BA94B;color:#fff;padding:14px 26px;border-radius:10px;text-decoration:none;font-weight:700">Download the ${m.title}</a></p>
         <p style="color:#6f5f4e;font-size:13px">Or open it here: ${SITE_URL}${m.file}</p>`)
@@ -773,6 +816,11 @@ api['POST /api/leads'] = async (req, res, body) => {
     file: m.file, title: m.title,
     alreadySubscribed: !!recent
   });
+};
+
+api['GET /api/mail/status'] = (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  ok(res, mailStatus());
 };
 
 api['GET /api/leads'] = (req, res, body, cookies) => {

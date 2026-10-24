@@ -17,7 +17,7 @@
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=24">
+  <link rel="stylesheet" href="/assets/css/main.css?v=25">
   <link rel="stylesheet" href="/assets/css/admin.css?v=7">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="robots" content="noindex, nofollow"/>
@@ -86,7 +86,7 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=27"></script>
+  <script src="/assets/js/common.js?v=28"></script>
   <script>
     'use strict';
     let VIEW = 'overview';
@@ -154,6 +154,12 @@
       }
     }
 
+    // Declared at the top level of the admin script: viewSettings() and its
+    // handlers read/write this. It used to be declared *inside* switchView(),
+    // which meant viewSettings() threw "currentAnns is not defined" and the whole
+    // Settings tab rendered blank — the page where email delivery is configured.
+    let currentAnns = [];
+
     function switchView(v) {
       VIEW = v;
       $$('#admNav a').forEach(a => a.classList.toggle('active', a.dataset.view === v));
@@ -171,7 +177,6 @@
       };
       R('viewTitle').textContent = titles[v][0];
       R('viewSub').textContent = titles[v][1];
-      let currentAnns = [];
       ({ overview: viewOverview, users: viewUsers, kyc: viewKyc, txs: viewTxs, positions: viewPositions, community: viewCommunity, copy: viewCopy, chats: viewChats, settings: viewSettings, audit: viewAudit })[v]();
     }
 
@@ -302,7 +307,7 @@
             : '<button class="btn btn-outline btn-sm" data-act="make-admin"><i class="fas fa-user-shield"></i> Make Admin</button>'}
           <button class="btn btn-danger btn-sm" data-act="delete"><i class="fas fa-trash"></i> Delete User</button>
         </div>
-        ${u.banned ? '<p class="muted small mt-1" style="color:var(--red)"><i class="fas fa-triangle-exclamation"></i> This account is SUSPENDED — logins are blocked.</p>' : ''}
+        ${u.banned ? '<p class="muted small mt-1" style="color:var(--red)"><i class="fas fa-exclamation-triangle"></i> This account is SUSPENDED — logins are blocked.</p>' : ''}
 
         <h4 class="font-head mt-3 mb-1" style="font-size:15px"><i class="fas fa-id-card" style="color:var(--gold)"></i> KYC — ${kyc ? kyc.status.toUpperCase() : 'NOT SUBMITTED'}</h4>
         ${kyc ? `<p class="muted small">${kyc.idType.replace('_', ' ')} · submitted ${BB.timeAgo(kyc.submittedAt)}${kyc.docs ? ' · ' + kyc.docs.length + ' document(s)' : ''}</p>
@@ -651,6 +656,7 @@
           </div>
           <div class="field"><label>Demo starting balance ($)</label><input class="input num" id="setDemoBal" type="number" value="${s.demoStartBalance}"></div>
           <div class="field"><label>Support email</label><input class="input" id="setSupport" value="${BB.esc(s.supportEmail)}"></div>
+          <div class="field"><label>Notification email (new leads, alerts)</label><input class="input" id="setNotify" value="${BB.esc(s.notifyEmail || s.supportEmail || '')}" placeholder="blockchainbullhornfaqs@gmail.com"></div>
           <div class="field"><label>Site URL (used in email links)</label><input class="input" id="setSiteUrl" value="${BB.esc(s.siteUrl || '__SITE_URL__')}"></div>
         </div>
         <div class="admin-card"><h3><i class="fas fa-trophy" style="color:var(--gold)"></i> Weekly Demo Contest</h3>
@@ -682,6 +688,7 @@
           </div>
           <div class="field"><label>From address</label><input class="input" id="setSmtpFrom" value="${BB.esc((s.smtp && s.smtp.from) || '')}" placeholder="no-reply@blockchainbullhorn.com"></div>
           </div>
+          <div id="mailStatusLine" class="small" style="margin:6px 0 10px;padding:9px 12px;border-radius:9px;background:#faf8f4;border:1px solid #ece3d6">Checking delivery status…</div>
           <button class="btn btn-outline btn-sm" id="testEmailBtn"><i class="fas fa-paper-plane"></i> Send Test Email</button>
         </div>
         <div class="admin-card"><h3><i class="fas fa-lock" style="color:var(--gold)"></i> Security</h3>
@@ -767,7 +774,7 @@
             smartsuppKey: R('setSmartsupp').value,
             announcements: currentAnns,
             depositAddresses: {}, minDeposit: R('setMinDep').value, minWithdraw: R('setMinWd').value,
-            demoStartBalance: R('setDemoBal').value, supportEmail: R('setSupport').value, siteUrl: R('setSiteUrl').value,
+            demoStartBalance: R('setDemoBal').value, supportEmail: R('setSupport').value, notifyEmail: R('setNotify').value, siteUrl: R('setSiteUrl').value,
             contest: { enabled: R('setContestOn').checked, prize: R('setContestPrize').value },
             trading: { enabled: R('setTradingOn').checked, liveEnabled: R('setLiveTradingOn').checked,
               maxLeverage: R('setMaxLev').value, maxOrderUsd: R('setMaxOrder').value },
@@ -781,6 +788,25 @@
         const r2 = await api('/api/admin/settings', { method: 'POST', body });
         if (r2.ok) toast(r2.message, 'success'); else toast(r2.error, 'error');
       });
+      async function loadMailStatus() {
+        const box = R('mailStatusLine'); if (!box) return;
+        const st = await api('/api/mail/status');
+        if (!st.ok) { box.textContent = 'Could not read delivery status.'; return; }
+        const via = st.transport === 'sendgrid' ? 'SendGrid API'
+          : st.transport === 'relay' ? 'Gmail relay'
+          : (st.host ? 'SMTP · ' + st.host + (st.port ? ':' + st.port : '') : 'SMTP');
+        if (st.configured) {
+          box.innerHTML = '<i class="fas fa-check-circle" style="color:var(--green-deep)"></i> <b>Delivery configured</b> — ' + BB.esc(via) +
+            ' · <b>' + st.sent + '</b> sent, <b>' + st.failed + '</b> failed' +
+            (st.notifyEmail ? ' · notifications → <b>' + BB.esc(st.notifyEmail) + '</b>' : '');
+          box.style.background = '#f2fbf5'; box.style.borderColor = '#bfe6cd';
+        } else {
+          box.innerHTML = '<i class="fas fa-exclamation-triangle" style="color:#b4451f"></i> <b>Not configured</b> — emails are being journaled but not sent. ' +
+            'Set the SMTP_* / SENDGRID_API_KEY / MAIL_RELAY_* environment variables on your host, or fill in the fields below.';
+          box.style.background = '#fff6f2'; box.style.borderColor = '#f0cdbd';
+        }
+      }
+      loadMailStatus();
       R('testEmailBtn').addEventListener('click', async () => {
         // save first so the test uses the entered credentials
         R('saveSettings').click();
@@ -788,7 +814,7 @@
         if (!to) return;
         const r3 = await api('/api/admin/test-email', { method: 'POST', body: { to } });
         if (r3.ok) toast(r3.message, 'success'); else toast(r3.error, 'error');
-        loadOutbox();
+        loadOutbox(); loadMailStatus();
       });
       async function loadOutbox() {
         const r4 = await api('/api/admin/emails');

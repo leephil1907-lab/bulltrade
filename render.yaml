@@ -35,6 +35,34 @@ services:
         sync: false
       - key: PRODUCT_PAYMENT_ADDRESSES
         sync: false
+      # ---- email ----
+      # The free tier blocks SMTP ports (25/465/587), so prefer an HTTP transport:
+      # EMAIL_TRANSPORT=sendgrid + SENDGRID_API_KEY, or EMAIL_TRANSPORT=relay +
+      # MAIL_RELAY_URL/MAIL_RELAY_SECRET. SMTP_* below only works on a paid instance.
+      - key: SITE_URL
+        sync: false
+      - key: EMAIL_TRANSPORT
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: MAIL_RELAY_URL
+        sync: false
+      - key: MAIL_RELAY_SECRET
+        sync: false
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: NOTIFY_EMAIL
+        sync: false
     # ---- paid upgrade (always-on + persistent disk) ----
     # plan: starter
     # disk:
