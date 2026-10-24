@@ -28,8 +28,8 @@
   --ink-dim: #97836f;
   --line: rgba(63, 20, 12, 0.14);
   --line-soft: rgba(63, 20, 12, 0.08);
-  --bg: #f7efdd;
-  --bg-soft: #eee1c6;
+  --bg: #f8f1e0;
+  --bg-soft: #f0e5cd;
   --card: #ffffff;
   --card-solid: #ffffff;
   --radius: 10px;
@@ -42,7 +42,7 @@
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: #f8f1e0; }
 html, body { overflow-x: clip; }
 body {
   font-family: var(--font-body);
@@ -633,7 +633,7 @@ select.input option { background: #fff; color: var(--ink); }
   .header-actions { order: 2; margin-left: auto; }
   .header-inner { gap: 14px; }
   .main-nav.mobile-open {
-    display: flex; position: fixed; top: calc(var(--header-h) + 38px); left: 0; right: 0;
+    display: flex; position: fixed; top: var(--header-real, calc(var(--header-h) + 38px)); left: 0; right: 0;
     background: rgba(255, 255, 255, 0.985); backdrop-filter: blur(16px);
     flex-direction: column; align-items: stretch; padding: 18px 6%; gap: 4px;
     border-bottom: 1px solid var(--line); z-index: 49; max-height: calc(100vh - 106px); overflow-y: auto;
@@ -791,7 +791,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 4px; }
 
 /* ---- misc ---- */
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; background: #f8f1e0; }
 
 /* ---- reduced motion: everything instant, nothing hidden ---- */
 @media (prefers-reduced-motion: reduce) {

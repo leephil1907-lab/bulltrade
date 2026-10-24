@@ -1084,23 +1084,52 @@ const Chat = {
   }
 };
 
+// The header height changes when the announcement bar is present (or wraps on a
+// phone). Publish the measured height so fixed/sticky offsets stay in sync.
+function syncHeaderHeight() {
+  const h = document.querySelector('.site-header');
+  if (!h) return;
+  document.documentElement.style.setProperty('--header-real', Math.round(h.offsetHeight) + 'px');
+}
+window.addEventListener('resize', syncHeaderHeight);
+window.addEventListener('orientationchange', () => setTimeout(syncHeaderHeight, 250));
+// The header grows when the announcement bar appears and shrinks when it is empty,
+// so watch the element itself instead of guessing when to re-measure.
+if (typeof ResizeObserver !== 'undefined') {
+  const startObserving = () => {
+    const h = document.querySelector('.site-header');
+    if (h) { new ResizeObserver(syncHeaderHeight).observe(h); syncHeaderHeight(); }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', startObserving);
+  else startObserving();
+}
+
 // ---------- announcement live-feed bar ----------
 function renderAnnouncement() {
   const bar = $('#announce'); if (!bar) return;
   const items = (BB.settings.announcements || []).map(x => String(x || '').trim()).filter(Boolean);
   if (!items.length) { bar.classList.remove('show'); bar.innerHTML = ''; return; }
   bar.classList.add('show');
+  syncHeaderHeight();
   bar.innerHTML = `<span class="announce-label"><i class="fas fa-bullhorn"></i><span>ANNOUNCEMENT${items.length > 1 ? 'S' : ''}</span></span>` +
     `<div class="announce-stage" id="announceStage"><div class="announce-item" id="announceItem"></div></div>` +
     (items.length > 1 ? `<span class="announce-count" id="announceCount">1/${items.length}</span>` : '');
   const stage = $('#announceStage'), item = $('#announceItem'), count = $('#announceCount');
   const FX = ['fx-roll', 'fx-fade', 'fx-wipe', 'fx-slide'];
-  let idx = 0, fx = 0, paused = false, timer = null;
+  let idx = 0, fx = 0, paused = false, timer = null, phase = 'idle';
+  // Hovering the bar pauses the feed so you can finish reading. It must never pause
+  // the *entrance* animation: freezing that leaves the item sitting at translateY(110%)
+  // — i.e. an empty strip — which is exactly what happened when the pointer happened to
+  // rest on the bar at page load. Only an on-screen message may be paused.
+  const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const holdMs = t => Math.min(14000, Math.max(4200, 3200 + t.length * 55));
-  const run = (fn, ms) => { // pause-aware scheduler (hover pauses the feed)
+  // Pause-aware scheduler. `pausable` is only true while a message is being READ —
+  // never during the in/out transition, because freezing mid-exit left the whole
+  // strip blank while the pointer sat over the bar.
+  const run = (fn, ms, pausable) => {
     const t0 = Date.now();
     const tick = () => {
-      if (paused) { timer = setTimeout(tick, 250); return; }
+      if (pausable && paused) { timer = setTimeout(tick, 250); return; }
       const left = ms - (Date.now() - t0);
       if (left > 0) timer = setTimeout(tick, Math.min(left + 1, 250)); else fn();
     };
@@ -1109,7 +1138,9 @@ function renderAnnouncement() {
   const display = () => {
     const text = items[idx];
     item.className = 'announce-item';
+    item.style.animationPlayState = '';
     item.textContent = text;
+    phase = 'in';
     if (count) count.textContent = `${idx + 1}/${items.length}`;
     requestAnimationFrame(() => {
       const overflow = item.scrollWidth - stage.clientWidth;
@@ -1120,23 +1151,31 @@ function renderAnnouncement() {
         item.style.setProperty('--toX', (-item.scrollWidth - 12) + 'px');
         item.style.animationDuration = dur + 's';
         item.classList.add('marquee');
-        run(exit, (dur + 1.2) * 1000);
+        phase = 'hold';
+        run(exit, (dur + 1.2) * 1000, true);
       } else {
         const effect = FX[fx++ % FX.length]; // rotate: roll → fade → wipe → slide
         item.classList.add(effect, 'in');
-        run(exit, holdMs(text));
+        setTimeout(() => { if (phase === 'in') phase = 'hold'; }, 900); // entrance done
+        run(exit, holdMs(text), true);
       }
     });
   };
   const exit = () => {
+    phase = 'out';
     const wasMarquee = item.classList.contains('marquee');
     item.classList.remove('in');
     if (wasMarquee) { item.classList.remove('marquee'); item.style.animationDuration = ''; item.classList.add('fx-fade'); }
     item.classList.add('out');
-    run(() => { idx = (idx + 1) % items.length; display(); }, 800);
+    run(() => { idx = (idx + 1) % items.length; display(); }, 800, false);
   };
-  bar.addEventListener('mouseenter', () => { paused = true; item.style.animationPlayState = 'paused'; });
-  bar.addEventListener('mouseleave', () => { paused = false; item.style.animationPlayState = ''; });
+  if (canHover) {
+    bar.addEventListener('mouseenter', () => {
+      paused = true;
+      if (phase === 'hold') item.style.animationPlayState = 'paused';
+    });
+    bar.addEventListener('mouseleave', () => { paused = false; item.style.animationPlayState = ''; });
+  }
   display();
 }
 

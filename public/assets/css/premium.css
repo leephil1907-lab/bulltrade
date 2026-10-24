@@ -1,5 +1,8 @@
 /* Bullhorn Premium visual layer */
-body{background:radial-gradient(circle at 8% -4%,rgba(27,169,75,.10),transparent 30rem),radial-gradient(circle at 92% 4%,rgba(211,168,119,.13),transparent 28rem),linear-gradient(180deg,#fbfaf7 0%,#f6f2ea 52%,#fbfaf7 100%)}
+/* Warm cream page surface (matches blockchainbullhorn.com). This used to be a
+   near-white gradient (#fbfaf7/#f6f2ea) that cancelled the cream --bg token and
+   made every section look white. */
+body{background:radial-gradient(circle at 8% -4%,rgba(27,169,75,.09),transparent 30rem),radial-gradient(circle at 92% 4%,rgba(211,168,119,.16),transparent 28rem),linear-gradient(180deg,#faf4e6 0%,#f5ecd8 52%,#faf4e6 100%);background-attachment:fixed}
 .site-header{backdrop-filter:blur(18px) saturate(145%);-webkit-backdrop-filter:blur(18px) saturate(145%);background:rgba(255,255,255,.86)!important;border-bottom:1px solid rgba(16,24,32,.07)!important;box-shadow:0 10px 35px rgba(16,24,32,.045)}
 .hero-banner{position:relative;overflow:hidden;box-shadow:0 20px 70px rgba(16,24,32,.16)}
 .hero-banner:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 0 45%,rgba(255,255,255,.13) 50%,transparent 55%);transform:translateX(-110%);animation:bbSweep 7s ease-in-out infinite}

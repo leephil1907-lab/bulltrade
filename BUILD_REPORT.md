@@ -481,3 +481,67 @@ there no matter how correct the App Password is. On the free tier use
 `EMAIL_TRANSPORT=sendgrid` (+ `SENDGRID_API_KEY`), or `EMAIL_TRANSPORT=relay`
 with the Apps Script web app — both go over HTTPS. The status banner reports the
 real provider error if a send fails, instead of failing silently.
+
+---
+
+# Round 7 — Cream page surface, CoinGecko-accurate assets, admin announcement bar
+
+## 32. The site was white, not cream
+`--bg` was already the cream token, but **`premium.css` overrode the body with a
+near-white gradient** (`#fbfaf7 → #f6f2ea`), which cancelled it — every section
+below the hero read as white. `body` computed to `rgba(0,0,0,0)` over a white
+canvas.
+
+Fix: `premium.css` now paints a warm cream gradient
+(`#faf4e6 → #f5ecd8 → #faf4e6`) with the same soft green/gold radial glows, and
+`html` carries a cream base colour so there is no white flash or edge on
+over-scroll. `--bg` was warmed to `#f8f1e0` and `--bg-soft` to `#f0e5cd`.
+
+## 33. Every crypto asset audited against the live CoinGecko API
+Instead of eyeballing icons, the whole universe was checked against
+`/coins/markets`: **64/64 ids exist**, and every icon was re-downloaded from
+CoinGecko's own image CDN so the artwork is the exact official, current artwork
+(previously several were stale copies from an older snapshot).
+
+Metadata corrections to match CoinGecko exactly:
+
+| Asset | Was | Now |
+|---|---|---|
+| `usd-coin` | "USD Coin" | **USDC** |
+| `the-open-network` | TON · "Toncoin" | **GRAM** · "Gram (prev. Toncoin)" — CoinGecko has re-tickered the asset |
+| `polygon-ecosystem-token` | "Polygon" | **"POL (ex-MATIC)"** |
+| `cosmos` | "Cosmos" | **"Cosmos Hub"** |
+| `floki` | "Floki" | **FLOKI** |
+| `jasmycoin` | "JASMY" | **"JasmyCoin"** |
+| `zksync` | "zkSync" | **"ZKsync"** |
+
+New current icons for USDC (blue $), DAI, GRAM, Hedera, Optimism, POL, Cosmos,
+ZKsync, FLOKI, JasmyCoin, PAX Gold and XAUT. `LOGO_V` bumped to 3 and coin logos
+now carry `?v=3` so no browser serves a stale icon.
+
+**Live prices verified against CoinGecko in the same minute** (worst deviation
+0.118%, i.e. one refresh cycle): BTC 80,793 vs 80,767 · ETH 2,378.81 vs 2,376.94 ·
+USDC 0.999727 vs 0.999723 · GRAM 1.26 vs 1.26 · HBAR 0.077488 vs 0.077461 ·
+OP 0.114125 vs 0.114033. **160/160 assets priced.**
+
+## 34. Announcement bar (admin-managed, four transitions)
+The bar already existed but was empty by default, so it never appeared.
+
+- Seeded four real announcements so it is live out of the box; every line is
+  editable and deletable in **Admin → Settings → Announcement Bar** (that tab was
+  blank until round 6 fixed it).
+- Verified end to end: posting an announcement in the dashboard puts it on the
+  site immediately, with a `1/N` counter.
+- Transitions rotate per message: **roll → fade → wipe → slide**, and anything
+  longer than the strip switches to a continuous **marquee** instead.
+- Fixed two hover bugs found while testing: parking the pointer over the bar at
+  page load froze the *entrance* animation and left the strip blank; hovering
+  during the *exit* animation could do the same. Pausing now only applies to a
+  message that is fully on screen, and only on hover-capable devices (touch
+  devices were being paused by a phantom pointer).
+- `--header-real` is now published from a `ResizeObserver` on the header so the
+  fixed mobile menu and sticky offsets follow the bar appearing/disappearing
+  instead of assuming a fixed 68px header.
+
+Verified on 8 pages × desktop and mobile: bar present with text, no horizontal
+overflow anywhere. Tests: **311 passed / 0 failed**, links 120/120.

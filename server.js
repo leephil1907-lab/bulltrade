@@ -58,7 +58,7 @@ function serveFile(res, filePath, code = 200) {
       // in the environment when the domain changes — no need to edit 20 pages.
       html = html.split('__SITE_URL__').join(SITE_URL);
       if (!html.includes('premium.css')) {
-        html = html.replace('</head>', '  <link rel="stylesheet" href="/assets/css/premium.css?v=3">\n</head>');
+        html = html.replace('</head>', '  <link rel="stylesheet" href="/assets/css/premium.css?v=4">\n</head>');
       }
       body = Buffer.from(html);
     } else if (ext === '.xml' || ext === '.webmanifest' || ext === '.txt') {
