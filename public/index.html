@@ -8,19 +8,20 @@
 <meta content="Blockchain Bullhorn" property="og:site_name"/>
 <meta content="The Blockchain Bullhorn — Elite Crypto Education, Live Markets &amp; Trading" property="og:title"/>
 <meta content="The Blockchain Bullhorn is a premier crypto education and trading platform for novice and intermediate investors. Grab the Bull by the HORNS — trade crypto, stocks and real-world assets with structure, not hype." property="og:description"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
-<meta content="https://blockchainbullhorn.onrender.com/" property="og:url"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="__SITE_URL__/" property="og:url"/>
 <meta content="summary_large_image" name="twitter:card"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" name="twitter:image"/>
 <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Blockchain Bullhorn",
-    "url": "https://blockchainbullhorn.onrender.com/",
-    "logo": "https://blockchainbullhorn.onrender.com/assets/img/brand/logo.png",
+    "url": "__SITE_URL__/",
+    "logo": "__SITE_URL__/assets/img/brand/logo.png",
     "description": "Elite crypto education, live markets, trading bots and multi-asset trading — crypto, stocks and real-world assets.",
     "sameAs": [
+      "https://www.facebook.com/profile.php?id=61595631804363",
       "https://www.tiktok.com/@blockchainbullhorn",
       "https://www.instagram.com/blockchainbullhorn",
       "https://x.com/Blockchainbhorn",
@@ -33,13 +34,24 @@
 <link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/assets/img/apple-touch-icon.png" rel="apple-touch-icon"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
-<meta content="#ffffff" name="theme-color"/>
+<meta content="#1BA94B" name="theme-color"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="Blockchain Bullhorn" name="apple-mobile-web-app-title"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="/assets/css/fonts.css" rel="stylesheet"/>
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
-<link href="/assets/css/main.css?v=20" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=24" rel="stylesheet"/>
 <style>@media (max-width: 980px){ #offerGrid { grid-template-columns: 1fr !important; } }</style>
 <script>document.documentElement.classList.add('js')</script>
-  <link rel="stylesheet" href="/assets/css/premium.css?v=2">
+  <meta name="robots" content="index, follow, max-image-preview:large"/>
+  <link rel="canonical" href="__SITE_URL__/"/>
+  <meta content="The Blockchain Bullhorn — Elite Crypto Education, Live Markets &amp; Trading" name="twitter:title"/>
+  <meta content="The Blockchain Bullhorn is a premier crypto education and trading platform for novice and intermediate investors. Grab the Bull by the HORNS — trade crypto, stocks and real-world assets with structure, not hype." name="twitter:description"/>
+  <meta content="@Blockchainbhorn" name="twitter:site"/>
+  <meta content="en_US" property="og:locale"/>
+  <meta content="1200" property="og:image:width"/>
+  <meta content="630" property="og:image:height"/>
+  <meta content="Blockchain Bullhorn — Grab the Bull by the HORNS" property="og:image:alt"/>
 </head>
 <body>
 <header class="site-header" id="site-header"></header>
@@ -294,8 +306,56 @@
 </div>
 </div>
 </section>
-<!-- ================= NEWSLETTER + CTA ================= -->
-<section class="section">
+<!-- ================= FREE LEAD MAGNET: 5-STEP CRYPTO QUICKSTART ================= -->
+<section class="section" id="quickstart">
+<div class="container">
+<div class="card lead-magnet reveal">
+  <div class="lm-copy">
+    <span class="eyebrow"><i class="fas fa-gift"></i> Free download</span>
+    <h2 style="font-size:clamp(23px,3vw,34px);line-height:1.15">The 5-Step Crypto Quickstart Checklist</h2>
+    <p class="muted mt-1" style="max-width:520px">
+      New to crypto? This is the exact checklist to get from zero to your first confident trade —
+      wallet setup, exchange choice, position sizing and the five mistakes that cost beginners the most.
+      Drop your email and it is yours, free.
+    </p>
+    <ul class="lm-points">
+      <li><i class="fas fa-circle-check"></i> 6-page, print-ready PDF checklist</li>
+      <li><i class="fas fa-circle-check"></i> Wallet &amp; exchange safety setup</li>
+      <li><i class="fas fa-circle-check"></i> The 5 beginner mistakes to avoid</li>
+      <li><i class="fas fa-circle-check"></i> Instant download — no account needed</li>
+    </ul>
+    <form id="leadForm" class="lm-form" novalidate>
+      <div class="lm-input-wrap">
+        <i class="fas fa-envelope"></i>
+        <input id="leadEmail" type="email" name="email" placeholder="you@example.com"
+               autocomplete="email" required aria-label="Email address"/>
+      </div>
+      <button class="btn btn-primary" type="submit" id="leadSubmit">
+        <i class="fas fa-download"></i> Get the free checklist
+      </button>
+    </form>
+    <p class="lm-note" id="leadMsg">No spam. Unsubscribe anytime. We never DM first.</p>
+    <div class="lm-done" id="leadDone" hidden>
+      <i class="fas fa-circle-check"></i>
+      <div>
+        <b>You're in!</b>
+        <a id="leadDownload" class="btn btn-green" href="/downloads/5-step-crypto-quickstart-checklist.pdf"
+           target="_blank" rel="noopener" download><i class="fas fa-file-arrow-down"></i> Download the checklist (PDF)</a>
+      </div>
+    </div>
+  </div>
+  <div class="lm-art">
+    <a href="/downloads/5-step-crypto-quickstart-checklist.pdf" target="_blank" rel="noopener"
+       class="lm-cover" title="Open the checklist">
+      <img src="/assets/img/brand/quickstart-cover.png" alt="The 5-Step Crypto Quickstart Checklist cover"/>
+      <span class="lm-badge"><i class="fas fa-file-pdf"></i> 6 pages</span>
+    </a>
+  </div>
+</div>
+</div>
+</section>
+<!-- ================= NEWSLETTER ================= -->
+<section class="section" style="padding-top:0">
 <div class="container">
 <div class="card reveal" style="background:linear-gradient(120deg, rgba(0,71,194,.25), rgba(63,20,12,.6));display:grid;grid-template-columns:1fr auto;gap:30px;align-items:center;padding:38px">
 <div>
@@ -312,7 +372,58 @@
 </section>
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=24"></script>
+  <script src="/assets/js/common.js?v=27"></script>
+<script>
+    // ---- free checklist lead capture ----
+    (function () {
+      const form = document.getElementById('leadForm');
+      if (!form) return;
+      const emailEl = document.getElementById('leadEmail');
+      const btn = document.getElementById('leadSubmit');
+      const msg = document.getElementById('leadMsg');
+      const done = document.getElementById('leadDone');
+      const dl = document.getElementById('leadDownload');
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        const email = (emailEl.value || '').trim();
+        msg.className = 'lm-note';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+          msg.textContent = 'Please enter a valid email address.';
+          msg.className = 'lm-note err';
+          emailEl.focus();
+          return;
+        }
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+        try {
+          const r = await BB.api('/api/leads', {
+            method: 'POST',
+            body: { email, magnet: 'quickstart', source: 'homepage-quickstart' }
+          });
+          if (r && r.ok) {
+            if (r.file) dl.href = r.file;
+            done.hidden = false;
+            msg.textContent = r.alreadySubscribed
+              ? 'You were already on the list — here is your download.'
+              : 'Sent! Check your inbox, or download it right here.';
+            msg.className = 'lm-note ok';
+            form.reset();
+          } else {
+            msg.textContent = (r && r.error) || 'Something went wrong — please try again.';
+            msg.className = 'lm-note err';
+          }
+        } catch (err) {
+          msg.textContent = 'Network error — please try again.';
+          msg.className = 'lm-note err';
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
+      });
+    })();
+  </script>
 <script>
     // hero live quotes + home market table
     const HERO_IDS = ['cg-bitcoin', 'cg-ethereum', 'cg-solana', 'cg-pax-gold'];

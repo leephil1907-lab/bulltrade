@@ -7,20 +7,29 @@
   <meta property="og:site_name" content="Blockchain Bullhorn">
   <meta property="og:title" content="Admin Console — Blockchain Bullhorn">
   <meta property="og:description" content="Elite crypto education, live markets, demo & live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns.">
-  <meta property="og:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
-  <meta property="og:url" content="https://blockchainbullhorn.onrender.com/admin">
+  <meta property="og:image" content="__SITE_URL__/assets/img/brand/og-image.jpg">
+  <meta property="og:url" content="__SITE_URL__/admin">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg">
+  <meta name="twitter:image" content="__SITE_URL__/assets/img/brand/og-image.jpg">
   <title>Admin Console — Blockchain Bullhorn</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="stylesheet" href="/assets/css/fonts.css">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
-  <link rel="stylesheet" href="/assets/css/main.css?v=20">
+  <link rel="stylesheet" href="/assets/css/main.css?v=24">
   <link rel="stylesheet" href="/assets/css/admin.css?v=7">
   <script>document.documentElement.classList.add('js')</script>
-  <link rel="stylesheet" href="/assets/css/premium.css?v=2">
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="canonical" href="__SITE_URL__/admin"/>
+  <meta content="Admin Console — Blockchain Bullhorn" name="twitter:title"/>
+  <meta content="Blockchain Bullhorn — crypto education, live markets and multi-asset trading." name="twitter:description"/>
+  <meta content="@Blockchainbhorn" name="twitter:site"/>
+  <meta content="en_US" property="og:locale"/>
+  <meta content="1200" property="og:image:width"/>
+  <meta content="630" property="og:image:height"/>
+  <meta content="Blockchain Bullhorn — Grab the Bull by the HORNS" property="og:image:alt"/>
+  <meta content="Blockchain Bullhorn — crypto education, live markets and multi-asset trading." name="description"/>
 </head>
 <body class="admin-body">
 
@@ -77,7 +86,7 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=24"></script>
+  <script src="/assets/js/common.js?v=27"></script>
   <script>
     'use strict';
     let VIEW = 'overview';
@@ -176,7 +185,7 @@
       const cards = [
         ['fa-users', 'Total Users', s.totalUsers], ['fa-user-plus', 'New (7d)', s.newUsersWeek],
         ['fa-id-card', 'KYC Pending', s.kycPending], ['fa-money-bill-transfer', 'Tx Pending', s.depositsPending + s.withdrawalsPending],
-        ['fa-layer-group', 'Open Positions', s.openPositions], ['fa-right-left', 'Total Trades', s.totalTrades],
+        ['fa-layer-group', 'Open Positions', s.openPositions], ['fa-exchange-alt', 'Total Trades', s.totalTrades],
         ['fa-chart-line', 'Volume ($)', s.totalVolume.toLocaleString()], ['fa-wallet', 'Live Equity ($)', s.liveEquity.toLocaleString()],
         ['fa-people-group', 'Community Pending', s.communityPending], ['fa-key', 'Bot Key Requests', s.leaderPending],
         ['fa-robot', 'Active Bot Allocations', s.copyAllocations], ['fa-comments', 'Unread Chats', s.unreadChats]
@@ -285,9 +294,9 @@
           ${u.banned
             ? '<button class="btn btn-green btn-sm" data-act="unban"><i class="fas fa-unlock"></i> Unsuspend</button>'
             : '<button class="btn btn-outline btn-sm" data-act="ban"><i class="fas fa-ban"></i> Suspend User</button>'}
-          <button class="btn btn-outline btn-sm" data-act="forcelogout"><i class="fas fa-right-from-bracket"></i> Force Logout</button>
+          <button class="btn btn-outline btn-sm" data-act="forcelogout"><i class="fas fa-sign-out-alt"></i> Force Logout</button>
           <button class="btn btn-outline btn-sm" data-act="reset-password"><i class="fas fa-key"></i> Send Password Reset</button>
-          <button class="btn btn-outline btn-sm" data-act="reset-demo"><i class="fas fa-rotate-left"></i> Reset Demo Wallet</button>
+          <button class="btn btn-outline btn-sm" data-act="reset-demo"><i class="fas fa-undo"></i> Reset Demo Wallet</button>
           ${u.role === 'admin'
             ? '<button class="btn btn-outline btn-sm" data-act="revoke-admin"><i class="fas fa-user-minus"></i> Remove Admin</button>'
             : '<button class="btn btn-outline btn-sm" data-act="make-admin"><i class="fas fa-user-shield"></i> Make Admin</button>'}
@@ -300,7 +309,7 @@
           ${kyc.details ? `<div class="kpi-row mb-1" style="gap:8px">
             <span class="kpi"><i class="fas fa-user"></i> ${BB.esc(kyc.details.fullName || '—')}</span>
             <span class="kpi"><i class="fas fa-hashtag"></i> #${BB.esc(kyc.details.idNumber || '—')}</span>
-            <span class="kpi"><i class="fas fa-house"></i> ${BB.esc(kyc.details.address || '—')}${kyc.details.city ? ', ' + BB.esc(kyc.details.city) : ''}${kyc.details.country ? ', ' + BB.esc(kyc.details.country) : ''}</span>
+            <span class="kpi"><i class="fas fa-home"></i> ${BB.esc(kyc.details.address || '—')}${kyc.details.city ? ', ' + BB.esc(kyc.details.city) : ''}${kyc.details.country ? ', ' + BB.esc(kyc.details.country) : ''}</span>
           </div>` : ''}
           ${kyc.status === 'pending' ? `<div style="display:flex;gap:8px"><button class="btn btn-green btn-sm" id="kycA"><i class="fas fa-check"></i> Approve KYC</button>
           <button class="btn btn-danger btn-sm" id="kycR"><i class="fas fa-xmark"></i> Reject KYC</button></div>` : ''}
@@ -642,7 +651,7 @@
           </div>
           <div class="field"><label>Demo starting balance ($)</label><input class="input num" id="setDemoBal" type="number" value="${s.demoStartBalance}"></div>
           <div class="field"><label>Support email</label><input class="input" id="setSupport" value="${BB.esc(s.supportEmail)}"></div>
-          <div class="field"><label>Site URL (used in email links)</label><input class="input" id="setSiteUrl" value="${BB.esc(s.siteUrl || 'https://blockchainbullhorn.onrender.com')}"></div>
+          <div class="field"><label>Site URL (used in email links)</label><input class="input" id="setSiteUrl" value="${BB.esc(s.siteUrl || '__SITE_URL__')}"></div>
         </div>
         <div class="admin-card"><h3><i class="fas fa-trophy" style="color:var(--gold)"></i> Weekly Demo Contest</h3>
           <div class="checkline mb-1"><input type="checkbox" id="setContestOn" ${s.contest && s.contest.enabled !== false ? 'checked' : ''}> <span>Contest enabled (visible on dashboards)</span></div>

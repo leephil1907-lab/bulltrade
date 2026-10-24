@@ -8,16 +8,16 @@
 <meta content="Blockchain Bullhorn" property="og:site_name"/>
 <meta content="Funding — Crypto Deposits &amp; Withdrawals — The Blockchain Bullhorn" property="og:title"/>
 <meta content="Elite crypto education, live markets, demo &amp; live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns." property="og:description"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
-<meta content="https://blockchainbullhorn.onrender.com/funding" property="og:url"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="__SITE_URL__/funding" property="og:url"/>
 <meta content="summary_large_image" name="twitter:card"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" name="twitter:image"/>
 <title>Funding — Crypto Deposits &amp; Withdrawals — The Blockchain Bullhorn</title>
 <link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
 <link href="/assets/css/fonts.css" rel="stylesheet"/>
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
-<link href="/assets/css/main.css?v=20" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=24" rel="stylesheet"/>
 <style>
     .fund-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; align-items: start; }
     .method { display: flex; align-items: center; gap: 12px; border: 1.5px solid var(--line); border-radius: 12px; padding: 13px 15px; cursor: pointer; transition: all .15s; margin-bottom: 10px; }
@@ -35,6 +35,16 @@
     @media (max-width: 720px) { .dep-grid { grid-template-columns: 1fr; } .fund-layout { grid-template-columns: 1fr; } }
   </style>
 <script>document.documentElement.classList.add('js')</script>
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="canonical" href="__SITE_URL__/funding"/>
+  <meta content="Funding — Crypto Deposits &amp; Withdrawals — The Blockchain Bullhorn" name="twitter:title"/>
+  <meta content="Blockchain Bullhorn — crypto education, live markets and multi-asset trading." name="twitter:description"/>
+  <meta content="@Blockchainbhorn" name="twitter:site"/>
+  <meta content="en_US" property="og:locale"/>
+  <meta content="1200" property="og:image:width"/>
+  <meta content="630" property="og:image:height"/>
+  <meta content="Blockchain Bullhorn — Grab the Bull by the HORNS" property="og:image:alt"/>
+  <meta content="Blockchain Bullhorn — crypto education, live markets and multi-asset trading." name="description"/>
 </head>
 <body>
 <header class="site-header" id="site-header"></header>
@@ -135,7 +145,7 @@
 </section>
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=24"></script>
+  <script src="/assets/js/common.js?v=27"></script>
 <script src="/assets/js/qrcode.js"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -240,7 +250,7 @@
         // tx list
         $('#txList').innerHTML = r.transactions.length ? r.transactions.map(t => `
           <div class="mini-quote" style="border-bottom:1px dashed var(--line);padding:11px 2px">
-            <i class="fas ${t.type === 'deposit' ? 'fa-arrow-down' : t.type === 'withdraw' ? 'fa-arrow-up' : t.type === 'swap' ? 'fa-right-left' : t.type === 'adjust' ? 'fa-sliders' : 'fa-flask'}" style="color:var(--gold);width:26px;text-align:center"></i>
+            <i class="fas ${t.type === 'deposit' ? 'fa-arrow-down' : t.type === 'withdraw' ? 'fa-arrow-up' : t.type === 'swap' ? 'fa-exchange-alt' : t.type === 'adjust' ? 'fa-sliders' : 'fa-flask'}" style="color:var(--gold);width:26px;text-align:center"></i>
             <div><div class="mq-name">${t.type.replace('_', ' ').toUpperCase()} · ${t.asset}</div>
             <div class="mq-sub">${BB.fmtTime(t.createdAt)}${t.adminNote ? ' · ' + BB.esc(t.adminNote) : ''}</div></div>
             <div class="mq-right"><div class="mq-price">${t.type === 'withdraw' ? '−' : '+'}${BB.fmtUSD(t.amountUsd)}</div>

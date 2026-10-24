@@ -24,6 +24,8 @@ const HubSpot = require('./lib/hubspot');
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
 const PUBLIC_DIR = path.join(__dirname, 'public');
+// Public origin used for canonical / Open Graph / JSON-LD URLs.
+const SITE_URL = (process.env.SITE_URL || 'https://bulltrade-fmtf.onrender.com').replace(/\/+$/, '');
 
 // NOTE: no top-level D.load() here — the async boot below calls D.init(),
 // which restores the GitHub backup first when running on an ephemeral host.
@@ -51,8 +53,16 @@ function serveFile(res, filePath, code = 200) {
     const ext = path.extname(filePath).toLowerCase();
     let body = buf;
     if (ext === '.html') {
-      const html = buf.toString('utf8');
-      body = Buffer.from(html.replace('</head>', '  <link rel="stylesheet" href="/assets/css/premium.css?v=3">\n</head>'));
+      let html = buf.toString('utf8');
+      // Single source of truth for absolute URLs (canonical/OG/JSON-LD). Set SITE_URL
+      // in the environment when the domain changes — no need to edit 20 pages.
+      html = html.split('__SITE_URL__').join(SITE_URL);
+      if (!html.includes('premium.css')) {
+        html = html.replace('</head>', '  <link rel="stylesheet" href="/assets/css/premium.css?v=3">\n</head>');
+      }
+      body = Buffer.from(html);
+    } else if (ext === '.xml' || ext === '.webmanifest' || ext === '.txt') {
+      body = Buffer.from(buf.toString('utf8').split('__SITE_URL__').join(SITE_URL));
     }
     const cache = ['.woff2', '.png', '.jpg', '.jpeg', '.webp', '.ico', '.svg'].includes(ext) ? 'public, max-age=86400' : 'no-cache';
     res.writeHead(code, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': cache });
@@ -720,6 +730,57 @@ function getConv(req, cookies, user, create) {
   }
   return conv;
 }
+
+// ---- Lead magnet / newsletter capture -------------------------------------
+// Public endpoint: stores the email, emails the download link when mail is
+// configured, and always returns the PDF url so the visitor gets the checklist.
+const LEAD_MAGNETS = {
+  quickstart: { title: 'The 5-Step Crypto Quickstart Checklist', file: '/downloads/5-step-crypto-quickstart-checklist.pdf' },
+  newsletter: { title: 'The Crypto Ready Report', file: '/downloads/5-step-crypto-quickstart-checklist.pdf' }
+};
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+api['POST /api/leads'] = async (req, res, body) => {
+  const email = String(body.email || '').trim().toLowerCase().slice(0, 160);
+  const magnet = LEAD_MAGNETS[String(body.magnet || 'quickstart')] ? String(body.magnet || 'quickstart') : 'quickstart';
+  if (!EMAIL_RE.test(email)) return fail(res, 400, 'Please enter a valid email address.');
+  // simple flood guard: same email + magnet may not resubmit within 10s
+  const recent = D.find('leads', l => l.email === email && l.magnet === magnet);
+  if (recent && Date.now() - recent.createdAt < 10000) {
+    return ok(res, { message: 'You are already on the list — here is your download.', file: LEAD_MAGNETS[magnet].file, title: LEAD_MAGNETS[magnet].title });
+  }
+  if (!recent) {
+    D.insert('leads', {
+      id: U.uid('ld_'), email, magnet, source: String(body.source || 'homepage').slice(0, 60),
+      createdAt: Date.now(),
+      ip: String((req.headers['x-forwarded-for'] || '').split(',')[0] || req.socket.remoteAddress || '').slice(0, 60),
+      ua: String(req.headers['user-agent'] || '').slice(0, 200)
+    });
+  }
+  const m = LEAD_MAGNETS[magnet];
+  // best-effort email with the link (never blocks the response)
+  try {
+    mailer.sendMail({
+      to: email,
+      subject: `Your ${m.title}`,
+      html: mailer.wrap(`<p>Thanks for signing up! Your free download is ready.</p>
+        <p style="margin:22px 0"><a href="${SITE_URL}${m.file}" style="background:#1BA94B;color:#fff;padding:14px 26px;border-radius:10px;text-decoration:none;font-weight:700">Download the ${m.title}</a></p>
+        <p style="color:#6f5f4e;font-size:13px">Or open it here: ${SITE_URL}${m.file}</p>`)
+    });
+  } catch (e) { /* mail is optional */ }
+  ok(res, {
+    message: 'Check your inbox — your download is ready.',
+    file: m.file, title: m.title,
+    alreadySubscribed: !!recent
+  });
+};
+
+api['GET /api/leads'] = (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const leads = D.filter('leads', () => true).sort((a, b) => b.createdAt - a.createdAt).slice(0, 500)
+    .map(l => ({ id: l.id, email: l.email, magnet: l.magnet, source: l.source, createdAt: l.createdAt }));
+  ok(res, { leads, total: D.filter('leads', () => true).length });
+};
 
 api['POST /api/chat/init'] = async (req, res, body, cookies) => {
   const user = Auth.userFromRequest(req, cookies);
@@ -1687,6 +1748,25 @@ const server = http.createServer(async (req, res) => {
       return await handler(req, res, body, cookies, url.searchParams);
     }
 
+    // ---- downloadable files (lead magnets) ----
+    if (pathname.startsWith('/downloads/')) {
+      const safe = path.normalize(pathname).replace(/^(\.\.[/\\])+/, '');
+      const fp = path.join(PUBLIC_DIR, safe);
+      if (!fp.startsWith(path.join(PUBLIC_DIR, 'downloads'))) return fail(res, 403, 'Forbidden');
+      if (fs.existsSync(fp) && fs.statSync(fp).isFile()) {
+        const buf = fs.readFileSync(fp);
+        const name = path.basename(fp);
+        res.writeHead(200, {
+          'Content-Type': 'application/pdf',
+          'Content-Length': buf.length,
+          'Content-Disposition': `inline; filename="${name}"`,
+          'Cache-Control': 'public, max-age=3600'
+        });
+        return res.end(buf);
+      }
+      return fail(res, 404, 'Not found');
+    }
+
     // ---- static assets ----
     if (pathname.startsWith('/assets/')) {
       const safe = path.normalize(pathname).replace(/^(\.\.[/\\])+/, '');
@@ -1702,7 +1782,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/manifest.webmanifest') return serveFile(res, page('manifest.webmanifest'));
     if (pathname === '/robots.txt') {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
-      return res.end('User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\nSitemap: https://blockchainbullhorn.com/sitemap.xml\n');
+      return res.end(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\nSitemap: ${SITE_URL}/sitemap.xml\n`);
     }
     if (pathname === '/sitemap.xml') return serveFile(res, page('sitemap.xml'));
 

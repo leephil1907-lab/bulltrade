@@ -8,19 +8,27 @@
 <meta content="Blockchain Bullhorn" property="og:site_name"/>
 <meta content="Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn" property="og:title"/>
 <meta content="Live market prices for 160+ assets: 60+ cryptocurrencies, 70 stocks, real-world assets (gold, silver, oil, wheat, coffee), tokenized gold and global indices — with the official TradingView chart. Real branding, real-time data." property="og:description"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
-<meta content="https://blockchainbullhorn.onrender.com/markets" property="og:url"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="__SITE_URL__/markets" property="og:url"/>
 <meta content="summary_large_image" name="twitter:card"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" name="twitter:image"/>
 <title>Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn</title>
 <meta content="Live market prices for 160+ assets: 60+ cryptocurrencies, 70 stocks, real-world assets (gold, silver, oil, wheat, coffee), tokenized gold and global indices — with the official TradingView chart. Real branding, real-time data." name="description"/>
 <link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
 <link href="/assets/css/fonts.css" rel="stylesheet"/>
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
-<link href="/assets/css/main.css?v=20" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=24" rel="stylesheet"/>
 <script>document.documentElement.classList.add('js')</script>
-  <link rel="stylesheet" href="/assets/css/premium.css?v=2">
+  <meta name="robots" content="index, follow, max-image-preview:large"/>
+  <link rel="canonical" href="__SITE_URL__/markets"/>
+  <meta content="Live Markets — Crypto, Stocks, RWA &amp; Indices — The Blockchain Bullhorn" name="twitter:title"/>
+  <meta content="Live market prices for 160+ assets: 60+ cryptocurrencies, 70 stocks, real-world assets (gold, silver, oil, wheat, coffee), tokenized gold and global indices — with the official TradingView chart. Real branding, real-time data." name="twitter:description"/>
+  <meta content="@Blockchainbhorn" name="twitter:site"/>
+  <meta content="en_US" property="og:locale"/>
+  <meta content="1200" property="og:image:width"/>
+  <meta content="630" property="og:image:height"/>
+  <meta content="Blockchain Bullhorn — Grab the Bull by the HORNS" property="og:image:alt"/>
 </head>
 <body>
 <header class="site-header" id="site-header"></header>
@@ -119,7 +127,7 @@
 </section>
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=24"></script>
+  <script src="/assets/js/common.js?v=27"></script>
 <script src="/assets/js/chart.js?v=7"></script>
 <script>
     document.addEventListener('bb:ready', () => {
@@ -237,7 +245,7 @@
           <div class="coin-chart mt-2"><div style="position:relative;height:230px"><canvas id="coinCv"></canvas></div></div>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
             <a class="btn btn-green" href="/trade?asset=${a.id}" style="flex:1;min-width:150px"><i class="fas fa-bolt"></i> Trade ${BB.esc(a.symbol)}</a>
-            <a class="btn btn-outline" href="/trade?swap=1"><i class="fas fa-right-left"></i> Swap Coins</a>
+            <a class="btn btn-outline" href="/trade?swap=1"><i class="fas fa-exchange-alt"></i> Swap Coins</a>
             <button class="btn btn-gold" id="coinStar" type="button"><i class="fas fa-star${starred ? '' : ' far'}"></i> ${starred ? 'Watchlisted' : 'Watchlist'}</button>
           </div>`);
         $('#coinStar', bd).addEventListener('click', async () => {

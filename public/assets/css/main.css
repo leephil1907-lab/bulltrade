@@ -132,7 +132,7 @@ h1, h2, h3, h4, h5, h6, .font-head { font-family: var(--font-head); line-height:
 .brand-name { font-family: var(--font-head); font-weight: 700; font-size: 19px; color: var(--ink); letter-spacing: .2px; line-height: 1.05; }
 .brand-name span { color: var(--green-deep); }
 .brand-name small { display: block; font-weight: 400; font-size: 10.5px; color: var(--ink-dim); letter-spacing: 1.6px; text-transform: uppercase; }
-.main-nav { display: flex; align-items: center; gap: 4px; flex: 1; justify-content: center; flex-wrap: wrap; }
+.main-nav { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: center; flex-wrap: nowrap; min-width: 0; }
 .main-nav a {
   font-family: var(--font-head); font-size: 14.5px; font-weight: 700;
   color: var(--ink-soft); padding: 8px 13px; border-radius: 8px; transition: all .18s;
@@ -140,6 +140,57 @@ h1, h2, h3, h4, h5, h6, .font-head { font-family: var(--font-head); line-height:
 }
 .main-nav a:hover { color: var(--ink); background: rgba(27, 169, 75, 0.09); }
 .main-nav a.active { color: var(--green-deep); background: rgba(27, 169, 75, 0.12); }
+
+/* ---------- Classic "More" dropdown ---------- */
+.nav-drop { position: relative; display: flex; align-items: center; }
+.nav-drop-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-head); font-weight: 600; font-size: 13.5px;
+  color: var(--ink-dim); padding: 9px 13px; border-radius: 9px;
+  transition: color .18s, background .18s;
+}
+.nav-drop-btn:hover, .nav-drop.open .nav-drop-btn { color: var(--ink); background: rgba(27,169,75,.09); }
+.nav-drop-btn.active { color: var(--green-deep); background: rgba(27,169,75,.12); }
+.nav-drop-btn i { font-size: 9px; transition: transform .22s ease; opacity: .7; }
+.nav-drop.open .nav-drop-btn i { transform: rotate(180deg); }
+
+.nav-drop-menu {
+  position: absolute; top: calc(100% + 10px); left: 50%; transform: translate(-50%, -6px);
+  min-width: 300px; background: #fff; border: 1px solid var(--line); border-radius: 14px;
+  padding: 8px; z-index: 90; opacity: 0; visibility: hidden; pointer-events: none;
+  box-shadow: 0 22px 60px rgba(16,24,32,.20), 0 2px 8px rgba(16,24,32,.06);
+  transition: opacity .18s ease, transform .18s ease, visibility .18s;
+}
+.nav-drop-menu::before {
+  content: ''; position: absolute; top: -6px; left: 50%; margin-left: -6px;
+  width: 12px; height: 12px; background: #fff; transform: rotate(45deg);
+  border-left: 1px solid var(--line); border-top: 1px solid var(--line); border-radius: 2px 0 0 0;
+}
+.nav-drop.open .nav-drop-menu { opacity: 1; visibility: visible; pointer-events: auto; transform: translate(-50%, 0); }
+
+.nav-drop-item {
+  display: flex; align-items: flex-start; gap: 11px; padding: 10px 11px; border-radius: 10px;
+  text-decoration: none; transition: background .16s;
+}
+.nav-drop-item:hover, .nav-drop-item:focus-visible { background: rgba(27,169,75,.08); outline: none; }
+.nav-drop-item.active { background: rgba(211,168,119,.20); }
+.ndi-icon {
+  flex: 0 0 auto; width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+  background: rgba(27,169,75,.11); color: var(--green-deep);
+}
+.nav-drop-item.active .ndi-icon { background: var(--green); color: #fff; }
+.ndi-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.ndi-text b { font-family: var(--font-head); font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.25; }
+.ndi-text small { font-size: 11.5px; color: var(--ink-dim); line-height: 1.35; }
+
+/* mobile-only extras inside the burger panel */
+.nav-mobile-extra { display: none; }
+.nav-sep {
+  font-family: var(--font-head); font-size: 10.5px; font-weight: 700; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--ink-dim); padding: 14px 16px 6px;
+}
 .header-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .user-chip { display: flex; align-items: center; gap: 10px; position: relative; }
 .avatar {
@@ -496,14 +547,27 @@ select.input option { background: #fff; color: var(--ink); }
 .tab-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
 
 /* ============ Chat widget (Smartsupp-style) ============ */
+/* Chat launcher — the site logo is the avatar, with a small chat badge so it still
+   reads as a chat button. */
 .chat-launcher {
   position: fixed; bottom: 22px; right: 22px; z-index: 7500;
-  width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
-  background: linear-gradient(135deg, #0053e2, #2E91FC); color: #fff; font-size: 22px;
-  box-shadow: 0 12px 34px rgba(0, 83, 226, 0.4); transition: transform .2s;
+  width: 62px; height: 62px; border-radius: 50%; border: none; cursor: pointer;
+  background: #fff; padding: 0; overflow: visible;
+  box-shadow: 0 12px 34px rgba(16,24,32,.28), 0 0 0 3px rgba(255,255,255,.9);
+  transition: transform .2s, box-shadow .2s;
   display: flex; align-items: center; justify-content: center;
 }
-.chat-launcher:hover { transform: scale(1.09); }
+.chat-launcher:hover { transform: scale(1.07); box-shadow: 0 16px 40px rgba(16,24,32,.34), 0 0 0 3px #fff; }
+.chat-launcher .chat-launcher-logo {
+  width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;
+}
+.chat-launcher .chat-launcher-badge {
+  position: absolute; right: -2px; bottom: -2px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--green); color: #fff; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2.5px solid #fff;
+}
 .chat-launcher .chat-unread {
   position: absolute; top: -3px; right: -3px; min-width: 21px; height: 21px; border-radius: 12px;
   background: var(--red); color: #fff; font-size: 11.5px; font-family: var(--font-head); font-weight: 700;
@@ -562,6 +626,8 @@ select.input option { background: #fff; color: var(--ink); }
 /* ============ Responsive ============ */
 @media (max-width: 1080px) {
   .main-nav { display: none; }
+  .nav-drop { display: none; }
+  .nav-mobile-extra { display: block; }
   /* brand left · actions pushed right · burger pinned to the far right edge */
   .nav-toggle { display: flex; align-items: center; justify-content: center; order: 3; margin-left: 0; }
   .header-actions { order: 2; margin-left: auto; }
@@ -573,7 +639,9 @@ select.input option { background: #fff; color: var(--ink); }
     border-bottom: 1px solid var(--line); z-index: 49; max-height: calc(100vh - 106px); overflow-y: auto;
     box-shadow: 0 18px 40px rgba(63,20,12,.12);
   }
-  .main-nav.mobile-open a { padding: 13px 16px; font-size: 16px; color: var(--ink); border-bottom: 1px solid var(--line-soft); }
+  .main-nav.mobile-open > a { display: none; }         /* duplicated by .nav-mobile-extra */
+  .nav-mobile-extra a { padding: 13px 16px; display: block; font-size: 16px; color: var(--ink); border-bottom: 1px solid var(--line-soft); }
+  .nav-mobile-extra a.active { color: var(--green-deep); font-weight: 700; background: rgba(27,169,75,.08); }
   .hero-grid { grid-template-columns: 1fr; }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
@@ -646,10 +714,51 @@ html.js .reveal.visible { opacity: 1; transform: none; }
 .reveal-d1 { --rd: .07s; } .reveal-d2 { --rd: .14s; }
 .reveal-d3 { --rd: .21s; } .reveal-d4 { --rd: .28s; }
 
-/* ---- page transitions ---- */
-html.js body { animation: pageIn .42s ease both; }
-@keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
-html.js body.page-exit { animation: none; opacity: 0; transition: opacity .15s ease; }
+/* ---- page transitions ----
+   Layer 1: the browser's native cross-document View Transitions (Chrome 126+,
+   Safari 18+) give a true crossfade between routes with no white flash and no
+   JS. Layer 2: the JS fade below is the fallback for everything else.
+   Layer 3: everything is disabled for prefers-reduced-motion. */
+@view-transition { navigation: auto; }
+
+/* the header + ticker are persistent chrome — keep them rock-steady so they
+   don't flash/fade on every route change */
+.site-header { view-transition-name: bb-header; }
+.ticker-bar  { view-transition-name: bb-ticker; }
+::view-transition-old(bb-header),
+::view-transition-new(bb-header),
+::view-transition-old(bb-ticker),
+::view-transition-new(bb-ticker) { animation: none; mix-blend-mode: normal; }
+
+::view-transition-old(root) { animation: bbVtOut .22s ease both; }
+::view-transition-new(root) { animation: bbVtIn .34s cubic-bezier(.22,.8,.28,1) both; }
+@keyframes bbVtOut { to { opacity: 0; } }
+@keyframes bbVtIn  { from { opacity: 0; transform: translateY(10px) scale(.995); } to { opacity: 1; transform: none; } }
+
+/* JS fallback (all browsers) */
+html.js body { animation: pageIn .44s cubic-bezier(.22,.8,.28,1) both; }
+@keyframes pageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+html.js body.page-exit { animation: none; opacity: 0; transform: translateY(-4px);
+  transition: opacity .18s ease, transform .18s ease; }
+
+/* auto-staggered reveal for grids/cards so lists animate in sequence */
+html.js .stagger > * { opacity: 0; transform: translateY(16px);
+  transition: opacity .55s ease, transform .55s cubic-bezier(.2,.75,.3,1); }
+html.js .stagger.visible > * { opacity: 1; transform: none; }
+html.js .stagger.visible > *:nth-child(1) { transition-delay: .02s; }
+html.js .stagger.visible > *:nth-child(2) { transition-delay: .07s; }
+html.js .stagger.visible > *:nth-child(3) { transition-delay: .12s; }
+html.js .stagger.visible > *:nth-child(4) { transition-delay: .17s; }
+html.js .stagger.visible > *:nth-child(5) { transition-delay: .22s; }
+html.js .stagger.visible > *:nth-child(6) { transition-delay: .27s; }
+html.js .stagger.visible > *:nth-child(n+7) { transition-delay: .30s; }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  html.js body, html.js body.page-exit { animation: none !important; opacity: 1 !important; transform: none !important; transition: none !important; }
+  html.js .stagger > * { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
 
 #bbBar { position: fixed; top: 0; left: 0; height: 3px; width: 0; z-index: 9999;
   background: linear-gradient(90deg, var(--green), #2E91FC); border-radius: 0 2px 2px 0;
@@ -812,4 +921,77 @@ html { scroll-behavior: smooth; }
 
 @media (max-width: 720px) {
   .globe-menu { right: -6px; width: min(280px, 92vw); }
+}
+
+
+/* ============ Lead magnet (free checklist) ============ */
+.lead-magnet {
+  display: grid; grid-template-columns: 1fr 300px; gap: 40px; align-items: center;
+  padding: 40px; background: linear-gradient(125deg,#fffdf9 0%,#f6f0e4 58%,#eef7f0 100%);
+  border: 1px solid rgba(16,24,32,.07); border-radius: 20px; position: relative; overflow: hidden;
+}
+.lead-magnet::before {
+  content: ''; position: absolute; right: -70px; top: -70px; width: 260px; height: 260px;
+  border-radius: 50%; background: radial-gradient(circle,rgba(27,169,75,.14),transparent 70%);
+  pointer-events: none;
+}
+.lm-copy { min-width: 0; }
+.lm-copy h2 { margin-bottom: 6px; }
+.lm-points { list-style: none; padding: 0; margin: 18px 0 22px; display: grid; gap: 9px; }
+.lm-points li { display: flex; align-items: flex-start; gap: 9px; font-size: 14px; color: #4a3a2e; }
+.lm-points i { color: var(--green); font-size: 13px; margin-top: 3px; flex: 0 0 auto; }
+.lm-form { display: flex; gap: 10px; flex-wrap: wrap; max-width: 560px; }
+.lm-input-wrap {
+  position: relative; flex: 1 1 240px; min-width: 0; display: flex; align-items: center;
+}
+.lm-input-wrap i {
+  position: absolute; left: 15px; color: var(--ink-dim); font-size: 13px; pointer-events: none;
+}
+.lm-input-wrap input {
+  width: 100%; height: 50px; padding: 0 16px 0 40px; border-radius: 11px;
+  border: 1.5px solid var(--line); background: #fff; font-size: 14.5px; color: var(--ink);
+  font-family: var(--font-body); transition: border-color .18s, box-shadow .18s;
+}
+.lm-input-wrap input:focus {
+  outline: none; border-color: var(--green); box-shadow: 0 0 0 4px rgba(27,169,75,.13);
+}
+.lm-form .btn { height: 50px; padding: 0 24px; white-space: nowrap; flex: 0 0 auto; }
+.lm-note { font-size: 12px; color: var(--ink-dim); margin-top: 11px; }
+.lm-note.err { color: var(--red); font-weight: 600; }
+.lm-note.ok { color: var(--green-deep); font-weight: 600; }
+.lm-done {
+  display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 15px 18px;
+  background: rgba(27,169,75,.10); border: 1px solid rgba(27,169,75,.32); border-radius: 12px;
+}
+/* the [hidden] attribute must win over display:flex */
+.lm-done[hidden] { display: none !important; }
+.lm-done > i { color: var(--green); font-size: 22px; flex: 0 0 auto; }
+.lm-done b { display: block; font-family: var(--font-head); font-size: 14.5px; margin-bottom: 7px; }
+.lm-done .btn { height: 42px; padding: 0 18px; font-size: 13.5px; }
+.lm-art { display: flex; justify-content: center; }
+.lm-cover {
+  position: relative; display: block; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 24px 55px rgba(16,24,32,.24); transform: rotate(-2deg);
+  transition: transform .35s cubic-bezier(.2,.75,.3,1), box-shadow .35s;
+  max-width: 260px; width: 100%;
+}
+.lm-cover:hover { transform: rotate(0) translateY(-6px); box-shadow: 0 32px 70px rgba(16,24,32,.30); }
+.lm-cover img { width: 100%; height: auto; display: block; }
+.lm-badge {
+  position: absolute; right: 10px; top: 10px; background: rgba(16,24,32,.86); color: #fff;
+  font-family: var(--font-head); font-size: 11px; font-weight: 700; letter-spacing: .4px;
+  padding: 5px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px;
+}
+.lm-badge i { color: #ff8a8a; }
+
+@media (max-width: 900px) {
+  .lead-magnet { grid-template-columns: 1fr; gap: 28px; padding: 30px 22px; }
+  .lm-art { order: -1; }
+  .lm-cover { max-width: 210px; transform: none; }
+  .lm-form .btn { width: 100%; }
+  .lm-input-wrap { flex: 1 1 100%; }
+}
+@media (max-width: 420px) {
+  .lead-magnet { padding: 26px 16px; }
+  .lm-done { flex-direction: column; align-items: flex-start; }
 }

@@ -312,3 +312,102 @@ public/*.html                  cache bust: common.js v24, main.css v20
 server.js                      cache bust: premium.css v3
 BUILD_REPORT.md                this report
 ```
+
+---
+
+# Round 5 — Reference match, motion, dropdown, chat avatar, lead magnet, metadata
+
+Verified with headless Chromium at 1440/1280/1100/980/820/430/390 px across **18 pages**
+(648 page-loads), signed in and out.
+
+## 18. Nav wrapped to two lines at every desktop width
+The "Go to reference" layout had 8 top-level links + 2 pickers + 2 buttons — at 1440px
+`Contact` wrapped onto a second line, pushing the header to 2 rows.
+
+**Fix:** primary links stay in the bar (Markets, Trading, Trading Bots) and the rest moved
+into a **classic "More" dropdown** — icon + label + one-line description per item, caret
+that rotates, hover + click + Esc + arrow-key support, click-outside to close, and a
+`(hover: hover)` guard so a mouse click doesn't immediately close the hover-opened menu.
+The nav now stays on one line from 1080px up. Below 1080px the burger panel lists every
+link under a "More" separator heading.
+
+## 19. Reveal animations could leave whole sections invisible  ← the big one
+`.reveal` starts at `opacity:0` and only becomes visible when an IntersectionObserver
+fires. Anything the observer missed (fast scroll, anchor jump, back-navigation, print,
+slow script) stayed **permanently blank**. A full sweep found **148 such issues**.
+
+**Fix:** `initReveal()` is now fail-safe — it reveals anything already in the viewport
+immediately, re-checks on scroll/resize, force-reveals everything after 2.5s, and reveals
+before printing. Re-audit: **148 → 13**, and all 13 remaining flags are false positives
+(horizontally-scrollable data tables inside `.table-wrap`, which scroll correctly and do
+not overflow the page).
+
+## 20. Smooth motion between routes
+Added the browser-native **cross-document View Transitions API** (`@view-transition`), with
+the existing JS fade as the fallback and full `prefers-reduced-motion` opt-out. The header
+and ticker are given their own `view-transition-name` so persistent chrome stays steady
+during the crossfade. Added an auto-staggered `.stagger` reveal for card grids.
+
+## 21. Blank icons across the site
+The project bundles **Font Awesome 5**, but 9 icons used **FA6** names and silently
+rendered as empty boxes (`fa-right-left` ×6, `fa-arrow-trend-up` ×2, `fa-id-card-clip` ×2,
+`fa-mobile-screen-button` ×2, `fa-bag-shopping`, `fa-chart-simple`, `fa-house`,
+`fa-right-from-bracket`, `fa-rotate-left`).
+
+**Fix:** every icon on the site was audited against the actual glyph table in the bundled
+`.woff2` files and mapped to its FA5 equivalent. Re-audit: **0 blank icons**.
+
+## 22. Raw HTML entities visible as text
+`Markets &amp; Support` displayed literally, because i18n strings are authored as HTML but
+assigned with `textContent`, which does not decode entities. Added entity decoding in
+`BB.t()`.
+
+## 23. Chat launcher avatar → site logo
+The live-chat launcher was a generic blue comment bubble. It now uses the **Blockchain
+Bullhorn logo as the avatar**, in a white ring with a small green chat badge so it still
+reads as a chat button. The chat window header avatar uses the logo too.
+
+## 24. Free checklist email capture (Google Drive PDF)
+Downloaded **"The 5-Step Crypto Quickstart Checklist"** (6-page, 2.6 MB, verified with a
+PDF parser) and served it locally — no Drive dependency, no expiring link.
+
+- New `/api/leads` endpoint (+ admin `GET /api/leads`), `leads` collection, email
+  validation, duplicate-flood guard, and a best-effort "here is your download" email.
+- New `#quickstart` section on the homepage: cover preview (rendered from page 1 of the
+  real PDF), benefit list, email field, inline success state with a direct download.
+- Secure `/downloads/` route with path-traversal protection (verified `403/404`).
+- Verified end to end in the browser: hidden by default → submit → success + working link.
+
+## 25. Metadata audit
+- **69 URLs pointed at the wrong host** (`blockchainbullhorn.onrender.com`). Replaced with a
+  `__SITE_URL__` token substituted at render time from `SITE_URL` (default
+  `https://bulltrade-fmtf.onrender.com`) — change the domain in one env var, not 20 pages.
+- **No canonical tags** → added per-page canonical URLs.
+- 15 pages had **no meta description** → added for all.
+- robots.txt + sitemap.xml pointed at the old domain → now use `SITE_URL`.
+- Private pages (admin/dashboard/kyc/funding/auth) now send `noindex, nofollow`.
+- `theme-color` was white → brand green `#1BA94B`, plus iOS standalone meta.
+- Added `twitter:title/description/site`, `og:locale`, `og:image:width/height/alt`.
+- og:image was **1000×562** → regenerated at **1200×630** (the size social platforms want).
+- Added the Facebook page to the Organization `sameAs` list.
+- Removed the duplicate `premium.css` link (server already injects it, now guarded).
+
+## 26. Test reliability
+`tests/run.js` now pre-warms the market feed (waits up to 90s for BTC price + sparkline)
+before running the suites, so a CoinGecko 429 at boot can't fail a run. Two consecutive
+runs: **311/311 e2e, 120/120 links**.
+
+## 27. Files changed in round 5
+```
+server.js                        SITE_URL templating, /downloads route, /api/leads, robots fix
+lib/db.js                        leads collection
+public/assets/js/common.js       More dropdown, i18n entity decode, chat logo avatar,
+                                 fail-safe reveal, View Transitions, FA5 icon names
+public/assets/css/main.css       dropdown, lead magnet, view transitions, stagger
+public/index.html                #quickstart lead-magnet section + form handler
+public/assets/img/brand/          quickstart-cover.png, og-image.jpg (1200x630)
+public/downloads/                 5-step-crypto-quickstart-checklist.pdf (real PDF)
+public/*.html                    canonical, robots, OG/Twitter, theme-color, icons, cache bumps
+tests/run.js                     market feed pre-warm
+BUILD_REPORT.md                  this report
+```

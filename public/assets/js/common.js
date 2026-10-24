@@ -40,7 +40,17 @@ window.BB = {
     return BB.sym() + (Number(n) * BB.fx.rate).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
   },
   sym() { return BB.cur === 'USD' ? '$' : ((CURS[BB.cur] && CURS[BB.cur].s) || '$'); },
-  t(k) { return (I18N[BB.lang] && I18N[BB.lang][k]) || I18N.en[k] || k; },
+  // i18n strings are authored as HTML so they can be used in both text and markup
+  // contexts; decode the common entities before assigning them to textContent.
+  decodeEntities(v) {
+    return String(v == null ? '' : v)
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"').replace(/&#0*39;|&apos;/g, "'").replace(/&nbsp;/g, '\u00A0');
+  },
+  t(k) {
+    const v = (I18N[BB.lang] && I18N[BB.lang][k]) || I18N.en[k] || k;
+    return BB.decodeEntities(v);
+  },
   setLang(l) {
     // language only — never touches the currency (fully independent controls)
     BB.lang = l; localStorage.setItem('bbLang', l);
@@ -257,8 +267,13 @@ const Motion = {
       if (url.pathname === location.pathname && url.search === location.search && url.hash) return;
       e.preventDefault();
       this.start();
+      // Native cross-document view transitions handle the animation themselves —
+      // let the browser navigate normally and it will crossfade the two pages.
+      if (document.startViewTransition && !this.reduced) {
+        try { document.startViewTransition(() => { location.href = a.href; }); return; } catch (err) { /* fall through */ }
+      }
       document.body.classList.add('page-exit');
-      setTimeout(() => { location.href = a.href; }, 140);
+      setTimeout(() => { location.href = a.href; }, 170);
     });
     // bfcache restore (browser Back button)
     addEventListener('pageshow', ev => {
@@ -535,17 +550,39 @@ const I18N = {
   }
 };
 
-const NAV_LINKS = [
-  ['/markets', 'markets'], ['/trade', 'trading'], ['/trading-bots', 'bots'],
-  ['/community', 'community'], ['/store', 'products'], ['/mentorship', 'mentorship'],
-  ['/faq', 'faq'], ['/contact', 'contact']
+// Primary links stay in the bar; secondary links live in a classic "More" dropdown.
+// Splitting them keeps the header on ONE line at every desktop width (it used to wrap).
+const NAV_PRIMARY = [
+  ['/markets', 'markets', 'fa-chart-bar'],
+  ['/trade', 'trading', 'fa-chart-line'],
+  ['/trading-bots', 'bots', 'fa-robot']
+];
+const NAV_MORE = [
+  ['/community', 'community', 'fa-users', 'Members only · apply to join'],
+  ['/store', 'products', 'fa-shopping-bag', 'Courses, guides & bundles'],
+  ['/mentorship', 'mentorship', 'fa-graduation-cap', 'Elite 1-on-1 coaching'],
+  ['/faq', 'faq', 'fa-circle-question', 'Answers to common questions'],
+  ['/contact', 'contact', 'fa-headset', 'Talk to the team']
 ];
 
 function renderHeader() {
   const el = $('#site-header'); if (!el) return;
   const here = location.pathname;
-  const links = NAV_LINKS.map(([href, key]) =>
+  const primary = NAV_PRIMARY.map(([href, key]) =>
     `<a href="${href}" class="${here === href ? 'active' : ''}">${BB.t('nav.' + key)}</a>`).join('');
+  const moreActive = NAV_MORE.some(([href]) => here === href);
+  const moreItems = NAV_MORE.map(([href, key, icon, desc]) => `
+      <a class="nav-drop-item${here === href ? ' active' : ''}" href="${href}" role="menuitem">
+        <span class="ndi-icon"><i class="fas ${icon}"></i></span>
+        <span class="ndi-text"><b>${BB.t('nav.' + key)}</b><small>${desc}</small></span>
+      </a>`).join('');
+
+  // mobile panel: every link, grouped with headings
+  const mobileLinks =
+    NAV_PRIMARY.map(([href, key]) => `<a href="${href}" class="${here === href ? 'active' : ''}">${BB.t('nav.' + key)}</a>`).join('')
+    + `<div class="nav-sep">More</div>`
+    + NAV_MORE.map(([href, key]) => `<a href="${href}" class="${here === href ? 'active' : ''}">${BB.t('nav.' + key)}</a>`).join('');
+
   el.innerHTML = `
   <div class="announce" id="announce"></div>
   <div class="container-wide header-inner">
@@ -553,12 +590,61 @@ function renderHeader() {
       <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn logo">
       <div class="brand-name">Blockchain <span>Bullhorn</span><small data-i18n="hdr.tagline">Grab the Bull by the Horns</small></div>
     </a>
-    <button class="nav-toggle" id="navToggle" aria-label="Menu"><i class="fas fa-bars"></i></button>
-    <nav class="main-nav" id="mainNav">${links}</nav>
+    <nav class="main-nav" id="mainNav">
+      ${primary}
+      <div class="nav-drop" id="navDrop">
+        <button class="nav-drop-btn${moreActive ? ' active' : ''}" id="navDropBtn"
+                aria-haspopup="true" aria-expanded="false" aria-controls="navDropMenu">
+          More <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="nav-drop-menu" id="navDropMenu" role="menu">${moreItems}</div>
+      </div>
+    </nav>
     <div class="header-actions" id="headerActions"></div>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"
+            aria-controls="mainNav"><i class="fas fa-bars"></i></button>
   </div>`;
 
-  $('#navToggle').addEventListener('click', () => $('#mainNav').classList.toggle('mobile-open'));
+  // mobile menu panel holds the full link list
+  const mnav = $('#mainNav');
+  mnav.insertAdjacentHTML('beforeend', `<div class="nav-mobile-extra">${mobileLinks}</div>`);
+
+  const toggleBtn = $('#navToggle');
+  toggleBtn.addEventListener('click', () => {
+    const open = mnav.classList.toggle('mobile-open');
+    toggleBtn.setAttribute('aria-expanded', String(open));
+    toggleBtn.innerHTML = open ? '<i class="fas fa-xmark"></i>' : '<i class="fas fa-bars"></i>';
+  });
+
+  // classic dropdown behaviour: click to open, click-outside/Esc to close, arrow keys
+  const drop = $('#navDrop'), dbtn = $('#navDropBtn'), dmenu = $('#navDropMenu');
+  if (dbtn) {
+    const open = () => { drop.classList.add('open'); dbtn.setAttribute('aria-expanded', 'true'); };
+    const close = () => { drop.classList.remove('open'); dbtn.setAttribute('aria-expanded', 'false'); };
+    // The menu opens on hover, so the button must never *toggle* it — a real mouse
+    // click always follows a hover and would otherwise close it instantly.
+    // Click = open + keep open; closing is via outside click, Esc, or mouseleave.
+    dbtn.addEventListener('click', e => {
+      e.stopPropagation();
+      open();
+    });
+    const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (canHover) {
+      drop.addEventListener('mouseenter', open);
+      drop.addEventListener('mouseleave', close);
+    }
+    document.addEventListener('click', close);
+    drop.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { close(); dbtn.focus(); }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault(); drop.classList.add('open');
+        const items = [...dmenu.querySelectorAll('a')];
+        const i = items.indexOf(document.activeElement);
+        (items[i + 1] || items[0]).focus();
+      }
+    });
+  }
+
   renderHeaderActions();
 }
 
@@ -599,7 +685,7 @@ function renderHeaderActions() {
           <a href="/kyc"><i class="fas fa-id-card"></i> ${BB.t('hdr.kyc')}</a>
           <a href="/trade"><i class="fas fa-chart-line"></i> ${BB.t('hdr.tradenow')}</a>
           <a href="#" id="menuNotify"><i class="fas fa-bell"></i> ${BB.t('hdr.notify')}</a>
-          <a href="#" id="menuInstall"><i class="fas fa-mobile-screen-button"></i> ${BB.t('ftr.install')}</a>
+          <a href="#" id="menuInstall"><i class="fas fa-mobile-alt"></i> ${BB.t('ftr.install')}</a>
           <button id="logoutBtn"><i class="fas fa-arrow-right-from-bracket"></i> ${BB.t('hdr.logout')}</button>
         </div>
       </div>`;
@@ -666,7 +752,7 @@ function renderFooter() {
           <a href="/community"><span data-i18n="ftr.community">Community</span> <i class="fas fa-lock" style="font-size:9px;color:var(--gold)"></i></a>
           <a href="/signup" data-i18n="ftr.createAccount">Create Account</a>
           <a href="/login" data-i18n="ftr.login">Log In</a>
-          <a href="#" id="footInstall"><i class="fas fa-mobile-screen-button"></i> <span data-i18n="ftr.install">Install App</span></a>
+          <a href="#" id="footInstall"><i class="fas fa-mobile-alt"></i> <span data-i18n="ftr.install">Install App</span></a>
           <a href="#" id="footNotify"><i class="fas fa-bell"></i> <span data-i18n="ftr.notify">Notifications</span></a>
         </div>
       </div>
@@ -740,8 +826,25 @@ async function loadTicker() {
 function initReveal() {
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
-  }, { threshold: 0.12 });
-  $$('.reveal').forEach(el => io.observe(el));
+  }, { threshold: 0.08, rootMargin: '0px 0px -5% 0px' });
+
+  const targets = $$('.reveal, .stagger');
+  targets.forEach(el => io.observe(el));
+
+  // FAIL-SAFE: nothing may ever stay invisible. Content that is already on screen
+  // is revealed immediately, and anything still hidden after a short grace period
+  // is force-revealed — so a missed observer, a slow script, an anchor jump or a
+  // print all still show the content instead of a blank section.
+  const reveal = el => el.classList.add('visible');
+  const revealInView = () => targets.forEach(el => {
+    const r = el.getBoundingClientRect();
+    if (r.top < innerHeight && r.bottom > 0) reveal(el);
+  });
+  revealInView();
+  addEventListener('scroll', revealInView, { passive: true });
+  addEventListener('resize', revealInView, { passive: true });
+  setTimeout(() => targets.forEach(reveal), 2500);      // last-resort timer
+  addEventListener('beforeprint', () => targets.forEach(reveal));
 }
 
 // ---------- animated counters ----------
@@ -824,13 +927,16 @@ const Chat = {
     if (Chat.builtIn) return; Chat.builtIn = true;
     const btn = document.createElement('button');
     btn.className = 'chat-launcher';
-    btn.innerHTML = '<i class="fas fa-comment-dots"></i><span class="chat-unread" id="chatUnread">0</span>';
+    btn.innerHTML = '<img class="chat-launcher-logo" src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn">'
+      + '<span class="chat-launcher-badge"><i class="fas fa-comment-dots"></i></span>'
+      + '<span class="chat-unread" id="chatUnread">0</span>';
+    btn.setAttribute('aria-label', 'Chat with Blockchain Bullhorn support');
     btn.title = 'Chat with us';
     const win = document.createElement('div');
     win.className = 'chat-window';
     win.innerHTML = `
       <div class="chat-head">
-        <img src="/assets/img/chat-avatar.png" alt="Blockchain Bullhorn Support">
+        <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn Support">
         <div><b>Blockchain Bullhorn</b>
           <small><span class="live-dot" style="background:#7CFC9A"></span>${BB.settings.chatOnline ? 'Support online — replies in minutes' : 'We reply as soon as possible'}</small>
         </div>

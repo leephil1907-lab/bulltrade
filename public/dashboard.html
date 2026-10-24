@@ -8,16 +8,16 @@
 <meta content="Blockchain Bullhorn" property="og:site_name"/>
 <meta content="Dashboard — The Blockchain Bullhorn" property="og:title"/>
 <meta content="Elite crypto education, live markets, demo &amp; live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns." property="og:description"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
-<meta content="https://blockchainbullhorn.onrender.com/dashboard" property="og:url"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="__SITE_URL__/dashboard" property="og:url"/>
 <meta content="summary_large_image" name="twitter:card"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" name="twitter:image"/>
 <title>Dashboard — The Blockchain Bullhorn</title>
 <link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
 <link href="/assets/css/fonts.css" rel="stylesheet"/>
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
-<link href="/assets/css/main.css?v=20" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=24" rel="stylesheet"/>
 <style>
     .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .bal-card { position: relative; overflow: hidden; }
@@ -44,7 +44,16 @@
     @media (max-width: 640px) { .dash-grid { grid-template-columns: 1fr; } .qa-row { grid-template-columns: 1fr 1fr; } }
   </style>
 <script>document.documentElement.classList.add('js')</script>
-  <link rel="stylesheet" href="/assets/css/premium.css?v=2">
+  <meta name="robots" content="noindex, nofollow"/>
+  <link rel="canonical" href="__SITE_URL__/dashboard"/>
+  <meta content="Dashboard — The Blockchain Bullhorn" name="twitter:title"/>
+  <meta content="Blockchain Bullhorn — crypto education, live markets and multi-asset trading." name="twitter:description"/>
+  <meta content="@Blockchainbhorn" name="twitter:site"/>
+  <meta content="en_US" property="og:locale"/>
+  <meta content="1200" property="og:image:width"/>
+  <meta content="630" property="og:image:height"/>
+  <meta content="Blockchain Bullhorn — Grab the Bull by the HORNS" property="og:image:alt"/>
+  <meta content="Blockchain Bullhorn — crypto education, live markets and multi-asset trading." name="description"/>
 </head>
 <body>
 <header class="site-header" id="site-header"></header>
@@ -76,7 +85,7 @@
 <a class="qa" href="/funding"><i class="fas fa-arrow-down"></i><span data-i18n="dash.s4">Deposit Crypto</span></a>
 <a class="qa" href="/funding"><i class="fas fa-arrow-up"></i><span data-i18n="dash.s5">Withdraw</span></a>
 <a class="qa" href="/kyc"><i class="fas fa-id-card"></i><span data-i18n="dash.s6">Verify Identity</span></a>
-<a class="qa" href="/trade?swap=1"><i class="fas fa-right-left"></i><span data-i18n="trd.s11">Swap Coins</span></a>
+<a class="qa" href="/trade?swap=1"><i class="fas fa-exchange-alt"></i><span data-i18n="trd.s11">Swap Coins</span></a>
 <a class="qa" href="/trading-bots"><i class="fas fa-robot"></i><span data-i18n="nav.bots">Trading Bots</span></a>
 <a class="qa" href="/community"><i class="fas fa-graduation-cap"></i><span data-i18n="dash.s7">Academy</span></a>
 <a class="qa" href="/markets"><i class="fas fa-chart-column"></i><span data-i18n="nav.markets">Markets</span></a>
@@ -235,7 +244,7 @@
 </section>
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=24"></script>
+  <script src="/assets/js/common.js?v=27"></script>
 <script src="/assets/js/qrcode.js"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -296,9 +305,9 @@
         const live = meR.live, demo = meR.demo;
         const cards = [
           { label: BB.t('dash.liveEq'), icon: 'fa-bolt', value: live.equity, sub: `${BB.fmtUSD(live.free)} free · ${BB.fmtUSD(live.marginUsed)} margin · ${BB.fmtUSD(live.spot || 0)} coins · ${BB.fmtUSD(live.inCopy || 0)} copying`, cls: 'var(--green-bright)' },
-          { label: 'Live Unrealized P/L', icon: 'fa-arrow-trend-up', value: live.unrealized, sub: 'across open live positions', cls: live.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' },
+          { label: 'Live Unrealized P/L', icon: 'fa-arrow-up', value: live.unrealized, sub: 'across open live positions', cls: live.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' },
           { label: BB.t('dash.demoEq'), icon: 'fa-flask', value: demo.equity, sub: `${BB.fmtUSD(demo.free)} free · ${BB.fmtUSD(demo.marginUsed)} margin · ${BB.fmtUSD(demo.spot || 0)} coins · ${BB.fmtUSD(demo.inCopy || 0)} copying`, cls: 'var(--sky)' },
-          { label: 'Demo Unrealized P/L', icon: 'fa-arrow-trend-up', value: demo.unrealized, sub: 'practice account', cls: demo.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' }
+          { label: 'Demo Unrealized P/L', icon: 'fa-arrow-up', value: demo.unrealized, sub: 'practice account', cls: demo.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' }
         ];
         const adj = (live.manualPnl || 0) + (demo.manualPnl || 0);
         if (Math.abs(adj) > 0.004) cards.push({ label: BB.t('dash.adj'), icon: 'fa-sliders', value: adj, sub: `live ${BB.fmtUSD(live.manualPnl || 0)} · demo ${BB.fmtUSD(demo.manualPnl || 0)}`, cls: adj >= 0 ? 'var(--gold-deep)' : 'var(--red)' });

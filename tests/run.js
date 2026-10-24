@@ -95,6 +95,25 @@ function runSuite(script, env) {
     process.exit(1);
   }
 
+  // Pre-warm the live market feed. A freshly booted server has no market cache and
+  // CoinGecko rate-limits shared IPs (429), so the first snapshot can arrive via the
+  // Yahoo fallback with missing sparklines. Waiting here keeps the suites from
+  // flaking on feed timing rather than on real regressions.
+  const deadline = Date.now() + 90000;
+  let warmed = false;
+  while (Date.now() < deadline) {
+    try {
+      const r = await fetch(base + '/api/markets', { signal: AbortSignal.timeout(8000) });
+      const j = await r.json();
+      const assets = j.assets || [];
+      const priced = assets.filter(a => a.price != null).length;
+      const btc = assets.find(a => a.symbol === 'BTC');
+      if (priced >= 55 && btc && btc.price != null && (btc.spark || []).length > 0) { warmed = true; break; }
+    } catch (e) { /* keep waiting */ }
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  console.log(warmed ? '[test] market feed warm\n' : '[test] market feed still cold after 90s — running anyway\n');
+
   const env = { BASE_URL: base, ADMIN_PASSWORD: adminPassword };
 
   let failed = 0;

@@ -8,17 +8,17 @@
 <meta content="Blockchain Bullhorn" property="og:site_name"/>
 <meta content="Trading Terminal — The Blockchain Bullhorn" property="og:title"/>
 <meta content="Trade crypto, stocks, indices and real-world assets with live prices. Demo and live modes, leverage, TP/SL and real-time P/L." property="og:description"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
-<meta content="https://blockchainbullhorn.onrender.com/trade" property="og:url"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="__SITE_URL__/trade" property="og:url"/>
 <meta content="summary_large_image" name="twitter:card"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" name="twitter:image"/>
 <title>Trading Terminal — The Blockchain Bullhorn</title>
 <meta content="Trade crypto, stocks, indices and real-world assets with live prices. Demo and live modes, leverage, TP/SL and real-time P/L." name="description"/>
 <link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
 <link href="/assets/css/fonts.css" rel="stylesheet"/>
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
-<link href="/assets/css/main.css?v=20" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=24" rel="stylesheet"/>
 <style>
     .trade-layout { display: grid; grid-template-columns: 250px 1fr 320px; gap: 16px; align-items: start; }
     .asset-list { max-height: 560px; overflow-y: auto; }
@@ -68,7 +68,15 @@
     @media (max-width: 1200px) { .trade-layout { grid-template-columns: 1fr; } .asset-list { max-height: 260px; } .chart-box { height: 340px; } }
   </style>
 <script>document.documentElement.classList.add('js')</script>
-  <link rel="stylesheet" href="/assets/css/premium.css?v=2">
+  <meta name="robots" content="index, follow, max-image-preview:large"/>
+  <link rel="canonical" href="__SITE_URL__/trade"/>
+  <meta content="Trading Terminal — The Blockchain Bullhorn" name="twitter:title"/>
+  <meta content="Trade crypto, stocks, indices and real-world assets with live prices. Demo and live modes, leverage, TP/SL and real-time P/L." name="twitter:description"/>
+  <meta content="@Blockchainbhorn" name="twitter:site"/>
+  <meta content="en_US" property="og:locale"/>
+  <meta content="1200" property="og:image:width"/>
+  <meta content="630" property="og:image:height"/>
+  <meta content="Blockchain Bullhorn — Grab the Bull by the HORNS" property="og:image:alt"/>
 </head>
 <body>
 <header class="site-header" id="site-header"></header>
@@ -178,7 +186,7 @@
 <div class="flex-between mb-2">
 <b class="font-head" data-i18n="trd.s10" style="font-size:15px">Place Order</b>
 <span style="display:flex;gap:6px;align-items:center">
-<button class="btn btn-gold btn-sm" id="swapBtn" title="Instantly swap one coin for another"><i class="fas fa-right-left"></i><span data-i18n="trd.s11">Swap Coins</span></button>
+<button class="btn btn-gold btn-sm" id="swapBtn" title="Instantly swap one coin for another"><i class="fas fa-exchange-alt"></i><span data-i18n="trd.s11">Swap Coins</span></button>
 <span class="badge badge-gold" id="walletBadge">—</span>
 </span>
 </div>
@@ -233,7 +241,7 @@
 </section>
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=24"></script>
+  <script src="/assets/js/common.js?v=27"></script>
 <script src="/assets/js/chart.js?v=7"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -531,7 +539,7 @@
             <div><span>You receive</span><b id="sqRecv" style="color:var(--green-bright)">—</b></div>
             <div><span>Value</span><b id="sqVal">—</b></div>
           </div>
-          <button class="btn btn-gold btn-block btn-lg" id="swapGo"><i class="fas fa-right-left"></i> Swap Now</button>
+          <button class="btn btn-gold btn-block btn-lg" id="swapGo"><i class="fas fa-exchange-alt"></i> Swap Now</button>
           <p class="muted small text-center mt-1">Instant market swap. Live swaps require KYC.</p>`);
 
         const fromSel = $('#swapFrom', bd), toSel = $('#swapTo', bd), amt = $('#swapAmt', bd);
