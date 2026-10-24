@@ -1096,6 +1096,137 @@ const PWA = {
   }
 };
 
+// ---------- verified activity popups (no fabricated social proof) ----------
+function initVerifiedActivityNotifications() {
+  if (document.getElementById('bbVerifiedActivityStyle')) return;
+  const style = document.createElement('style');
+  style.id = 'bbVerifiedActivityStyle';
+  style.textContent = `
+    .bb-activity-toast{position:fixed;z-index:120;left:20px;bottom:22px;width:min(360px,calc(100vw - 32px));display:grid;grid-template-columns:44px minmax(0,1fr) 28px;gap:12px;align-items:center;padding:14px 13px;background:#fff;color:#17212b;border:1px solid rgba(23,33,43,.12);border-radius:15px;box-shadow:0 18px 50px rgba(9,20,30,.22);font-family:inherit;opacity:0;transform:translate3d(0,14px,0);transition:opacity .28s ease,transform .28s ease}
+    .bb-activity-toast.bb-show{opacity:1;transform:translate3d(0,0,0)}
+    .bb-activity-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#eaf7ee;color:#16803a;font-size:17px}
+    .bb-activity-toast[data-kind="withdraw"] .bb-activity-icon{background:#edf3ff;color:#245fc7}
+    .bb-activity-copy{min-width:0}
+    .bb-activity-title{font-size:12px;font-weight:800;letter-spacing:.045em;text-transform:uppercase;color:#53616d;margin-bottom:4px}
+    .bb-activity-message{font-size:13px;line-height:1.4;font-weight:650;overflow-wrap:anywhere}
+    .bb-activity-time{font-size:11px;color:#6f7d88;margin-top:5px}
+    .bb-activity-close{border:0;background:transparent;color:#74818b;font-size:20px;line-height:1;cursor:pointer;align-self:start;padding:0 2px}
+    .bb-activity-close:focus-visible{outline:2px solid #16803a;outline-offset:3px;border-radius:4px}
+    @media(max-width:480px){.bb-activity-toast{left:12px;bottom:14px;width:calc(100vw - 24px);padding:12px;gap:10px}}
+    @media(prefers-reduced-motion:reduce){.bb-activity-toast{transition:none;transform:none}}
+  `;
+  document.head.appendChild(style);
+
+  const iconFor = type => type === 'withdraw' ? 'fa-arrow-up' : 'fa-arrow-down';
+  const titleFor = type => type === 'withdraw' ? 'Withdrawal processed' : 'Deposit confirmed';
+  const messageFor = event => {
+    const asset = /^[A-Z0-9-]{2,12}$/.test(String(event.asset || '')) ? event.asset : 'crypto';
+    return event.type === 'withdraw'
+      ? 'A member’s ' + asset + ' withdrawal was processed.'
+      : 'A member’s ' + asset + ' deposit was confirmed.';
+  };
+  const relativeTime = timestamp => {
+    const delta = Math.max(0, Date.now() - Number(timestamp || 0));
+    const mins = Math.floor(delta / 60000);
+    if (mins < 1) return 'Just now';
+    if (mins < 60) return mins + (mins === 1 ? ' minute ago' : ' minutes ago');
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return hours + (hours === 1 ? ' hour ago' : ' hours ago');
+    return 'Within the last day';
+  };
+  let queue = [];
+  let timer = null;
+  let active = null;
+  let seen = new Set();
+  try { seen = new Set(JSON.parse(localStorage.getItem('bbVerifiedActivitySeen') || '[]').slice(-80)); } catch (_) {}
+  const remember = id => {
+    seen.add(id);
+    try { localStorage.setItem('bbVerifiedActivitySeen', JSON.stringify(Array.from(seen).slice(-80))); } catch (_) {}
+  };
+  const schedule = delay => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(showNext, delay);
+  };
+  const dismiss = () => {
+    if (active) {
+      active.classList.remove('bb-show');
+      const old = active;
+      active = null;
+      setTimeout(() => old.remove(), 300);
+    }
+  };
+  function showNext() {
+    timer = null;
+    if (active) dismiss();
+    if (!queue.length) {
+      fetchEvents();
+      return;
+    }
+    const event = queue.shift();
+    remember(event.id);
+    const card = document.createElement('aside');
+    card.className = 'bb-activity-toast';
+    card.dataset.kind = event.type;
+    card.setAttribute('role', 'status');
+    card.setAttribute('aria-live', 'polite');
+    const icon = document.createElement('span');
+    icon.className = 'bb-activity-icon';
+    const glyph = document.createElement('i');
+    glyph.className = 'fas ' + iconFor(event.type);
+    glyph.setAttribute('aria-hidden', 'true');
+    icon.appendChild(glyph);
+    const copy = document.createElement('div');
+    copy.className = 'bb-activity-copy';
+    const title = document.createElement('div');
+    title.className = 'bb-activity-title';
+    title.textContent = titleFor(event.type);
+    const message = document.createElement('div');
+    message.className = 'bb-activity-message';
+    message.textContent = messageFor(event);
+    const time = document.createElement('div');
+    time.className = 'bb-activity-time';
+    time.textContent = relativeTime(event.at);
+    copy.append(title, message, time);
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'bb-activity-close';
+    close.setAttribute('aria-label', 'Dismiss activity notification');
+    close.textContent = '×';
+    close.addEventListener('click', () => { dismiss(); schedule(16000); });
+    card.append(icon, copy, close);
+    document.body.appendChild(card);
+    active = card;
+    requestAnimationFrame(() => card.classList.add('bb-show'));
+    setTimeout(() => {
+      if (active === card) dismiss();
+      schedule(22000);
+    }, 6500);
+  }
+  async function fetchEvents() {
+    try {
+      const result = await BB.api('/api/public/activity', { silent: true });
+      if (result && result.ok && Array.isArray(result.events)) {
+        const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+        queue = result.events
+          .filter(e => e && typeof e.id === 'string' && !seen.has(e.id) &&
+            (e.type === 'deposit' || e.type === 'withdraw') &&
+            Number(e.at) >= cutoff && Number(e.at) <= Date.now())
+          .sort((a, b) => Number(b.at) - Number(a.at));
+      }
+    } catch (_) { /* activity is optional; never interrupt core site features */ }
+    if (queue.length) schedule(9000);
+    else schedule(90000);
+  }
+  // Start after a short delay so this never competes with the page's first paint.
+  schedule(12000);
+  // The timer fetches once initially, then polls again only when there is no queued activity.
+  const firstTimer = timer;
+  timer = setTimeout(async () => {
+    timer = null;
+    await fetchEvents();
+  }, 12000);
+}
+
 // ---------- boot ----------
 async function bootCommon() {
   if (window.PAGE_I18N) { for (const l of Object.keys(PAGE_I18N)) { I18N[l] = I18N[l] || {}; Object.assign(I18N[l], PAGE_I18N[l]); } }
@@ -1141,6 +1272,7 @@ async function bootCommon() {
   loadTicker();
   Chat.init();
   PWA.init();
+  initVerifiedActivityNotifications();
   // any element with data-open-chat opens the support live chat (Smartsupp or built-in)
   document.addEventListener('click', e => {
     const t = e.target.closest('[data-open-chat]');
