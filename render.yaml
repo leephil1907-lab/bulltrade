@@ -30,6 +30,11 @@ services:
         sync: false
       - key: BACKUP_TOKEN
         sync: false
+      # wallet addresses (re-applied on every boot; the free tier wipes data/)
+      - key: DEPOSIT_ADDRESSES
+        sync: false
+      - key: PRODUCT_PAYMENT_ADDRESSES
+        sync: false
     # ---- paid upgrade (always-on + persistent disk) ----
     # plan: starter
     # disk:

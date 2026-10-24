@@ -649,6 +649,7 @@ function renderFooter() {
         <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn">
         <p data-i18n="ftr.blurb">Premier crypto education &amp; trading platform. Structure over hype — build disciplined investing skills for every market cycle.</p>
         <div class="socials">
+          <a href="https://www.facebook.com/profile.php?id=61595631804363&amp;mibextid=ZbWKwL" target="_blank" rel="noopener" class="soc-fb" title="Facebook" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
           <a href="https://www.tiktok.com/@blockchainbullhorn" target="_blank" rel="noopener" title="TikTok (Official)"><i class="fab fa-tiktok"></i></a>
           <a href="https://www.instagram.com/blockchainbullhorn" target="_blank" rel="noopener" title="Instagram"><i class="fab fa-instagram"></i></a>
           <a href="https://x.com/Blockchainbhorn" target="_blank" rel="noopener" title="X / Twitter"><i class="fab fa-x-twitter"></i></a>

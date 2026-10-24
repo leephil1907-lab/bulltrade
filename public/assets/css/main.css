@@ -429,6 +429,9 @@ select.input option { background: #fff; color: var(--ink); }
   background: var(--blue); color: #fff; border: none; transition: all .18s; font-size: 15px;
 }
 .socials a:hover { background: #0359f0; color: #fff; transform: translateY(-3px); }
+/* Facebook keeps its brand colour so the icon is instantly recognisable */
+.socials a.soc-fb { background: #1877f2; }
+.socials a.soc-fb:hover { background: #0b5ed7; box-shadow: 0 6px 14px rgba(24,119,242,.35); }
 .site-footer h5 { font-size: 13px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--brown-900); margin-bottom: 16px; }
 .footer-links a { display: block; color: #57231a; font-size: 13.5px; padding: 5px 0; font-family: var(--font-head); }
 .footer-links a:hover { color: var(--brown-900); text-decoration: underline; }

@@ -6,8 +6,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node tests/e2e.js",
-    "test:links": "node tests/links.js"
+    "test": "node tests/run.js",
+    "test:e2e": "node tests/e2e.js",
+    "test:links": "node tests/links.js",
+    "test:bots": "node tests/bots-smoke.js"
   },
   "engines": {
     "node": ">=18"

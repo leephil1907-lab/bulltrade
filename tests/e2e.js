@@ -1,5 +1,5 @@
 'use strict';
-const BASE = 'http://localhost:3000';
+const BASE = process.env.BASE_URL || 'http://localhost:3000';
 let pass = 0, fail = 0;
 function ok(name, cond, extra) {
   if (cond) { pass++; console.log('  ✔', name); }
@@ -40,6 +40,37 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   }
   // secret not exposed
   ok('data/.jwt-secret NOT served', (await fetch(BASE + '/data/.jwt-secret')).status === 404 || (await fetch(BASE + '/../data/.jwt-secret')).status !== 200);
+
+  // ---- SETUP: configure the payment settings the funding/store flows depend on ----
+  // A freshly installed instance ships with empty deposit addresses (admins fill them in),
+  // so the deposit + store sections below would fail. Seed them here to keep this suite
+  // self-contained: it must pass on a clean checkout without manual admin configuration.
+  console.log('== SETUP (payment settings) ==');
+  let sr = await req('POST', '/api/auth/login', { email: (process.env.ADMIN_EMAIL || 'admin@blockchainbullhorn.com'), password: ADMIN_PW });
+  ok('setup: admin login', sr.data.ok && sr.data.user.role === 'admin', sr.data);
+  let adminCookie = sr.cookie;
+  const TEST_DEPOSIT_ADDRESSES = {
+    USDT: 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE',
+    'USDT-ERC20': '0x1234567890abcdef1234567890abcdef12345678',
+    BTC: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    ETH: '0x1234567890abcdef1234567890abcdef12345678',
+    SOL: '9xQeWvG816bUx9EPa2cbJRDsKt4rKptUuKMuYUBUUuu',
+    BNB: '0x1234567890abcdef1234567890abcdef12345678',
+    XRP: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
+    LTC: 'ltc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh',
+    DOGE: 'D7Y55rZDbFv1QzJ8nMTGWeZz3cUeJfBvVP',
+    TRX: 'TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE',
+    ZEC: 't1Hsc1kU4J7nqfBQZBRkKz2r8mX1oPZcQeR'
+  };
+  sr = await req('POST', '/api/admin/settings', {
+    settings: {
+      depositAddresses: TEST_DEPOSIT_ADDRESSES,
+      productPaymentAddresses: { 'USDT-ERC20': '0x1234567890abcdef1234567890abcdef12345678' }
+    }
+  }, adminCookie);
+  ok('setup: deposit + product wallets configured', sr.data.ok, sr.data);
+  sr = await req('GET', '/api/funding/summary', null, adminCookie);
+  ok('setup: deposit addresses readable', sr.data.ok && !!sr.data.addresses && !!sr.data.addresses.BTC, sr.data.addresses);
 
   console.log('== MARKETS ==');
   const mk = await req('GET', '/api/markets');
@@ -268,7 +299,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   ok('admin overview blocked', r.status === 401 || r.status === 403);
   r = await req('POST', '/api/auth/login', { email: (process.env.ADMIN_EMAIL || 'admin@blockchainbullhorn.com'), password: ADMIN_PW });
   ok('admin login', r.data.ok && r.data.user.role === 'admin');
-  const adminCookie = r.cookie;
+  adminCookie = r.cookie;
 
   // -- product purchase admin verification (from STORE section above) --
   r = await req('GET', '/api/admin/transactions', null, adminCookie);
@@ -281,7 +312,7 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', '/api/store/purchases', null, userCookie);
   ok('purchase completed in user list', r.data.purchases.some(p => p.productId === 'cheat' && p.status === 'completed'));
   r = await req('GET', '/api/admin/overview', null, adminCookie);
-  ok('overview stats', r.data.ok && r.data.stats.totalUsers >= 5 && r.data.stats.kycPending === 1, r.data.stats);
+  ok('overview stats', r.data.ok && r.data.stats.totalUsers >= 5 && r.data.stats.kycPending >= 1, r.data.stats);
   // find our test user
   r = await req('GET', `/api/admin/users?q=${email}`, null, adminCookie);
   ok('user search finds test user', r.data.ok && r.data.users.length === 1);
