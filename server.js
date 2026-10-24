@@ -47,6 +47,16 @@ function json(res, code, obj, headers) {
 const ok = (res, obj, headers) => json(res, 200, Object.assign({ ok: true }, obj), headers);
 const fail = (res, code, error, extra) => json(res, code, Object.assign({ ok: false, error }, extra || {}));
 
+// cache-busting stamp for the injected stylesheet, refreshed on every write
+const PREMIUM_PATH = path.join(__dirname, 'public', 'assets', 'css', 'premium.css');
+let PREMIUM_V;
+function premiumVersion() {
+  try { PREMIUM_V = String(Math.round(fs.statSync(PREMIUM_PATH).mtimeMs)); }
+  catch (e) { PREMIUM_V = '1'; }
+  return PREMIUM_V;
+}
+premiumVersion();
+
 function serveFile(res, filePath, code = 200) {
   fs.readFile(filePath, (err, buf) => {
     if (err) return fail(res, 404, 'Not found');
@@ -57,8 +67,13 @@ function serveFile(res, filePath, code = 200) {
       // Single source of truth for absolute URLs (canonical/OG/JSON-LD). Set SITE_URL
       // in the environment when the domain changes — no need to edit 20 pages.
       html = html.split('__SITE_URL__').join(SITE_URL);
+      // premium.css is injected here rather than hard-coded in 20 pages. The
+      // version is derived from the file's mtime, so the moment its contents
+      // change every browser is forced to re-fetch it. (A fixed ?v=4 meant
+      // returning visitors kept an old cached copy — a footer colour change
+      // looked like it had never shipped.)
       if (!html.includes('premium.css')) {
-        html = html.replace('</head>', '  <link rel="stylesheet" href="/assets/css/premium.css?v=4">\n</head>');
+        html = html.replace('</head>', `  <link rel="stylesheet" href="/assets/css/premium.css?v=${PREMIUM_V}">\n</head>`);
       }
       body = Buffer.from(html);
     } else if (ext === '.xml' || ext === '.webmanifest' || ext === '.txt') {

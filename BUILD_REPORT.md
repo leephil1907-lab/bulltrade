@@ -674,3 +674,54 @@ verified at 390×844 with 0 overflow and no console errors.
 `public/assets/css/premium.css`, `public/assets/js/tour.js`,
 `public/assets/js/common.js`, and every page's asset query strings
 (`main.css?v=29`, `common.js?v=31`, `tour.js?v=2`, `admin.css?v=9`).
+
+# Round 9 — Guide alignment fixed properly, footer genuinely brown
+
+## 44. The guided tour was drawing itself in the wrong coordinate space
+The tour was reported as "not positioned well on the website". The cause was not
+cosmetic spacing — the whole overlay was being laid out against the **document**
+instead of the **viewport**:
+
+- `html.js body` runs the page-in transition with `animation-fill-mode: both`,
+  so `<body>` permanently keeps `transform: matrix(1,0,0,1,0,0)`.
+- A transformed ancestor makes `position: fixed` behave like
+  `position: absolute` against that ancestor.
+- The tour root was appended to `<body>`, so the overlay measured
+  **390 × 12,806px** instead of 390 × 844 — every spotlight and card was offset
+  by the scroll position, and each step landed somewhere arbitrary.
+
+The root is now appended to `<html>`, so the overlay is exactly one viewport
+(verified: 390 × 844) and every coordinate lines up.
+
+Rebuilt the placement engine on top of that:
+
+| Before | Now |
+|---|---|
+| Card always dropped below the target, could cover it | Card docks into the roomiest gap (below → above), never overlapping the spotlight |
+| No visual link between card and target | A small arrow on the overlay points at the highlighted element |
+| Targets measured mid-scroll | Step scrolls its target under the sticky header and waits for the scroll to settle before placing |
+| Page was scroll-locked (`body { overflow:hidden }`), so off-screen targets could never be reached | Page stays scrollable; the spotlight follows the scroll (rAF-throttled) |
+| Mobile steps pointed at nav links hidden in the collapsed menu → 16×16 spotlight in the top-left corner | Steps open the mobile menu, spotlight the real link, then close it again |
+| Tall sections (portfolio card) swallowed the entire screen | Spotlight is capped at 60% of the viewport so the explanation always has room |
+
+Also fixed: the target resolver only looked at the *first* DOM match, and the
+mobile panel contains a second, hidden copy of every nav link — it now scans all
+matches and takes the first visible one.
+
+Verified end to end: **8 public steps and 14 signed-in steps**, at 1440 and 390.
+Every step reports `overlap: false`, `outside: false`, spotlight opacity 1, and
+the card fully inside the viewport.
+
+## 45. Footer is now unmistakably brown (and can never go stale again)
+- Footer gradient deepened from a near-black `#3f140c → #201007` to a clear rich
+  brown `#5c2a16 → #43190e → #2c1209`, in `main.css` **and** `premium.css`.
+- **Why it looked unchanged:** `premium.css` is injected by the server with a
+  hard-coded `?v=4`, so any browser that had already cached it kept the old
+  blue-ish footer no matter what shipped. The version is now derived from the
+  file's mtime (`premium.css?v=1792828128586` today), so the URL changes the
+  moment the file does — no more stale stylesheets, ever.
+- Verified at 1440 and 390: `linear-gradient(rgb(92,42,22) 0%, rgb(67,25,14) 46%,
+  rgb(44,18,9) 100%)`.
+
+**Regression run:** 311/311 tests, 100/100 links, 14 pages × 2 viewports with 0
+horizontal overflow and 0 console errors.

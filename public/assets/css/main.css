@@ -489,7 +489,7 @@ select.input option { background: #fff; color: var(--ink); }
 
 /* ============ Footer (deep brand brown) ============ */
 .site-footer {
-  background: linear-gradient(180deg, #3f140c 0%, #2a160b 55%, #201007 100%);
+  background: linear-gradient(180deg, #5c2a16 0%, #43190e 46%, #2c1209 100%);
   border-top: 1px solid rgba(211,168,119,.30); margin-top: 40px; color: #f0e7da;
 }
 .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.2fr; gap: 36px; padding: 56px 0 40px; }
@@ -1047,6 +1047,7 @@ html { scroll-behavior: smooth; background: #f8f1e0; }
 }
 .bbt-card {
   position: absolute; width: 380px; max-width: calc(100vw - 24px);
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin;
   background: #fff; color: var(--ink); border-radius: 16px; padding: 18px 20px 16px;
   box-shadow: 0 26px 70px rgba(20, 10, 6, .38); border: 1px solid rgba(63,20,12,.10);
   font-family: var(--font-head); transition: top .32s cubic-bezier(.2,.8,.25,1), left .32s cubic-bezier(.2,.8,.25,1);
@@ -1081,7 +1082,19 @@ html { scroll-behavior: smooth; background: #f8f1e0; }
   font-family: var(--font-head); font-size: 12px; color: var(--ink-dim); text-decoration: underline;
 }
 .bbt-skip:hover { color: var(--ink-soft); }
-body.bb-tour-open { overflow: hidden; }
+/* The page stays scrollable during the tour: every step scrolls its own target
+   into place and the spotlight follows the scroll. */
+body.bb-tour-open { overscroll-behavior: contain; }
+
+/* little arrow tying the card to the spotlighted element.
+   It lives on the overlay (not inside the card) so the card can scroll its own
+   content without clipping it. */
+.bbt-arrow {
+  position: absolute; width: 14px; height: 14px; background: #fff; display: none;
+  border-left: 1px solid rgba(63, 20, 12, .12); border-top: 1px solid rgba(63, 20, 12, .12);
+  border-radius: 3px 0 0 0; transform: rotate(45deg);
+  transition: top .32s cubic-bezier(.2,.8,.25,1), left .32s cubic-bezier(.2,.8,.25,1);
+}
 @media (max-width: 640px) {
   .bbt-card { padding: 15px 16px 13px; }
   .bbt-card h3 { font-size: 16px; }
