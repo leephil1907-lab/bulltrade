@@ -4,6 +4,8 @@ A
 
 Built with **zero npm dependencies** — plain Node.js 18+ serving 21 pages, a REST API and a file-backed database.
 
+> **Live execution status:** real-money exchange execution is disabled. Trading orders use Bulltrade's internal demo/simulation engine until an approved exchange adapter, transactional persistence and order reconciliation are implemented and verified. Market quotes are not an execution connection.
+
 ## Features
 
 **Markets & data**
@@ -13,7 +15,7 @@ Built with **zero npm dependencies** — plain Node.js 18+ serving 21 pages, a R
 **Trading**
 - Full trading terminal: market & limit orders, leverage, take-profit / stop-loss, trailing stops, liquidation
 - Candlestick chart with EMA, Bollinger Bands, RSI and MACD panes + TradingView embed
-- Demo ($10,000 virtual) ⇄ live trading toggle
+- Demo trading ($10,000 virtual); real-money execution remains blocked pending verified exchange integration
 
 **Copy trading**
 - Leader applications, admin approval, proportional trade mirroring

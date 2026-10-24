@@ -7,11 +7,11 @@
 <meta content="website" property="og:type"/>
 <meta content="Blockchain Bullhorn" property="og:site_name"/>
 <meta content="Dashboard — The Blockchain Bullhorn" property="og:title"/>
-<meta content="Elite crypto education, live markets, demo &amp; live trading on crypto, stocks, and real-world assets. Grab the Bull by the Horns." property="og:description"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" property="og:image"/>
-<meta content="https://blockchainbullhorn.onrender.com/dashboard" property="og:url"/>
+<meta content="Manage your portfolio, account activity and demo trading tools with live market data. Real-money trading is not currently available." property="og:description"/>
+<meta content="https://blockchainbullhorn.com/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="https://blockchainbullhorn.com/dashboard" property="og:url"/>
 <meta content="summary_large_image" name="twitter:card"/>
-<meta content="https://blockchainbullhorn.onrender.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<meta content="https://blockchainbullhorn.com/assets/img/brand/og-image.jpg" name="twitter:image"/>
 <title>Dashboard — The Blockchain Bullhorn</title>
 <link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
@@ -87,7 +87,7 @@
 <b class="font-head" style="font-size:16px"><i class="fas fa-briefcase" style="color:var(--gold)"></i><span data-i18n="dash.s8">My Portfolio</span></b>
 <div class="tab-bar" id="pfTabs" style="margin:0">
 <button class="tab-btn" data-i18n="dash.s9" data-pfm="demo">Demo</button>
-<button class="tab-btn" data-i18n="dash.s10" data-pfm="live">Live</button>
+<button class="tab-btn" data-i18n="dash.s10" data-pfm="live" disabled title="Real-money execution is not connected yet">Live unavailable</button>
 </div>
 </div>
 <div id="pfBody"><span class="skeleton" style="width:100%;height:120px"></span></div>
@@ -164,7 +164,7 @@
 <b class="font-head" data-i18n-html="dash.h20" style="font-size:16px"><i class="fas fa-chart-area" style="color:var(--gold)"></i> Realized P/L — <span id="perfMode">DEMO</span></b>
 <div class="tab-bar" id="perfTabs" style="margin:0">
 <button class="tab-btn active" data-i18n="dash.s9" data-m="demo" style="padding:5px 12px">Demo</button>
-<button class="tab-btn" data-i18n="dash.s10" data-m="live" style="padding:5px 12px">Live</button>
+<button class="tab-btn" data-i18n="dash.s10" data-m="live" style="padding:5px 12px" disabled title="Real-money execution is not connected yet">Live unavailable</button>
 </div>
 </div>
 <canvas id="plChart" style="width:100%;height:190px"></canvas>
@@ -184,7 +184,7 @@
 <b class="font-head" data-i18n-html="dash.h22" style="font-size:16px"><i class="fas fa-layer-group" style="color:var(--gold)"></i> Open Positions (<span id="cntPos">0</span>)</b>
 <div class="tab-bar" id="posTabs" style="margin:0">
 <button class="tab-btn active" data-i18n="dash.s9" data-m="demo" style="padding:5px 12px">Demo</button>
-<button class="tab-btn" data-i18n="dash.s10" data-m="live" style="padding:5px 12px">Live</button>
+<button class="tab-btn" data-i18n="dash.s10" data-m="live" style="padding:5px 12px" disabled title="Real-money execution is not connected yet">Live unavailable</button>
 </div>
 </div>
 <div id="positionsBox"></div>
@@ -265,8 +265,8 @@
         kycCard.innerHTML = `<div class="flex-between">
           <div><span class="badge badge-green"><i class="fas fa-check"></i> KYC VERIFIED</span>
           <h3 style="margin-top:10px">You're fully verified ✅</h3>
-          <p class="muted small">Live trading and withdrawals are unlocked.</p></div>
-          <a href="/trade" class="btn btn-green"><i class="fas fa-bolt"></i> Trade Live</a></div>${kycTrack(4)}`;
+          <p class="muted small">Your identity is verified. Real-money execution is not connected yet; you can practise in Demo mode.</p></div>
+          <a href="/trade" class="btn btn-green"><i class="fas fa-flask"></i> Open Demo Terminal</a></div>${kycTrack(4)}`;
       } else if (kycStatus === 'pending') {
         kycCard.innerHTML = `<div class="flex-between">
           <div><span class="badge badge-gold"><i class="fas fa-hourglass-half"></i> KYC UNDER REVIEW</span>
@@ -282,8 +282,8 @@
       } else {
         kycCard.innerHTML = `<div class="flex-between">
           <div><span class="badge badge-gray"><i class="fas fa-id-card"></i> KYC NOT SUBMITTED</span>
-          <h3 style="margin-top:10px">Unlock live trading &amp; withdrawals</h3>
-          <p class="muted small">Manual verification — reviewed by our team within 24 hours.</p></div>
+          <h3 style="margin-top:10px">Complete identity verification</h3>
+          <p class="muted small">Verification supports eligible account features. Real-money trading remains unavailable until exchange execution is connected and tested.</p></div>
           <a href="/kyc" class="btn btn-gold"><i class="fas fa-id-card"></i> Start Verification</a></div>${kycTrack(1)}`;
       }
 

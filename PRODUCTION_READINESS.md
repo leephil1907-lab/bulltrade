@@ -5,6 +5,11 @@
 This phase focuses on product integrity rather than visual effects.
 
 - **Server-authoritative trading controls**: global trading enable/disable, live-trading kill switch, global maximum leverage, and global maximum order size.
+- **Exchange adapter boundary**: a provider-neutral execution contract is now defined and tested, but no real provider is registered; all methods fail closed by default. Run `npm run test:exchange-adapter`.
+- **Vercel deployment assessment**: `VERCEL_DEPLOYMENT_ASSESSMENT.md` explains why the full application is not deployable on Vercel as-is and outlines the required database, upload, API and worker migration.
+- **Live-trading fail-safe**: all live-mode orders are rejected in the current simulator, regardless of environment or admin settings. The engine only simulates fills against cached quotes and internal JSON wallets; no real exchange execution adapter is connected. This guard must not be removed until provider execution, order-state reconciliation, transactional persistence and safety tests are implemented.
+- **Database corruption fail-closed**: malformed/unreadable database files now stop startup rather than silently seeding a fresh database. `BULLTRADE_DATA_DIR` supports isolated regression testing.
+- **Database safety regression test**: run `npm run test:db-safety` to check that corrupt JSON is preserved and startup fails clearly.
 - **Capability API**: `GET /api/me/capabilities` exposes server-derived permissions for demo/live trading, funding, withdrawals, bots, KYC state and account status.
 - **Dashboard summary API**: `GET /api/dashboard/summary` consolidates portfolio state, positions, pending transactions, recent trades and ledger activity.
 - **Append-only money journal**: `lib/ledger.js` records wallet credits/debits. Legacy wallet balances receive an opening-balance migration entry.
@@ -17,6 +22,8 @@ This phase focuses on product integrity rather than visual effects.
 - **Operational probes**: `/healthz` and `/readyz` are available for deployment health checks.
 - **Graceful shutdown**: SIGTERM/SIGINT flush the data store before process exit.
 - **HTTP hardening headers**: basic anti-sniffing, frame, referrer and permissions headers are applied globally.
+
+See [`EXCHANGE_INTEGRATION.md`](./EXCHANGE_INTEGRATION.md) for the staged, provider-neutral plan and safety gates required before connecting a real exchange. Market quotes do not mean exchange execution is available.
 
 ## Current architecture boundary
 
@@ -68,6 +75,19 @@ At minimum configure:
 
 Do not store production secrets in `data/db.json`, the public directory, Git history, or client-side JavaScript.
 
+## Deployment architecture
+
+The current deployment plan is documented in `FRONTEND_BACKEND_DEPLOYMENT.md`.
+The static multi-page frontend can be served by Vercel, while the full Node.js
+API must run on a persistent Node host. The Vercel `/api/*` proxy requires
+`BULLTRADE_BACKEND_URL` to point to the HTTPS backend URL.
+
+Do not accept production KYC uploads until private durable object storage and
+retention/deletion controls are in place. GitHub backup now refuses data
+synchronization unless the repository is confirmed private, and sensitive
+uploads are excluded from GitHub backup by default. A private Git repository
+is still only a temporary database backup—not a production database.
+
 ## Deployment checks
 
 Health check:
@@ -78,7 +98,7 @@ Readiness check:
 
 `GET /readyz`
 
-Before enabling live trading, verify:
+Live trading must remain unavailable until a real provider adapter is connected and approved. Before enabling live trading, verify:
 
 - wallet and ledger balances reconcile
 - deposits cannot be credited twice

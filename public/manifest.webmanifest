@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Blockchain Bullhorn — Crypto Education & Trading",
   "short_name": "Bullhorn",
-  "description": "Elite crypto education, live markets, trading bots and multi-asset trading — Grab the Bull by the HORNS.",
+  "description": "Real-time market data, crypto education, portfolio tools and demo trading across supported markets.",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
