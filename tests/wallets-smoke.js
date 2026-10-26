@@ -1,5 +1,7 @@
 'use strict';
 const assert = require('assert');
+delete process.env.WALLET_PROVIDER_URL;
+delete process.env.WALLET_PROVIDER_API_KEY;
 const Wallets = require('../lib/wallets');
 assert.strictEqual(Wallets.configured(), false, 'provider must be disabled by default');
 assert(Wallets.networks().includes('bitcoin'));
