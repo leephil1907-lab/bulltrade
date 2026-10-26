@@ -20,6 +20,7 @@ const trading = require('./lib/trading');
 const Backup = require('./lib/backup');
 const bots = require('./lib/bots');
 const HubSpot = require('./lib/hubspot');
+const Wallets = require('./lib/wallets');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
@@ -151,6 +152,10 @@ api['POST /api/auth/signup'] = async (req, res, body, cookies) => {
     experience: body.experience, sourceOfFunds: body.sourceOfFunds, referredBy: body.referredBy, newsletter: body.newsletter
   });
   if (result.error) return fail(res, 409, result.error);
+  // Provision public deposit addresses through the configured custody adapter.
+  // Wallet provider outages must not prevent account creation; retry can be triggered later.
+  try { await Wallets.provisionUser(result.user.id); }
+  catch (e) { console.warn('[wallets] signup provisioning deferred:', String(e && e.message || 'provider error').slice(0, 180)); }
   // reward the referrer when a valid referral code was used
   if (body.referredBy) {
     const code = String(body.referredBy).trim().toUpperCase();

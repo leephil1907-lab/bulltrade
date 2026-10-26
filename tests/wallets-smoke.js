@@ -1,0 +1,14 @@
+'use strict';
+const assert = require('assert');
+delete process.env.WALLET_PROVIDER_URL;
+delete process.env.WALLET_PROVIDER_API_KEY;
+const Wallets = require('../lib/wallets');
+assert.strictEqual(Wallets.configured(), false, 'provider must be disabled by default');
+assert(Wallets.networks().includes('bitcoin'));
+assert(Wallets.networks().includes('xrpl'));
+const original = process.env.WALLET_SUPPORTED_NETWORKS;
+process.env.WALLET_SUPPORTED_NETWORKS = 'ethereum,solana,ethereum,INVALID NETWORK';
+assert.deepStrictEqual(Wallets.networks(), ['ethereum', 'solana']);
+if (original === undefined) delete process.env.WALLET_SUPPORTED_NETWORKS;
+else process.env.WALLET_SUPPORTED_NETWORKS = original;
+console.log('wallet provisioning unit checks passed');

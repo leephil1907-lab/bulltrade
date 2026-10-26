@@ -121,6 +121,8 @@ function runSuite(script, env) {
   if (await runSuite('e2e.js', env)) failed++;
   console.log('\n### link check ###');
   if (await runSuite('links.js', env)) failed++;
+  console.log('\n### wallet provisioning smoke suite ###');
+  if (await runSuite('wallets-smoke.js', env)) failed++;
 
   cleanup();
 
