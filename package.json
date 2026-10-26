@@ -2,14 +2,15 @@
   "name": "blockchain-bullhorn",
   "version": "1.0.0",
   "private": true,
-  "description": "Blockchain Bullhorn \u2014 crypto education, live markets and multi-asset trading platform (one runtime dependency: web-push).",
+  "description": "Blockchain Bullhorn — crypto education, live markets and multi-asset trading platform (one runtime dependency: web-push).",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "test": "node tests/run.js",
     "test:e2e": "node tests/e2e.js",
     "test:links": "node tests/links.js",
-    "test:bots": "node tests/bots-smoke.js"
+    "test:bots": "node tests/bots-smoke.js",
+    "test:wallets": "node tests/wallets-smoke.js"
   },
   "engines": {
     "node": ">=18"
