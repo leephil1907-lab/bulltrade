@@ -72,7 +72,11 @@ function runSuite(script, env) {
       ADMIN_PASSWORD: adminPassword,
       JWT_SECRET: crypto.randomBytes(32).toString('hex'),
       BACKUP_REPO: '',
-      BACKUP_TOKEN: ''
+      BACKUP_TOKEN: '',
+      // Explicit, not inherited: if the ambient environment happens to set
+      // NODE_ENV=production the throttle would switch on and start 429-ing this
+      // suite's many signups from a single IP. hardening.js covers the limiter.
+      RATE_LIMIT: 'off'
     },
     stdio: ['ignore', 'pipe', 'pipe']
   });
@@ -121,6 +125,18 @@ function runSuite(script, env) {
   if (await runSuite('e2e.js', env)) failed++;
   console.log('\n### link check ###');
   if (await runSuite('links.js', env)) failed++;
+
+  // Boots its own server with RATE_LIMIT=on (the e2e suite above must run with
+  // throttling off, since it deliberately creates many accounts from one IP).
+  console.log('\n### hardening suite ###');
+  if (await runSuite('hardening.js', {})) failed++;
+
+  // Boots TWO servers against one shared data dir to prove the persistent-disk
+  // contract: data written before a SIGTERM must still be there after a cold
+  // boot. This is the behaviour the paid Render plan buys and the free tier
+  // could not offer.
+  console.log('\n### persistence suite ###');
+  if (await runSuite('persistence.js', {})) failed++;
 
   cleanup();
 

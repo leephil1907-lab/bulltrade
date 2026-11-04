@@ -18,9 +18,77 @@ This phase focuses on product integrity rather than visual effects.
 - **Graceful shutdown**: SIGTERM/SIGINT flush the data store before process exit.
 - **HTTP hardening headers**: basic anti-sniffing, frame, referrer and permissions headers are applied globally.
 
+## Deployment & delivery hardening (this phase)
+
+- **Paid, always-on Render blueprint**: `render.yaml` now targets `plan: starter`
+  with a 1 GB persistent disk, so the instance never sleeps and `data/` survives
+  every deploy, restart and crash. Previously `plan: free` meant an ephemeral
+  filesystem — `db.json`, KYC documents and deposit proofs were wiped on each
+  deploy and could only be recovered from the GitHub mirror.
+- **Correct disk mount path**: the disk mounts at `/var/data` with
+  `DATA_DIR=/var/data`. The earlier commented-out block used `/app/data`, which is
+  the *Docker* working directory; this service uses Render's **native Node
+  runtime** (source tree `/opt/render/project/src`), so `/app/data` would have
+  mounted the disk somewhere the app never writes and silently left data
+  ephemeral.
+- **Health check wired up**: `healthCheckPath: /healthz`, so Render restarts an
+  unresponsive instance and does not route traffic to a half-booted one.
+  `/healthz` now reports `persistence.dataDir`, `persistence.dbBytes` and
+  `rateLimit.enabled`, which makes "is the disk actually mounted?" answerable
+  from a browser immediately after the first deploy.
+- **Graceful shutdown reaches Node**: the start command is `node server.js`
+  rather than `npm start`, so Render's SIGTERM arrives directly at the process
+  that flushes `db.json`. This matters more now that a disk is attached, because
+  attaching one disables zero-downtime deploys — the old instance is stopped
+  before the new one starts.
+- **Reproducible builds**: `npm ci --omit=dev` against the committed lockfile,
+  with `NODE_VERSION` pinned. The `Dockerfile` was also fixed — it copied
+  `package.json` but never ran an install, so the image shipped without
+  `node_modules`; it also declared `VOLUME /app/data`, which can shadow a
+  platform-attached mount, and ran as root.
+- **Request throttling** (`lib/ratelimit.js`): signup, password reset, 2FA
+  verification, lead capture, support tickets and chat were previously unlimited
+  for anonymous callers. `lib/auth.js` already throttled failed logins, but these
+  paths both write to the database and trigger email, so an unthrottled loop
+  could exhaust a provider's daily allowance and take transactional mail down for
+  real users. Counters are keyed on the **last** `X-Forwarded-For` hop — the value
+  our own trusted proxy appends — so a client cannot rotate a spoofed first hop
+  to get unlimited fresh buckets. Keying on `socket.remoteAddress` would have
+  lumped every visitor into one bucket behind Render's edge.
+- **Conditional requests + in-memory static cache**: assets are memoised
+  (validated by mtime + size) and served with a weak ETag and `Last-Modified`, so
+  a returning browser gets a `304` with no body. Images/fonts moved from
+  `max-age=86400` to `max-age=604800`, deliberately **without** `immutable`,
+  because asset URLs are not fingerprinted — `immutable` would pin a re-exported
+  `hero-banner.png` in browsers for the whole max-age. Error responses are never
+  cached and never answer `304`.
+- **HSTS**: `Strict-Transport-Security: max-age=31536000` is sent when the edge
+  reports `X-Forwarded-Proto: https`, and never over plain HTTP. `includeSubDomains`
+  is intentionally omitted so a future non-TLS subdomain is not bricked for a year.
+
+
 ## Current architecture boundary
 
-The repository still uses a JSON/file-backed hot data store. The ledger is an append-only journal layered onto that store; it is **not yet a PostgreSQL transaction boundary**.
+**Durability is now solved at the infrastructure level; transactional integrity
+is not.**
+
+The persistent disk attached by `render.yaml` means `data/db.json` and
+`data/uploads/` survive deploys, restarts and crashes, with 24-hour Render
+snapshots retained for 7 days. That closes the gap the free tier left open.
+
+What it does **not** change: the repository still uses a JSON/file-backed hot
+data store, written as a single debounced atomic `write tmp → rename`. The ledger
+is an append-only journal layered onto that store; it is **not yet a PostgreSQL
+transaction boundary**. Consequences worth being explicit about:
+
+- There are no database transactions, unique constraints or row locks. Two
+  requests landing in the same 250 ms debounce window are serialized by Node's
+  single thread, which is safe *today* — but it is an accident of the runtime,
+  not a guarantee from the storage layer.
+- The service is pinned to one instance, both because the disk cannot be shared
+  and because the whole database is held in process memory. Horizontal scaling
+  requires the migration below, not a bigger plan.
+- Whole-file rewrites mean write cost grows with total database size.
 
 For a real-money production launch, the next persistence migration should move:
 
@@ -35,6 +103,10 @@ For a real-money production launch, the next persistence migration should move:
 9. audit events
 
 to PostgreSQL with database transactions and unique/idempotency constraints.
+Render Postgres from $6/mo (`basic-256mb`) is the natural next step, and adding
+it to the blueprint is a `databases:` block plus a `fromDatabase` env var — no
+change to how the service itself is defined. Uploaded KYC files would stay on the
+disk (or move to object storage) with only their metadata in Postgres.
 
 The current implementation deliberately preserves the existing application architecture while making cash mutations journaled and auditable.
 
@@ -78,7 +150,24 @@ Readiness check:
 
 `GET /readyz`
 
-Before enabling live trading, verify:
+### Immediately after the first paid deploy
+
+These four confirm the infrastructure half of this phase is actually in effect —
+run them before touching any trading configuration:
+
+1. `GET /healthz` → `persistence.dataDir` reads **`/var/data`**. Anything else
+   means `DATA_DIR` and the disk's `mountPath` disagree, and data is still
+   ephemeral.
+2. `GET /healthz` → `rateLimit.enabled` is **`true`** (requires
+   `NODE_ENV=production`, or `RATE_LIMIT=on`).
+3. Create a test user, note `persistence.dbBytes`, then **Manual Deploy → Clear
+   build cache & deploy**. The user and the byte count must both survive. This is
+   the exact step that used to wipe everything on the free tier.
+4. `curl -sI https://your-app/ | grep -i strict-transport-security` returns
+   `max-age=31536000`, and a second `curl -sI -H 'If-None-Match: <etag>'` against
+   any page returns **`304`**.
+
+### Before enabling live trading
 
 - wallet and ledger balances reconcile
 - deposits cannot be credited twice
@@ -90,8 +179,16 @@ Before enabling live trading, verify:
 - 2FA login and disable flows work
 - password-reset email delivery works without exposing tokens
 - the live trading kill switch blocks new live orders server-side
-- database persistence survives restart
+- database persistence survives restart **and** survives a full redeploy
+- the throttle rejects abuse: ~10 rapid `POST /api/auth/signup` from one address
+  should end in `429` with a `Retry-After` header
+- throttling is not rejecting real users: check the logs for unexpected `429`s
+  during a normal signup, and confirm `clientIp` is resolving to distinct public
+  addresses rather than one shared internal one
 
 ## Important
 
-This phase improves application controls and accounting traceability, but it does not by itself constitute a regulated brokerage/exchange stack, custody system, blockchain settlement layer, or production financial-services approval.
+This phase improves application controls, deployment durability and accounting
+traceability, but it does not by itself constitute a regulated
+brokerage/exchange stack, custody system, blockchain settlement layer, or
+production financial-services approval.

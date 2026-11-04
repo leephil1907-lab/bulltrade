@@ -20,6 +20,7 @@ const trading = require('./lib/trading');
 const Backup = require('./lib/backup');
 const bots = require('./lib/bots');
 const HubSpot = require('./lib/hubspot');
+const RateLimit = require('./lib/ratelimit');
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
@@ -57,31 +58,144 @@ function premiumVersion() {
 }
 premiumVersion();
 
-function serveFile(res, filePath, code = 200) {
-  fs.readFile(filePath, (err, buf) => {
-    if (err) return fail(res, 404, 'Not found');
-    const ext = path.extname(filePath).toLowerCase();
-    let body = buf;
-    if (ext === '.html') {
-      let html = buf.toString('utf8');
-      // Single source of truth for absolute URLs (canonical/OG/JSON-LD). Set SITE_URL
-      // in the environment when the domain changes — no need to edit 20 pages.
-      html = html.split('__SITE_URL__').join(SITE_URL);
-      // premium.css is injected here rather than hard-coded in 20 pages. The
-      // version is derived from the file's mtime, so the moment its contents
-      // change every browser is forced to re-fetch it. (A fixed ?v=4 meant
-      // returning visitors kept an old cached copy — a footer colour change
-      // looked like it had never shipped.)
-      if (!html.includes('premium.css')) {
-        html = html.replace('</head>', `  <link rel="stylesheet" href="/assets/css/premium.css?v=${PREMIUM_V}">\n</head>`);
-      }
-      body = Buffer.from(html);
-    } else if (ext === '.xml' || ext === '.webmanifest' || ext === '.txt') {
-      body = Buffer.from(buf.toString('utf8').split('__SITE_URL__').join(SITE_URL));
+// ---------------- static asset cache + conditional requests ----------------
+// The site ships ~21 MB across ~257 files and used to re-read every requested
+// byte from disk and re-run the HTML string transform on each hit — the 2.4 MB
+// hero banner alone, on every single homepage view. Hot files are now memoised
+// in memory and validated with a cheap fs.stat (mtime + size), and every
+// response carries an ETag so a browser that already holds a copy receives a
+// 304 with no body instead of the bytes again.
+//
+// That is a latency win and a cost win: Render meters bandwidth past the
+// workspace allowance ($0.15/GB), and a 304 is ~200 bytes instead of ~2 MB.
+//
+// Deliberately NOT cached: anything under DATA_DIR (KYC documents, deposit
+// proofs) — per-user private files that churn and should not linger in heap.
+const STATIC_CACHE_BYTES = Math.max(8, Number(process.env.STATIC_CACHE_MB) || 64) * 1024 * 1024;
+const STATIC_CACHE_MAX_FILE = 8 * 1024 * 1024;
+const staticCache = new Map(); // filePath -> entry; Map is insertion-ordered, so re-inserting on hit gives LRU
+let staticCacheBytes = 0;
+// Derive the private root from D.DB_FILE rather than re-implementing lib/db.js's
+// DATA_DIR fallback logic — if the two ever disagreed, KYC documents and deposit
+// proofs could quietly start being memoised in the heap.
+const DATA_ROOT = (() => {
+  try { return path.dirname(path.resolve(D.DB_FILE)) + path.sep; }
+  catch (e) { return ''; }
+})();
+
+const LONG_CACHE_EXT = ['.woff2', '.woff', '.ttf', '.otf', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif', '.ico', '.svg'];
+
+function cacheControlFor(ext) {
+  // Asset URLs are NOT fingerprinted, so `immutable` would pin a replaced file
+  // (e.g. a re-exported hero-banner.png) in browsers for the whole max-age —
+  // the exact stale-cache failure the premium.css mtime stamp exists to avoid.
+  // 7 days + ETag revalidation captures most of the benefit without that risk.
+  if (LONG_CACHE_EXT.includes(ext)) return 'public, max-age=604800';
+  // HTML/CSS/JS/JSON/XML revalidate every time; with an ETag that costs a 304.
+  return 'no-cache';
+}
+
+/** Apply the per-request text transforms (SITE_URL substitution, premium.css). */
+function transformBody(buf, ext) {
+  if (ext === '.html') {
+    let html = buf.toString('utf8');
+    // Single source of truth for absolute URLs (canonical/OG/JSON-LD). Set SITE_URL
+    // in the environment when the domain changes — no need to edit 20 pages.
+    html = html.split('__SITE_URL__').join(SITE_URL);
+    // premium.css is injected here rather than hard-coded in 20 pages. The
+    // version is derived from the file's mtime, so the moment its contents
+    // change every browser is forced to re-fetch it. (A fixed ?v=4 meant
+    // returning visitors kept an old cached copy — a footer colour change
+    // looked like it had never shipped.)
+    if (!html.includes('premium.css')) {
+      html = html.replace('</head>', `  <link rel="stylesheet" href="/assets/css/premium.css?v=${PREMIUM_V}">\n</head>`);
     }
-    const cache = ['.woff2', '.png', '.jpg', '.jpeg', '.webp', '.ico', '.svg'].includes(ext) ? 'public, max-age=86400' : 'no-cache';
-    res.writeHead(code, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': cache });
-    res.end(body);
+    return Buffer.from(html);
+  }
+  if (ext === '.xml' || ext === '.webmanifest' || ext === '.txt') {
+    return Buffer.from(buf.toString('utf8').split('__SITE_URL__').join(SITE_URL));
+  }
+  return buf;
+}
+
+function staticCacheDrop(filePath) {
+  const e = staticCache.get(filePath);
+  if (e) { staticCacheBytes -= e.body.length; staticCache.delete(filePath); }
+}
+
+function staticCacheSet(filePath, entry) {
+  staticCache.set(filePath, entry);
+  staticCacheBytes += entry.body.length;
+  // Evict least-recently-used entries until back under budget.
+  while (staticCacheBytes > STATIC_CACHE_BYTES && staticCache.size > 1) {
+    const oldest = staticCache.keys().next().value;
+    staticCacheBytes -= staticCache.get(oldest).body.length;
+    staticCache.delete(oldest);
+  }
+}
+
+function sendAsset(req, res, entry, code) {
+  // A 304 must never be returned for an error response — it would tell the
+  // client the (missing) resource is unchanged and therefore present.
+  if (code === 200 && req) {
+    const inm = req.headers['if-none-match'];
+    const ims = req.headers['if-modified-since'];
+    const etagMatched = !!inm && (inm === '*' || inm.split(',').map(s => s.trim()).includes(entry.etag));
+    const dateMatched = !inm && !!ims && ims === entry.lastModified;
+    if (etagMatched || dateMatched) {
+      res.writeHead(304, {
+        'ETag': entry.etag,
+        'Last-Modified': entry.lastModified,
+        'Cache-Control': entry.cacheControl
+      });
+      return res.end();
+    }
+  }
+  res.writeHead(code, {
+    'Content-Type': entry.contentType,
+    'Cache-Control': code === 200 ? entry.cacheControl : 'no-cache',
+    'Content-Length': entry.body.length,
+    'ETag': entry.etag,
+    'Last-Modified': entry.lastModified
+  });
+  res.end(entry.body);
+}
+
+function serveFile(req, res, filePath, code = 200) {
+  fs.stat(filePath, (err, st) => {
+    if (err || !st.isFile()) return fail(res, 404, 'Not found');
+    const ext = path.extname(filePath).toLowerCase();
+    const cacheable = !!DATA_ROOT && !filePath.startsWith(DATA_ROOT) && st.size <= STATIC_CACHE_MAX_FILE;
+
+    if (cacheable) {
+      const hit = staticCache.get(filePath);
+      if (hit && hit.mtimeMs === st.mtimeMs && hit.size === st.size) {
+        // Re-insert so Map order tracks recency, then serve straight from memory.
+        staticCache.delete(filePath);
+        staticCache.set(filePath, hit);
+        return sendAsset(req, res, hit, code);
+      }
+      if (hit) staticCacheDrop(filePath); // stale — file changed on disk
+    }
+
+    fs.readFile(filePath, (rerr, buf) => {
+      if (rerr) return fail(res, 404, 'Not found');
+      const body = transformBody(buf, ext);
+      const entry = {
+        body,
+        size: st.size,
+        mtimeMs: st.mtimeMs,
+        // Weak validator: derived from mtime+size, not a hash of the bytes, so
+        // it costs nothing to compute. Safe because a stale hit is impossible —
+        // the cache is only reused when mtime AND size still match.
+        etag: `W/"${Math.round(st.mtimeMs).toString(36)}-${st.size.toString(36)}"`,
+        lastModified: st.mtime.toUTCString(),
+        contentType: MIME[ext] || 'application/octet-stream',
+        cacheControl: cacheControlFor(ext)
+      };
+      if (cacheable) staticCacheSet(filePath, entry);
+      sendAsset(req, res, entry, code);
+    });
   });
 }
 
@@ -105,6 +219,12 @@ const api = {};
 
 function healthSnapshot() {
   const db = D.db();
+  // Report where data actually lives and how big it has grown. After the first
+  // paid deploy, GET /healthz is the fastest way to confirm the Render disk is
+  // genuinely mounted: `dataDir` must read /var/data and `dbBytes` must keep
+  // climbing across restarts instead of resetting to the seeded baseline.
+  let dbBytes = 0;
+  try { dbBytes = fs.statSync(D.DB_FILE).size; } catch (e) { /* not written yet */ }
   return {
     service: 'bulltrade',
     ok: true,
@@ -112,7 +232,16 @@ function healthSnapshot() {
     time: new Date().toISOString(),
     database: { users: db.users.length, ledgerEntries: db.ledger.length },
     markets: { lastRefresh: markets.lastRefresh || 0, assets: markets.ASSETS.length },
-    trading: db.settings.trading || {}
+    trading: db.settings.trading || {},
+    persistence: {
+      dataDir: path.dirname(D.DB_FILE),
+      dbBytes,
+      uploads: D.UPLOAD_DIR,
+      // off-site GitHub mirror — optional once the persistent disk is attached
+      backupSync: !!Backup.enabled
+    },
+    // enough to verify RATE_LIMIT after a deploy, without exposing traffic counts
+    rateLimit: { enabled: RateLimit.enabled }
   };
 }
 
@@ -1772,7 +1901,7 @@ function serveProofFile(req, res, cookies, query) {
   const tx = D.find('transactions', t => t.id === query.get('id'));
   if (!tx || !tx.proof) return fail(res, 404, 'No proof file on this transaction.');
   const p = path.join(D.UPLOAD_DIR, tx.userId, tx.proof.file);
-  if (fs.existsSync(p)) return serveFile(res, p);
+  if (fs.existsSync(p)) return serveFile(req, res, p);
   fail(res, 404, 'Proof file not found');
 }
 
@@ -1785,7 +1914,7 @@ function serveKycFile(req, res, cookies, query) {
     const doc = (k.docs || []).find(d => d.id === docId);
     if (doc) {
       const p = path.join(D.UPLOAD_DIR, k.userId, doc.file);
-      if (fs.existsSync(p)) return serveFile(res, p);
+      if (fs.existsSync(p)) return serveFile(req, res, p);
     }
   }
   fail(res, 404, 'Document not found');
@@ -1798,6 +1927,16 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    // HSTS: tells the browser to refuse any plain-HTTP connection to this host
+    // for a year, which closes the initial-HTTP-request downgrade window.
+    // Render terminates TLS at its edge, so the app itself sees plain HTTP —
+    // gate on the forwarded proto rather than the socket, otherwise the header
+    // is either never sent or sent over an insecure connection (which browsers
+    // ignore). Deliberately WITHOUT `includeSubDomains`: pinning every subdomain
+    // for a year would break any future subdomain that is not served over TLS.
+    if (String(req.headers['x-forwarded-proto'] || '').split(',')[0].trim() === 'https') {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000');
+    }
     const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
     const pathname = decodeURIComponent(url.pathname);
     const cookies = U.parseCookies(req);
@@ -1824,6 +1963,18 @@ const server = http.createServer(async (req, res) => {
         catch (e) { return fail(res, 400, e.message === 'Payload too large' ? 'Upload too large (max 8MB)' : 'Invalid request body'); }
       } else if (req.method === 'GET') {
         body = Object.fromEntries(url.searchParams.entries());
+      }
+      // Throttle the endpoints an anonymous visitor can abuse (signup, password
+      // reset, lead capture, chat). Runs AFTER body parsing so a rule can key on
+      // the submitted email as well as the client address. Inactive unless
+      // NODE_ENV=production or RATE_LIMIT=on — see lib/ratelimit.js.
+      const throttled = RateLimit.check(req, key, body);
+      if (throttled) {
+        // NB: fail()'s 4th argument is merged into the JSON body, not the
+        // headers, so Retry-After has to be set on the response directly.
+        res.setHeader('Retry-After', String(throttled.retryAfterSec));
+        res.setHeader('X-RateLimit-Limit', String(throttled.limit));
+        return fail(res, 429, 'Too many requests. Please wait a few minutes and try again.');
       }
       return await handler(req, res, body, cookies, url.searchParams);
     }
@@ -1852,19 +2003,19 @@ const server = http.createServer(async (req, res) => {
       const safe = path.normalize(pathname).replace(/^(\.\.[/\\])+/, '');
       const fp = path.join(PUBLIC_DIR, safe);
       if (!fp.startsWith(PUBLIC_DIR)) return fail(res, 403, 'Forbidden');
-      if (fs.existsSync(fp) && fs.statSync(fp).isFile()) return serveFile(res, fp);
+      if (fs.existsSync(fp) && fs.statSync(fp).isFile()) return serveFile(req, res, fp);
       return fail(res, 404, 'Not found');
     }
-    if (pathname === '/sw.js') return serveFile(res, page('sw.js'));
-    if (pathname === '/favicon.ico') return serveFile(res, page('favicon.ico'));
-    if (pathname === '/favicon.png') return serveFile(res, page('assets/img/favicon-64.png'));
-    if (pathname === '/apple-touch-icon.png') return serveFile(res, page('assets/img/apple-touch-icon.png'));
-    if (pathname === '/manifest.webmanifest') return serveFile(res, page('manifest.webmanifest'));
+    if (pathname === '/sw.js') return serveFile(req, res, page('sw.js'));
+    if (pathname === '/favicon.ico') return serveFile(req, res, page('favicon.ico'));
+    if (pathname === '/favicon.png') return serveFile(req, res, page('assets/img/favicon-64.png'));
+    if (pathname === '/apple-touch-icon.png') return serveFile(req, res, page('assets/img/apple-touch-icon.png'));
+    if (pathname === '/manifest.webmanifest') return serveFile(req, res, page('manifest.webmanifest'));
     if (pathname === '/robots.txt') {
       res.writeHead(200, { 'Content-Type': 'text/plain' });
       return res.end(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\nSitemap: ${SITE_URL}/sitemap.xml\n`);
     }
-    if (pathname === '/sitemap.xml') return serveFile(res, page('sitemap.xml'));
+    if (pathname === '/sitemap.xml') return serveFile(req, res, page('sitemap.xml'));
 
     // ---- pages ----
     if (pathname === '/copy-trading') { // legacy URL → Trading Bots
@@ -1872,12 +2023,12 @@ const server = http.createServer(async (req, res) => {
       return res.end();
     }
     const pageName = ROUTES[pathname];
-    if (pageName) return serveFile(res, page(pageName));
+    if (pageName) return serveFile(req, res, page(pageName));
     if (pathname.endsWith('.html')) {
       const fp = path.join(PUBLIC_DIR, path.basename(pathname));
-      if (fs.existsSync(fp)) return serveFile(res, fp);
+      if (fs.existsSync(fp)) return serveFile(req, res, fp);
     }
-    return serveFile(res, page('404.html'), 404);
+    return serveFile(req, res, page('404.html'), 404);
   } catch (e) {
     console.error('[server]', req.method, req.url, e);
     try { fail(res, 500, 'Internal server error'); } catch (_) {}

@@ -1,46 +1,149 @@
-# Render.com blueprint — FREE tier deployment (no credit card, no persistent disk).
+# ============================================================================
+# Render.com blueprint — PAID, ALWAYS-ON deployment with a PERSISTENT DISK.
+# ============================================================================
 #
-# Data persistence: free instances lose the filesystem on every deploy, so the
-# app syncs data/db.json + data/uploads/ to a PRIVATE GitHub repository
-# (BACKUP_REPO + BACKUP_TOKEN) and restores them automatically on boot.
+# What this buys you over the old free-tier setup:
 #
-# Set these env vars when prompted: ADMIN_EMAIL, ADMIN_PASSWORD, JWT_SECRET,
-# BACKUP_REPO, BACKUP_TOKEN.
+#   1. `plan: starter`  -> the instance NEVER sleeps. Free instances spin down
+#                          after 15 min idle and take 30-60 s to cold-start,
+#                          which looks like the site is broken.
+#   2. `disk`           -> data/ survives every deploy, restart and crash.
+#                          Free instances have an ephemeral filesystem: the
+#                          JSON database and all KYC/deposit-proof uploads were
+#                          wiped on every single deploy.
+#   3. Direct SMTP       -> paid instances can open outbound ports 25/465/587,
+#                          so EMAIL_TRANSPORT=smtp works with real credentials.
+#                          (The free tier blocks all SMTP ports platform-wide,
+#                          which is why the SendGrid / Gmail-relay HTTP
+#                          workarounds existed.)
+#   4. healthCheckPath   -> Render probes /healthz and will restart the
+#                          instance automatically if it stops answering, and
+#                          will not route traffic to a half-booted instance.
 #
-# Later upgrade to always-on + persistent disk: change plan to `starter` and
-# uncomment the disk block (the GitHub sync then acts as a safety net).
+# Cost (2026 pricing, Hobby workspace):
+#   starter instance  $7.00/mo   (0.5 CPU, 512 MB, always on)
+#   1 GB disk         $0.25/mo   ($0.25 per GB-month)
+#   bandwidth         5 GB/mo included, then $0.15/GB
+#   -----------------------------------------------
+#   total             ~$7.25/mo
+#   Upgrade to `plan: standard` ($25/mo, 1 CPU, 2 GB) if traffic grows.
+#
+# ---------------------------------------------------------------------------
+# IMPORTANT — things that change once a disk is attached (Render platform
+# rules, not app limitations):
+#
+#   * A disk is accessible by ONE instance only -> `numInstances` must stay 1
+#     and the service cannot autoscale horizontally.
+#   * Zero-downtime deploys are DISABLED: Render stops the old instance before
+#     starting the new one, so each deploy has a few seconds of downtime.
+#     The app flushes data/db.json on SIGTERM (see server.js shutdown()), so no
+#     writes are lost during that handover.
+#   * The disk is not mounted during buildCommand / preDeployCommand (those run
+#     on separate compute). Never read or write DATA_DIR from the build step.
+#   * Render snapshots the disk every 24 h and keeps snapshots for 7 days
+#     (service -> Disk -> Restore snapshot).
+#
+# ---------------------------------------------------------------------------
+# MOUNT PATH — this is the part that is easy to get wrong.
+#
+# The app resolves its data directory from the DATA_DIR environment variable
+# (lib/db.js, lib/backup.js, lib/jwt.js, lib/markets.js all honour it). We
+# therefore mount the disk at a standalone /var/data, which is exactly what the
+# Render docs recommend, and point DATA_DIR at it.
+#
+# Do NOT mount at /app/data — that is the *Docker* WORKDIR. This service uses
+# Render's native Node runtime, whose source tree lives at
+# /opt/render/project/src, so /app/data would not exist and the disk would
+# never be written to. These exact paths are also forbidden as mount points:
+#   / , /opt , /opt/render , /opt/render/project , /opt/render/project/src ,
+#   /home , /home/render , /etc , /etc/secrets
+# (a *subdirectory* such as /opt/render/project/src/data is allowed if you ever
+# prefer to keep data inside the source tree).
+#
+# If you deploy with `runtime: docker` instead, change BOTH of these:
+#   disk.mountPath -> /app/data      DATA_DIR -> /app/data
+#
+# ---------------------------------------------------------------------------
+# REGION — pick at service-creation time; Render cannot change it afterwards.
+# For users in Nigeria / West Africa, `frankfurt` gives the lowest latency
+# (~120-150 ms from Lagos), ahead of `virginia` (~190 ms) and `oregon` (~230 ms).
+# Uncomment only when creating a NEW service:
+#   region: frankfurt
+#
+# ---------------------------------------------------------------------------
+# SECRETS — never hardcode them here. Keys marked `sync: false` are prompted for
+# in the Render dashboard the first time the blueprint syncs. JWT_SECRET uses
+# `generateValue: true` so Render mints a strong 256-bit secret automatically
+# (and leaves an existing one untouched, so sessions are not logged out).
+#
 services:
   - type: web
     name: blockchain-bullhorn
     runtime: node
-    plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    plan: starter                 # PAID: always on, no 15-min sleep
+    # region: frankfurt           # set once, at creation time (see notes above)
+    numInstances: 1               # required — a disk cannot be shared by 2+ instances
+    buildCommand: npm ci --omit=dev
+    # `node server.js` rather than `npm start`: Render sends SIGTERM to the start
+    # command's process. Running node directly guarantees SIGTERM reaches the app
+    # so server.js can flush data/db.json to the disk before it exits.
+    startCommand: node server.js
     autoDeploy: true
+    healthCheckPath: /healthz     # liveness probe; also gates deploy success
+
+    # ---- persistent storage for data/db.json + data/uploads/ ----
+    disk:
+      name: bb-data
+      mountPath: /var/data
+      sizeGB: 1                   # can be grown later, never shrunk
+
+    # Only rebuild when app code changes — documentation, the i18n build
+    # artefacts at the repo root and the VPS helper script must not burn build
+    # minutes (500/mo included on the Hobby workspace). Glob syntax; `*` does
+    # not cross `/`, `**` does. Ignoring a path takes precedence over including
+    # one, and syncing this field fully replaces any dashboard setting.
+    buildFilter:
+      ignoredPaths:
+        - "**/*.md"
+        - "tools/**"
+        - "deploy/**"
+        - "i18n-*.json"
+        - "branding-check.png"
+        - "facebook-icon-check.png"
+        - ".gitignore"
+        - ".dockerignore"
+
     envVars:
       - key: NODE_ENV
         value: production
+
+      # Points the app at the mounted disk. Keep in sync with disk.mountPath.
+      - key: DATA_DIR
+        value: /var/data
+
+      - key: NODE_VERSION         # pin the runtime so builds stay reproducible
+        value: 20.20.2
+
+      # ---- secrets (prompted in the dashboard) ----
+      - key: JWT_SECRET
+        generateValue: true       # strong auto-generated secret if none exists
       - key: ADMIN_EMAIL
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: BACKUP_REPO
-        sync: false
-      - key: BACKUP_TOKEN
-        sync: false
-      # wallet addresses (re-applied on every boot; the free tier wipes data/)
-      - key: DEPOSIT_ADDRESSES
-        sync: false
-      - key: PRODUCT_PAYMENT_ADDRESSES
-        sync: false
-      # ---- email ----
-      # The free tier blocks SMTP ports (25/465/587), so prefer an HTTP transport:
-      # EMAIL_TRANSPORT=sendgrid + SENDGRID_API_KEY, or EMAIL_TRANSPORT=relay +
-      # MAIL_RELAY_URL/MAIL_RELAY_SECRET. SMTP_* below only works on a paid instance.
+
+      # ---- canonical URL (drives canonical/OG tags, sitemap, robots, emails) ----
       - key: SITE_URL
         sync: false
+
+      # ---- email ----
+      # Paid instances can reach SMTP directly, so plain SMTP is now the
+      # recommended transport:
+      #   EMAIL_TRANSPORT=smtp  + SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS/SMTP_FROM
+      #   (Gmail needs a 16-char App Password, not the account password.)
+      # The HTTP transports remain supported if you prefer SendGrid/relay:
+      #   EMAIL_TRANSPORT=sendgrid + SENDGRID_API_KEY
+      #   EMAIL_TRANSPORT=relay    + MAIL_RELAY_URL + MAIL_RELAY_SECRET
       - key: EMAIL_TRANSPORT
         sync: false
       - key: SMTP_HOST
@@ -63,9 +166,49 @@ services:
         sync: false
       - key: NOTIFY_EMAIL
         sync: false
-    # ---- paid upgrade (always-on + persistent disk) ----
-    # plan: starter
-    # disk:
-    #   name: bb-data
-    #   mountPath: /app/data
-    #   sizeGB: 1
+
+      # ---- wallet addresses ----
+      # With a persistent disk these now survive redeploys, so setting them in
+      # Admin -> Settings is enough. Supplying them here too is still useful as
+      # a guarantee against an empty/rolled-back disk: env always wins on boot.
+      - key: DEPOSIT_ADDRESSES
+        sync: false
+      - key: PRODUCT_PAYMENT_ADDRESSES
+        sync: false
+
+      # ---- request throttling (lib/ratelimit.js) ----
+      # On by default when NODE_ENV=production. Set to "off" to disable, or
+      # "on" to force-enable outside production (used by tests/ratelimit.js).
+      - key: RATE_LIMIT
+        value: "on"
+      # Optional per-route overrides as max/windowMs, e.g. RATE_LIMIT_SIGNUP=20/3600000.
+      # Rule names: SIGNUP, TWOFA, FORGOT, RESET, LEADS, TICKET, CHATINIT, CHATSEND.
+      # (Failed logins are throttled separately by lib/auth.js, not by this module.)
+      - key: RATE_LIMIT_SIGNUP
+        sync: false
+      - key: RATE_LIMIT_FORGOT
+        sync: false
+      - key: RATE_LIMIT_LEADS
+        sync: false
+
+      # ---- optional off-site backup (NO LONGER REQUIRED) ----
+      # The persistent disk is now the primary store and Render snapshots it
+      # daily. Setting BACKUP_REPO + BACKUP_TOKEN additionally mirrors
+      # data/db.json and data/uploads/ into a PRIVATE GitHub repo after every
+      # change, which gives you indefinite off-site history on top of the
+      # 7-day disk snapshots. Leave both blank to disable.
+      # If you do enable it: one backup repo per instance (two instances sharing
+      # a repo will fight), and the repo MUST stay private — it holds user data
+      # and password hashes.
+      - key: BACKUP_REPO
+        sync: false
+      - key: BACKUP_TOKEN
+        sync: false
+      - key: BACKUP_BRANCH
+        sync: false
+      - key: BACKUP_DIR
+        sync: false
+
+      # ---- optional CRM sync (lib/hubspot.js) ----
+      - key: HUBSPOT_ACCESS_TOKEN
+        sync: false

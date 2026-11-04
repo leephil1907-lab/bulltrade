@@ -9,6 +9,8 @@
     "test": "node tests/run.js",
     "test:e2e": "node tests/e2e.js",
     "test:links": "node tests/links.js",
+    "test:hardening": "node tests/hardening.js",
+    "test:persistence": "node tests/persistence.js",
     "test:bots": "node tests/bots-smoke.js"
   },
   "engines": {
