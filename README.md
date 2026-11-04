@@ -70,7 +70,9 @@ source tree is `/opt/render/project/src`. Confirm it after the first deploy at
 
 Full guide, free-tier fallback, VPS script and email setup:
 **[DEPLOYMENT.md](DEPLOYMENT.md)** · production checklist and architecture
-boundary: **[PRODUCTION_READINESS.md](PRODUCTION_READINESS.md)**
+boundary: **[PRODUCTION_READINESS.md](PRODUCTION_READINESS.md)** · PostgreSQL
+migration status and cutover plan:
+**[docs/POSTGRES_MIGRATION.md](docs/POSTGRES_MIGRATION.md)**
 
 ## Performance notes
 

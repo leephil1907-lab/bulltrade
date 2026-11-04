@@ -11,6 +11,10 @@
     "test:links": "node tests/links.js",
     "test:hardening": "node tests/hardening.js",
     "test:persistence": "node tests/persistence.js",
+    "test:pg": "node tests/pg.js",
+    "migrate:pg": "node tools/pg-migrate.js",
+    "migrate:pg:dry": "node tools/pg-migrate.js --dry-run",
+    "parity:pg": "node tools/pg-parity.js",
     "test:bots": "node tests/bots-smoke.js"
   },
   "engines": {
@@ -19,5 +23,8 @@
   "license": "UNLICENSED",
   "dependencies": {
     "web-push": "^3.6.7"
+  },
+  "optionalDependencies": {
+    "pg": "^8.23.1"
   }
 }

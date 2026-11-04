@@ -1531,10 +1531,40 @@ api['POST /api/admin/user-action'] = async (req, res, body, cookies) => {
     case 'delete': {
       if (body.confirm !== u.email) return fail(res, 400, 'Type the user\'s exact email to confirm deletion.');
       const uid2 = u.id;
+      // Capture this user's conversation ids BEFORE chats are filtered away, so
+      // their messages can be removed by convId (messages carry no userId).
+      const deadChatIds = (D.db().chats || []).filter(c => c.userId === uid2).map(c => c.id);
       D.db().users = D.db().users.filter(x => x.id !== uid2);
       D.db().sessions = D.db().sessions.filter(x => x.userId !== uid2);
-      for (const coll of ['wallets','kyc','positions','orders','trades','transactions','community_apps','alerts','logins','emails','bot_requests','copy_allocations','resets','chats','messages']) {
+      // Everything owned by this user. `ledger` and `push_subs` were missing
+      // from this list: deleting a user left their append-only money journal
+      // rows behind, pointing at an account that no longer exists (and left
+      // their web-push subscription in the broadcast list). The orphaned ledger
+      // rows also break the invariant that every journal entry belongs to a
+      // real account, which is what GET /api/admin/ledger reconciles against —
+      // and they violate the ledger.user_id foreign key once Postgres is
+      // authoritative (see docs/POSTGRES_MIGRATION.md).
+      //
+      // Known gap, deliberately NOT handled here: `copy_leaders`. If the deleted
+      // user was an approved copy-trading leader, their leader record survives,
+      // so the public leader list keeps advertising a deleted account and
+      // followers' allocations keep their equity locked against a leader who can
+      // never trade again. The correct fix is to stopCopy() every follower
+      // allocation first (which settles mirrored positions and refunds equity)
+      // and then remove the leader record — but that moves other users' money,
+      // so it needs an explicit product decision rather than being slipped into
+      // a delete handler. tools/pg-migrate.js reports these as orphans.
+      for (const coll of ['wallets','ledger','kyc','positions','orders','trades','transactions','community_apps','alerts','logins','emails','bot_requests','copy_allocations','push_subs','resets','chats','messages']) {
         if (D.db()[coll]) D.db()[coll] = D.db()[coll].filter(x => x.userId !== uid2);
+      }
+      // `messages` has no userId — it hangs off the conversation, so the filter
+      // above is a silent no-op for it and a deleted user's chat messages were
+      // left behind pointing at conversations that no longer exist. Remove them
+      // by conversation id instead. (Postgres handles this with
+      // messages.conv_id ON DELETE CASCADE; the JSON store has no cascade.)
+      const deadConvs = new Set(deadChatIds);
+      if (deadConvs.size && D.db().messages) {
+        D.db().messages = D.db().messages.filter(m => !deadConvs.has(m.convId));
       }
       D.logAudit(admin.id, 'user.delete', uid2, u.email);
       D.save();

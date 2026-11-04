@@ -28,6 +28,12 @@
 #   total             ~$7.25/mo
 #   Upgrade to `plan: standard` ($25/mo, 1 CPU, 2 GB) if traffic grows.
 #
+#   OPTIONAL, not enabled below:
+#   Postgres basic-256mb  $6.00/mo  -> ~$13.25/mo total
+#   See the "POSTGRES" section at the bottom of this file. It is deliberately
+#   commented out: the app does not read or write the database yet (Phase 1),
+#   so enabling it would bill $6/mo for an unused service.
+#
 # ---------------------------------------------------------------------------
 # IMPORTANT — things that change once a disk is attached (Render platform
 # rules, not app limitations):
@@ -212,3 +218,62 @@ services:
       # ---- optional CRM sync (lib/hubspot.js) ----
       - key: HUBSPOT_ACCESS_TOKEN
         sync: false
+
+      # ---- Postgres (PHASE 1: provisioned but NOT used by the app) ----
+      # Uncomment ONLY together with the `databases:` block at the bottom of
+      # this file. Until the write path is flipped (Phase 2, see
+      # docs/POSTGRES_MIGRATION.md) the app completely ignores DATABASE_URL:
+      # nothing in server.js or lib/*.js opens a connection, so setting it
+      # cannot change runtime behaviour. It is only read by the migration
+      # tooling in tools/ and by lib/pg.js.
+      #
+      # `fromDatabase` makes Render inject the private connection string and
+      # rotate it automatically if the database is recreated — never paste a
+      # literal URL here.
+      # - key: DATABASE_URL
+      #   fromDatabase:
+      #     name: bb-db
+      #     property: connectionString
+
+# ============================================================================
+# POSTGRES — Phase 1 of the migration (schema + tooling, zero runtime change)
+# ============================================================================
+#
+# The app still stores everything in data/db.json on the persistent disk. This
+# block only provisions the database so the migration tooling has somewhere to
+# run; the JSON store stays authoritative until Phase 2 deliberately flips the
+# write path. Read docs/POSTGRES_MIGRATION.md before enabling it.
+#
+# WHY IT IS COMMENTED OUT: Render creates the database as soon as the blueprint
+# syncs, and Postgres bills from that moment. Until the app actually reads and
+# writes it, that is $6/mo for nothing. Uncomment both blocks together when you
+# want to run the backfill against a real Render database.
+#
+# TO ENABLE (two edits, then "Apply" in the dashboard):
+#   1. uncomment the DATABASE_URL envVar above
+#   2. uncomment this block
+#
+# TO MIGRATE AN EXISTING DEPLOYMENT (after enabling):
+#   # one-off, from a machine that can reach the database. Render exposes the
+#   # external connection string only if you tick "allow public access"; the
+#   # internal URL below works only from inside Render's private network.
+#   node tools/pg-migrate.js --data-dir=/var/data --dry-run   # pre-flight only
+#   node tools/pg-migrate.js --data-dir=/var/data             # single txn + verify
+#   node tools/pg-parity.js  --data-dir=/var/data             # re-check anytime
+#
+# CAUTION — `plan: free` EXPIRES AFTER 30 DAYS and Render deletes the data.
+# Never use it for anything that matters. basic-256mb is the cheapest plan that
+# persists ($6/mo). The `postgresMajorVersion` pin matters: the schema uses
+# generated columns, so PostgreSQL 12+ is required (tested on 17).
+#
+# REGION: a database must be in the SAME region as the service that talks to it,
+# or every query pays a cross-region round trip. If you uncomment
+# `region: frankfurt` on the service above, uncomment it here too.
+#
+# databases:
+#   - name: bb-db                    # referenced by the DATABASE_URL envVar
+#     databaseName: bulltrade
+#     user: bulltrade
+#     plan: basic-256mb              # $6/mo — the cheapest PERSISTENT plan
+#     postgresMajorVersion: "17"
+#     # region: frankfurt            # must match the service region

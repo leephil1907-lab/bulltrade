@@ -138,6 +138,22 @@ function runSuite(script, env) {
   console.log('\n### persistence suite ###');
   if (await runSuite('persistence.js', {})) failed++;
 
+  // Postgres migration suite. Skipped entirely when DATABASE_URL is unset, so
+  // a laptop or CI box without a database still gets a green `npm test`.
+  //
+  // When DATABASE_URL IS set, tests/pg.js TRUNCATEs its target and first checks
+  // that the database name looks disposable (test/tmp/scratch/dev/ci). If it
+  // does not, that suite refuses and exits 1 — deliberately failing this run
+  // rather than quietly wiping something that might matter. Override with
+  // PG_TEST_FORCE=1 only when you are certain the target is throwaway.
+  console.log('\n### postgres suite ###');
+  if (!process.env.DATABASE_URL) {
+    console.log('== postgres suite SKIPPED (DATABASE_URL not set) ==');
+    console.log('   To run it: DATABASE_URL=postgres://user:pw@host:5432/bulltrade_test npm run test:pg');
+  } else if (await runSuite('pg.js', {})) {
+    failed++;
+  }
+
   cleanup();
 
   console.log('\n' + (failed === 0

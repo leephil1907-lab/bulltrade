@@ -69,6 +69,17 @@ This phase focuses on product integrity rather than visual effects.
 
 ## Current architecture boundary
 
+> **Update:** Phase 1 of the PostgreSQL migration is complete — the full schema,
+> migration runner, backfill tooling, parity verifier and a 61-assertion
+> integration suite all exist and are verified against PostgreSQL 17.
+> **The app still runs entirely on `data/db.json`.** No runtime module imports
+> `lib/pg.js`, so nothing below has changed yet. The write path is deliberately
+> untouched: with ~195 data-layer call sites across 8 files on an application
+> that moves money, that flip is a shadow-write project in its own right, not a
+> single commit. See [`docs/POSTGRES_MIGRATION.md`](docs/POSTGRES_MIGRATION.md)
+> for what was built, what was measured, the bugs it surfaced, and the sequenced
+> cutover plan.
+
 **Durability is now solved at the infrastructure level; transactional integrity
 is not.**
 
@@ -103,9 +114,11 @@ For a real-money production launch, the next persistence migration should move:
 9. audit events
 
 to PostgreSQL with database transactions and unique/idempotency constraints.
-Render Postgres from $6/mo (`basic-256mb`) is the natural next step, and adding
-it to the blueprint is a `databases:` block plus a `fromDatabase` env var — no
-change to how the service itself is defined. Uploaded KYC files would stay on the
+Render Postgres from $6/mo (`basic-256mb`) is the natural next step. That block
+plus its `fromDatabase` env var are **already written into `render.yaml`,
+commented out** — Render provisions a database the moment the blueprint syncs and
+bills from that instant, so it stays disabled until the app actually reads and
+writes it. Uncomment both together to enable. Uploaded KYC files would stay on the
 disk (or move to object storage) with only their metadata in Postgres.
 
 The current implementation deliberately preserves the existing application architecture while making cash mutations journaled and auditable.
