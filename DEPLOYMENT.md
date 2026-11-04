@@ -158,6 +158,8 @@ reference for other hosts (and for the VPS script in `deploy/vps-setup.sh`).
 | `STATIC_CACHE_MB` | no | In-memory static-asset cache budget (default 64). All 257 assets total ~21 MB, so the default holds the whole site |
 | `BACKUP_REPO` / `BACKUP_TOKEN` | **optional now** | `owner/name` of a **private** GitHub repo + a PAT with repo scope. Off-site mirror of `data/`. No longer required once a disk is attached |
 | `BACKUP_BRANCH` / `BACKUP_DIR` | no | Sync branch (`main`) / path prefix (`data`) |
+| `ALLOW_EMPTY_BOOT` | no | `1` boots even when a configured backup could not be restored. **Only for a genuine first deploy** — the backup sync is disabled for that process so it cannot overwrite anything |
+| `RESTORE_ATTEMPTS` | no | Restore retries before the boot-integrity guard gives up (default 3, 2s/4s backoff) |
 | `HUBSPOT_ACCESS_TOKEN` | no | Enables optional CRM contact/ticket sync (`lib/hubspot.js`) |
 | `NODE_VERSION` | Render only | Pins the Node runtime so builds stay reproducible (`render.yaml` sets 20.20.2) |
 
@@ -175,6 +177,35 @@ the Smartsupp key, and set the contest prize.
 **If you enable the optional GitHub mirror:** one backup repo per instance (two
 instances sharing a repo will fight), and never make that repo public — it
 contains user data and password hashes.
+
+### Boot-integrity guard — read this if you enable the mirror
+
+When `BACKUP_REPO` is set and the data directory has no intact `db.json`, the app
+restores from GitHub before serving. **If that restore fails, the app now refuses
+to boot and exits non-zero.** Render restarts the container and the restore is
+retried.
+
+This is deliberate, and the alternative is worse. Previously a failed restore fell
+through to seeding a fresh demo database, the app came up looking perfectly
+healthy, and ten minutes later the backup sync `PUT` that empty `db.json` over the
+real one — destroying every user, wallet and ledger entry permanently, with the
+site serving traffic the whole time so nothing looked wrong.
+
+The guard distinguishes the two cases that both used to look identical:
+
+| Situation | Result |
+|---|---|
+| Backup repo/branch reachable and genuinely empty | Boots and seeds — a real first deploy |
+| Repo reachable, branch has no commits yet | Boots and seeds |
+| Token invalid or expired (401/403) | **Refuses to boot** |
+| `api.github.com` unreachable | **Refuses to boot** |
+| Repo not found with the given credentials | **Refuses to boot** |
+| Files restored but `db.json` among the failures | **Refuses to boot** |
+
+A refused boot is loud: the log prints `✖ REFUSING TO START ON AN EMPTY DATABASE`
+with the underlying reason and the variables to check. If you are certain there is
+nothing to lose, set `ALLOW_EMPTY_BOOT=1` to start anyway — that also disables the
+mirror for the process, so it still cannot overwrite your backup.
 
 ## Health check
 

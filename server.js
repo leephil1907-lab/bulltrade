@@ -1057,13 +1057,35 @@ api['POST /api/community/apply'] = async (req, res, body, cookies) => {
 // ---- copy trading ----
 api['GET /api/copy/leaders'] = async (req, res, body, cookies) => {
   const user = requireUser(req, res, cookies, true);
+  // Resolve the bots' traded universe to symbols once per request rather than
+  // per leader. Asset ids like "cg-bitcoin" mean nothing to a reader; the card
+  // shows BTC / ETH / SOL chips instead.
+  const snap = markets.snapshot().assets || [];
+  const byAssetId = new Map(snap.map(a => [a.id, a]));
   const leaders = D.filter('copy_leaders', l => l.status !== 'pending').map(l => {
     const u = D.find('users', x => x.id === l.userId);
+    const p = l.params || {};
     return {
       id: l.id, userId: l.userId, status: l.status, title: l.title, style: l.style, description: l.description,
       name: u ? u.name : 'Unknown', avatarColor: u ? (u.avatarColor || '#d3a877') : '#d3a877',
       emoji: l.emoji || '\u{1F916}', avatar: l.avatar || '', bot: !!l.bot, minBalance: l.minBalance || 0, risk: l.risk || '',
-      joinedAt: u ? u.joinedAt : 0, stats: trading.leaderStats(l)
+      joinedAt: u ? u.joinedAt : 0, stats: trading.leaderStats(l),
+      // Strategy rules — the part of a bot that is a fact rather than a result.
+      // Exposed so the card can lead with what the bot actually does.
+      strategy: {
+        leverage: Number(p.lev) || null,
+        takeProfitPct: p.tpPct != null ? Number(p.tpPct) : null,
+        stopLossPct: p.slPct != null ? Number(p.slPct) : null,
+        positionSizePct: p.sizePct != null ? Number(p.sizePct) : null,
+        maxPositions: Number(p.maxPos) || null,
+        // Minimum 24h move before the bot will act; below it the market is too
+        // quiet for this strategy.
+        momentumTriggerPct: p.momo != null ? Number(p.momo) : null,
+        universe: (l.universe || []).map(id => {
+          const a = byAssetId.get(id);
+          return a ? { id, symbol: a.symbol, name: a.name } : { id, symbol: String(id).replace(/^cg-/, '').toUpperCase(), name: '' };
+        })
+      }
     };
   }).sort((a, b) => (a.minBalance || 0) - (b.minBalance || 0));
   const out = { leaders, minCopy: trading.MIN_COPY };
@@ -1178,7 +1200,23 @@ api['POST /api/bots/activate'] = async (req, res, body, cookies) => {
 api['GET /api/bots/activity'] = async (req, res) => {
   const leaders = D.filter('copy_leaders', l => l.bot);
   const byUser = new Map(leaders.map(l => [l.userId, l]));
-  const activity = D.filter('trades', t => byUser.has(t.userId) && !t.copyOf)
+  // Only real LIVE executions are reported. Two filters, both necessary:
+  //
+  //   !t.seeded  — lib/db.js writes the platform bots a demo back-catalogue so a
+  //                fresh install is not empty. That data was never a record of
+  //                anything a bot actually did.
+  //   mode=live  — trading.js leaderBot() runs inside tick() every ~90s and keeps
+  //                the seeded showcase leaders trading their DEMO books (it even
+  //                tops their demo wallet back up to $10,000). Those trades are
+  //                genuine engine executions but on virtual money, so they are
+  //                not "activity" a visitor should be shown as track record.
+  //
+  // On a new deployment this is legitimately an empty list. That is the honest
+  // answer, and it is why the bots page no longer renders a ticker at all — it
+  // now leads with each bot's published strategy rules and shows performance
+  // only once stats.hasLiveTrack is true (see lib/trading.js leaderStats()).
+  const activity = D.filter('trades', t =>
+      byUser.has(t.userId) && !t.copyOf && !t.seeded && t.mode === 'live')
     .slice(-40).reverse()
     .map(t => {
       const l = byUser.get(t.userId);
@@ -2068,7 +2106,18 @@ const server = http.createServer(async (req, res) => {
 (async () => {
   // restore data/ from the GitHub backup first (ephemeral hosts), then serve
   await D.init();
-  Backup.start();
+  // Gate the backup sync on a verified boot. If the database could not be
+  // restored and we only got this far because ALLOW_EMPTY_BOOT=1 was set, the
+  // sync must stay OFF: pushing an empty db.json would overwrite the good
+  // backup. D.init() exits the process outright in that situation unless the
+  // override is present, so this is the last line of defence.
+  if (D.verified()) {
+    Backup.start();
+  } else {
+    console.error('[backup] ⚠️  sync DISABLED for this process — the database was not restored from');
+    console.error('[backup] ⚠️  backup, so pushing it would overwrite your real data. Fix the');
+    console.error('[backup] ⚠️  restore (BACKUP_TOKEN / BACKUP_REPO / BACKUP_BRANCH) and restart.');
+  }
   markets.start().catch(() => {});
   bots.start();
   server.listen(PORT, HOST, () => {
@@ -2077,11 +2126,49 @@ const server = http.createServer(async (req, res) => {
   });
 })().catch(e => { console.error('Boot failed:', e); process.exit(1); });
 
-function shutdown(signal) {
-  console.log('[server] ' + signal + ' received — flushing database');
-  try { D.flush(); } catch (e) { console.error('[server] flush failed:', e.message); }
-  server.close(() => process.exit(0));
-  setTimeout(() => process.exit(0), 5000).unref();
+// Graceful shutdown, in the order that actually preserves data:
+//   1. stop accepting new connections and let in-flight ones drain (capped)
+//   2. flush db.json to DATA_DIR synchronously — the authoritative store
+//   3. await the off-site GitHub mirror push, if backup is enabled
+//   4. only then exit
+//
+// Step 3 must be awaited. Previously server.close()'s callback called
+// process.exit(0) as soon as connections drained, which could land in the middle
+// of the backup push and leave the mirror stale. On a container with no
+// persistent disk that mirror is the only durable copy, so the race mattered.
+async function shutdown(signal) {
+  if (shutdown.started) return;
+  shutdown.started = true;
+  console.log('[server] ' + signal + ' received — shutting down gracefully');
+
+  const DRAIN_MS = 5000;
+  await Promise.race([
+    new Promise(r => server.close(r)),
+    new Promise(r => setTimeout(r, DRAIN_MS))
+  ]);
+
+  // Logged on success, not just on failure: this is the line that proves the
+  // authoritative store reached DATA_DIR before the process went away, which is
+  // what tests/persistence.js asserts across a simulated deploy handover.
+  try { D.flush(); console.log('[server] database flushed to disk'); }
+  catch (e) { console.error('[server] flush failed:', e.message); }
+
+  if (Backup.enabled && D.verified()) {
+    // Capped: if GitHub is unreachable we must still exit, or the platform has
+    // to SIGKILL us. db.json is already safely on DATA_DIR from the flush above,
+    // so a missed mirror push costs freshness, not data.
+    const PUSH_MS = 8000;
+    try {
+      const pushed = await Promise.race([
+        Backup.flushNow().then(() => true),
+        new Promise(r => setTimeout(() => r(false), PUSH_MS))
+      ]);
+      console.log(pushed ? '[backup] final data state pushed'
+                         : '[backup] final push timed out after ' + PUSH_MS + 'ms — local db.json is flushed, mirror may be stale');
+    } catch (e) { console.error('[backup] final flush failed:', e.message); }
+  }
+  process.exit(0);
 }
+shutdown.started = false;
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));

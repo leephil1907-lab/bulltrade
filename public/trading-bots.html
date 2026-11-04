@@ -23,7 +23,7 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <link href="/assets/css/fonts.css?v=2" rel="stylesheet"/>
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
-<link href="/assets/css/main.css?v=31" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=32" rel="stylesheet"/>
 <script>document.documentElement.classList.add('js')</script>
   <meta name="robots" content="index, follow, max-image-preview:large"/>
   <link rel="canonical" href="__SITE_URL__/trading-bots"/>
@@ -62,23 +62,16 @@
 </div>
 <div class="flex-between mb-2">
 <h2 style="font-size:22px"><i class="fas fa-trophy" style="color:var(--gold)"></i><span data-i18n="tbo.s10">Meet the Bots</span></h2>
-<span class="muted small" data-i18n="tbo.s11">Stats computed live from each bot's actual platform trades</span>
+<span class="muted small" data-i18n="tbo.s11">Every bot's rules, risk limits and traded markets — published in full</span>
 </div>
 <div class="alert alert-error" id="botsKycLock" style="display:none"><i class="fas fa-lock"></i><span data-i18n-html="tbo.h25"> Trading bots require <a href="/kyc">KYC verification</a> — verify once to unlock bots, live trading, deposits and withdrawals.</span></div>
 <div id="botList">
 <div class="card"><span class="skeleton" style="width:100%;height:120px"></span></div>
 <div class="card mt-2"><span class="skeleton" style="width:100%;height:120px"></span></div>
 </div>
-<div class="card mt-3" id="botActivityCard">
-<div class="flex-between mb-2" style="flex-wrap:wrap;gap:8px">
-<h2 style="font-size:20px"><i class="fas fa-satellite-dish" style="color:var(--gold)"></i><span data-i18n="tbo.s12">Live Bot Activity</span></h2>
-<span class="muted small" id="botActCount"></span>
-</div>
-<div id="botActivity"><span class="skeleton" style="width:100%;height:150px"></span></div>
-</div>
 <div class="card mt-3" style="background:var(--red-dim);border-color:rgba(255,82,104,.25)">
 <h3><i class="fas fa-triangle-exclamation" style="color:var(--red)"></i><span data-i18n="tbo.s13">Risk notice</span></h3>
-<p class="muted mt-1" data-i18n="tbo.s14" style="font-size:13.5px">Trading bots are automated strategy tools — not financial advice and not a guarantee of profit. Bot performance shown is from platform demo trading; live results vary with market conditions. You can stop any bot at any time. Never allocate funds you cannot afford to have at risk.</p>
+<p class="muted mt-1" data-i18n="tbo.s14" style="font-size:13.5px">Trading bots are automated strategy tools — not financial advice and not a guarantee of profit. Each bot's rules and risk limits are published above. Performance figures appear only once a bot has a verified live track record, and past results never guarantee future returns. You can stop any bot at any time — its positions close and your funds return to your wallet. Never allocate funds you cannot afford to have at risk.</p>
 </div>
 </div>
 </section>
@@ -92,26 +85,13 @@
     document.addEventListener('bb:ready', () => {
       if (BB.user && BB.user.kycStatus !== 'approved') $('#botsKycLock').style.display = 'block';
       refresh(); setInterval(refresh, 20000);
-      loadActivity(); setInterval(loadActivity, 20000);
     });
 
-    async function loadActivity() {
-      const r = await BB.api('/api/bots/activity', { silent: true });
-      if (!r.activity) return;
-      $('#botActCount').textContent = r.activity.length + ' recent bot trades';
-      $('#botActivity').innerHTML = r.activity.slice(0, 12).map(t => {
-        const av = t.avatar
-          ? `<img src="${t.avatar}" alt="" style="width:30px;height:30px;border-radius:9px;object-fit:cover;flex:0 0 auto">`
-          : `<span class="ba-emoji">${t.emoji}</span>`;
-        const opened = t.action === 'open';
-        const pnlTxt = !opened ? ` <b class="num ${t.pnl >= 0 ? 'up' : 'down'}">${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}</b>` : '';
-        return `<div class="bot-act">
-          ${av}
-          <div class="ba-txt"><b class="font-head">${BB.esc(t.botName)}</b> ${opened ? 'opened' : (t.reason === 'tp' ? 'took profit on' : t.reason === 'sl' ? 'stopped out on' : 'closed')} <span class="badge ${t.side === 'buy' ? 'badge-green' : 'badge-red'}" style="font-size:10px;padding:2px 7px">${t.side === 'buy' ? 'LONG' : 'SHORT'}</span> <b>${BB.esc(t.symbol)}</b> <span class="num">$${(t.notional || 0).toLocaleString()}</span> <span class="muted small">· ${t.mode}</span>${pnlTxt}</div>
-          <span class="muted small" style="white-space:nowrap">${BB.timeAgo(t.at)}</span>
-        </div>`;
-      }).join('') || '<div class="empty-state"><i class="fas fa-satellite-dish"></i>Bots are scanning the markets — trades will appear here.</div>';
-    }
+    // The "Live Bot Activity" ticker was removed. It listed each trade tagged
+    // "· demo", sourced almost entirely from the seeded showcase history in
+    // lib/db.js, which made the whole platform read as a demo environment. The
+    // cards below now lead with each bot's strategy rules, and show performance
+    // numbers only once a bot has a real (non-seeded) live track record.
 
     async function refresh() {
       const r = await BB.api('/api/copy/leaders', { silent: true });
@@ -136,7 +116,7 @@
 
     function renderBots() {
       $('#botList').innerHTML = bots.map(b => {
-        const s = b.stats, d = s.demo;
+        const s = b.stats, g = b.strategy || {};
         const st = botState(b);
         let btn = '';
         if (st.key === 'active') btn = `<span class="badge badge-green" style="margin-bottom:8px">🛠️ MANAGING YOUR ALLOCATION</span><br><button class="btn btn-danger btn-sm mt-1" data-stopbot="${b.id}"><i class="fas fa-stop"></i> Stop Bot</button>`;
@@ -148,8 +128,47 @@
         else btn = `<button class="btn btn-primary btn-sm mt-1" data-request="${b.id}"><i class="fas fa-key"></i> Request Connection Key</button>`;
         const riskBadge = b.risk === 'Low' ? 'badge-green' : b.risk === 'High' ? 'badge-red' : 'badge-gold';
         const av = b.avatar
-          ? `<img src="${b.avatar}" alt="${BB.esc(b.name)} avatar" style="width:58px;height:58px;border-radius:14px;object-fit:cover;border:2px solid ${b.avatarColor};background:#fff">`
-          : `<div class="avatar-lg" style="background:${b.avatarColor};font-size:26px;display:flex;align-items:center;justify-content:center">${b.emoji || '🤖'}</div>`;
+          ? `<img class="avatar-lg" src="${BB.esc(b.avatar)}" alt="${BB.esc(b.name)} avatar" style="object-fit:cover;border:2px solid ${BB.esc(b.avatarColor)};background:#fff">`
+          : `<div class="avatar-lg" style="background:${BB.esc(b.avatarColor)};font-size:26px">${b.emoji || '🤖'}</div>`;
+
+        // --- strategy rules: what the bot actually does. These are facts about
+        // the configuration, not results, so they are always safe to show. ---
+        const pct = (v, sign) => v == null ? null : (sign && v > 0 ? '+' : '') + v + '%';
+        const facts = [
+          { k: 'tbo.stratLeverage', icon: 'fa-scale-unbalanced', v: g.leverage != null ? g.leverage + '×' : null },
+          { k: 'tbo.stratTp',       icon: 'fa-bullseye',         v: pct(g.takeProfitPct, true) },
+          { k: 'tbo.stratSl',       icon: 'fa-shield-halved',    v: pct(g.stopLossPct, true) },
+          { k: 'tbo.stratSize',     icon: 'fa-layer-group',      v: pct(g.positionSizePct) },
+          { k: 'tbo.stratMaxPos',   icon: 'fa-table-cells',      v: g.maxPositions != null ? String(g.maxPositions) : null },
+          { k: 'tbo.stratTrigger',  icon: 'fa-wave-square',      v: pct(g.momentumTriggerPct) }
+        ].filter(f => f.v != null);
+        const strategy = facts.length ? `<div class="bot-strategy">${facts.map(f =>
+          `<div class="bot-sfact"><small><i class="fas ${f.icon}"></i> ${BB.t(f.k)}</small><b>${BB.esc(f.v)}</b></div>`).join('')}</div>` : '';
+
+        // --- traded universe, as readable symbols ---
+        const uni = g.universe || [];
+        const universe = uni.length ? `<div class="bot-universe"><small>${BB.t('tbo.universe')}</small>${
+          uni.slice(0, 8).map(a => `<span class="bot-chip" title="${BB.esc(a.name || a.symbol)}">${BB.esc(a.symbol)}</span>`).join('')
+        }${uni.length > 8 ? `<span class="bot-chip more">+${uni.length - 8}</span>` : ''}</div>` : '';
+
+        // --- performance: ONLY when the bot has a real, non-seeded live record.
+        // Showing simulated returns as though they were trading results would be
+        // misleading on a platform that holds real deposits, so an empty record
+        // renders as an honest placeholder instead of a row of dashes. ---
+        const followers = `<span class="pill badge badge-gold" style="font-size:12px"><i class="fas fa-users"></i> ${BB.t('tbo.followers')}: <b style="margin-left:4px">${(s.followers != null ? s.followers : s.copiers).toLocaleString()}</b></span>`;
+        const perf = s.hasLiveTrack
+          ? `<div class="bot-perf">
+               <div class="bp-head"><i class="fas fa-circle-check"></i> ${BB.t('tbo.perfHead')}<span class="muted" style="font-weight:400;text-transform:none;letter-spacing:0">· ${BB.timeAgo(s.real.lastAt)}</span></div>
+               <div class="leader-stats">
+                 <div class="lstat"><small>${BB.t('tbo.perfRoi')}</small><b class="${(s.real.roi || 0) >= 0 ? 'up' : 'down'}">${s.real.roi != null ? (s.real.roi >= 0 ? '+' : '') + s.real.roi.toFixed(1) + '%' : '—'}</b></div>
+                 <div class="lstat"><small>${BB.t('tbo.perfWin')}</small><b>${s.real.winRate != null ? s.real.winRate.toFixed(1) + '%' : '—'}</b></div>
+                 <div class="lstat"><small>${BB.t('tbo.perfTrades')}</small><b>${s.real.trades}</b></div>
+                 <div class="lstat"><small>${BB.t('tbo.perfVol')}</small><b>$${(s.real.volume || 0).toLocaleString()}</b></div>
+               </div>
+               <div style="text-align:center;margin-top:10px">${BB.sparkline(s.real.series, 132, 38)}</div>
+             </div>`
+          : `<div class="bot-notrack"><i class="fas fa-seedling"></i>${BB.t('tbo.noTrack')}</div>`;
+
         return `<div class="card card-hover leader-card mb-2 reveal visible">
           <div class="leader-id">
             ${av}
@@ -160,18 +179,17 @@
               </div>
               <div class="muted small" style="margin:3px 0 6px">${BB.esc(b.title)} · <span style="color:var(--gold)">${BB.esc(b.style)}</span></div>
               <p class="muted" style="font-size:12.5px;line-height:1.5">${BB.esc(b.description)}</p>
-              <div class="mt-1"><span class="pill badge badge-blue" style="font-size:12px"><i class="fas fa-wallet"></i> Min portfolio balance: $${b.minBalance.toLocaleString()}</span></div>
+              <div class="mt-1" style="display:flex;flex-wrap:wrap;gap:6px">
+                <span class="pill badge badge-blue" style="font-size:12px"><i class="fas fa-wallet"></i> ${BB.t('tbo.minBal')}: $${b.minBalance.toLocaleString()}</span>
+                ${followers}
+              </div>
             </div>
           </div>
-          <div class="leader-stats">
-            <div class="lstat"><small>Demo ROI</small><b class="${(d.roi || 0) >= 0 ? 'up' : 'down'}">${d.roi != null ? (d.roi >= 0 ? '+' : '') + d.roi.toFixed(1) + '%' : '—'}</b></div>
-            <div class="lstat"><small>Win rate</small><b>${d.winRate != null ? d.winRate.toFixed(1) + '%' : '—'}</b></div>
-            <div class="lstat"><small>Trades</small><b>${d.trades}</b></div>
-            <div class="lstat"><small>Followers</small><b>${(s.followers != null ? s.followers : s.copiers).toLocaleString()}</b></div>
-          </div>
+          ${strategy}
+          ${universe}
+          ${perf}
           <div style="text-align:center">
-            ${BB.sparkline(d.series, 120, 36)}
-            <div style="margin-top:8px">${btn.replace('<br>', '</div><div style="margin-top:8px">')}</div>
+            <div>${btn.replace('<br>', '</div><div style="margin-top:8px">')}</div>
           </div>
         </div>`;
       }).join('') || '<div class="card empty-state">No bots available yet — check back soon.</div>';

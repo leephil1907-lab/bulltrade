@@ -879,11 +879,76 @@ html { scroll-behavior: smooth; background: #f8f1e0; }
 .coin-stats b { font-size: 15px; font-family: var(--font-head); }
 .coin-chart { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; }
 
-/* ============ Bot activity feed ============ */
-.bot-act { display: flex; align-items: center; gap: 11px; padding: 10px 2px; border-bottom: 1px dashed var(--line); }
-.bot-act:last-child { border-bottom: none; }
-.ba-emoji { width: 32px; height: 32px; border-radius: 9px; background: var(--bg-soft); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 17px; flex: 0 0 auto; }
-.ba-txt { flex: 1; font-size: 13.5px; line-height: 1.55; }
+/* ============ Trading bot cards ============
+   These classes were referenced by public/trading-bots.html but never defined
+   anywhere, so the whole card interior rendered unstyled: the avatar had no
+   dimensions, and the stat row collapsed into a run-together line of text.
+   Defined here properly. Layout is strategy-first — the bot's rules are the
+   product, and live performance only appears once a bot has a real track
+   record to show (see .bot-perf). */
+.leader-card { padding: 20px; }
+.leader-id { display: flex; align-items: flex-start; gap: 14px; }
+.avatar-lg {
+  width: 58px; height: 58px; border-radius: 14px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); box-shadow: 0 2px 10px rgba(63,20,12,.10);
+}
+.leader-id > div:last-child { flex: 1; min-width: 0; }
+
+/* --- strategy rules --- */
+.bot-strategy {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+  margin: 16px 0 12px; background: var(--line);
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+}
+.bot-sfact { background: var(--bg-soft); padding: 10px 12px; text-align: center; }
+.bot-sfact small {
+  display: block; font-family: var(--font-head); font-size: 9.5px; letter-spacing: .9px;
+  color: var(--ink-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 3px;
+}
+.bot-sfact b { font-size: 15px; font-family: var(--font-head); line-height: 1.2; }
+@media (max-width: 560px) { .bot-strategy { grid-template-columns: repeat(2, 1fr); } }
+
+/* --- traded universe --- */
+.bot-universe { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
+.bot-universe > small {
+  font-family: var(--font-head); font-size: 9.5px; letter-spacing: .9px;
+  color: var(--ink-dim); font-weight: 700; text-transform: uppercase; margin-right: 2px;
+}
+.bot-chip {
+  font-family: var(--font-head); font-size: 11px; font-weight: 700; letter-spacing: .4px;
+  padding: 3px 9px; border-radius: 999px; background: #fff;
+  border: 1px solid var(--line); color: var(--ink); white-space: nowrap;
+}
+.bot-chip.more { color: var(--ink-dim); font-weight: 600; }
+
+/* --- live performance: only rendered when there is a real track record --- */
+.bot-perf {
+  border: 1px solid rgba(0,182,122,.28); background: rgba(0,182,122,.05);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 12px;
+}
+.bot-perf > .bp-head {
+  font-family: var(--font-head); font-size: 9.5px; letter-spacing: 1px; font-weight: 700;
+  text-transform: uppercase; color: var(--green-deep, #00875a); margin-bottom: 9px;
+  display: flex; align-items: center; gap: 6px;
+}
+.leader-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.lstat { text-align: center; min-width: 0; }
+.lstat small {
+  display: block; font-family: var(--font-head); font-size: 9.5px; letter-spacing: .8px;
+  color: var(--ink-dim); font-weight: 700; text-transform: uppercase; margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lstat b { font-size: 16px; font-family: var(--font-head); }
+@media (max-width: 560px) { .leader-stats { grid-template-columns: repeat(2, 1fr); gap: 12px 8px; } }
+
+/* No track record yet — honest placeholder instead of a row of dashes. */
+.bot-notrack {
+  border: 1px dashed var(--line); border-radius: 12px; padding: 13px 14px;
+  margin-bottom: 12px; font-size: 12.5px; line-height: 1.55; color: var(--ink-dim);
+  text-align: center;
+}
+.bot-notrack i { color: var(--gold); margin-right: 5px; }
 
 /* ============ PWA install banner ============ */
 #bbInstallBanner {

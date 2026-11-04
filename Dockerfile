@@ -39,6 +39,13 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json server.js ./
 COPY lib ./lib
 COPY public ./public
+# Migration tooling and SQL. Not imported by the runtime (Phase 1 keeps the JSON
+# store authoritative), but they must be IN the image: on a container deploy the
+# only way to run the Postgres backfill against the mounted data directory is
+# from a shell attached to the running instance, because the disk is not mounted
+# during build or pre-deploy. See docs/POSTGRES_MIGRATION.md.
+COPY migrations ./migrations
+COPY tools ./tools
 
 # Run as the unprivileged `node` user that ships with the base image; it needs
 # write access to the data directory (db.json, uploads/, market cache, JWT

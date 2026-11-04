@@ -204,10 +204,28 @@ if (!ADMIN_PW) { console.error('Set ADMIN_PASSWORD=<admin password> to run the e
   r = await req('GET', '/api/copy/leaders');
   ok('bots listed publicly', r.data.ok && r.data.leaders.length >= 4 && r.data.leaders.every(l => l.bot && l.minBalance > 0), r.data.leaders.length);
   const bot = r.data.leaders[0]; // sorted ascending by minBalance
-  ok('bot has stats + risk + min balance', bot.stats.demo.trades > 0 && !!bot.risk && bot.minBalance === 2500, { risk: bot.risk, min: bot.minBalance });
+  ok('bot has risk + min balance', !!bot.risk && bot.minBalance === 2500, { risk: bot.risk, min: bot.minBalance });
+  // The card is strategy-first: these rules are what the page now leads with,
+  // so they must be present and resolved to readable symbols.
+  ok('bot publishes its strategy rules', !!(bot.strategy && bot.strategy.leverage > 0
+      && bot.strategy.takeProfitPct > 0 && bot.strategy.stopLossPct > 0
+      && bot.strategy.positionSizePct > 0 && bot.strategy.maxPositions > 0), bot.strategy);
+  ok('strategy universe resolves to symbols', Array.isArray(bot.strategy.universe)
+      && bot.strategy.universe.length > 0
+      && bot.strategy.universe.every(a => a.symbol && !/^cg-/.test(a.symbol)), bot.strategy.universe);
+  // Seeded demo history must never be presented as a track record. On a fresh
+  // database no bot has executed a real live trade yet.
+  ok('seeded demo history is NOT reported as a live track record',
+      bot.stats.hasLiveTrack === false && bot.stats.real.trades === 0 && bot.stats.real.series.length === 0,
+      { hasLiveTrack: bot.stats.hasLiveTrack, real: bot.stats.real.trades });
   ok('bots sorted by min balance', bot.minBalance <= r.data.leaders[r.data.leaders.length - 1].minBalance);
   r = await req('GET', '/api/bots/activity');
-  ok('bot activity feed live', r.data.ok && r.data.activity.length >= 10 && r.data.activity[0].symbol && r.data.activity[0].botName, r.data.activity.length);
+  // Every item must be a real LIVE execution. Demo trades (including the ones
+  // trading.js leaderBot() generates continuously for showcase leaders) and the
+  // seeded back-catalogue are both excluded, so an empty list is correct here.
+  ok('bot activity feed excludes demo and seeded showcase trades',
+      r.data.ok && Array.isArray(r.data.activity) && r.data.activity.every(a => a.mode === 'live'),
+      { n: r.data.activity.length, modes: [...new Set(r.data.activity.map(a => a.mode))] });
   r = await req('POST', '/api/bots/request-key', { botId: bot.id });
   ok('key request requires login', r.status === 401);
   r = await req('POST', '/api/bots/request-key', { botId: bot.id }, userCookie);

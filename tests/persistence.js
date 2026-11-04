@@ -127,7 +127,10 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('  ✔', n); } else { fai
   console.log('\n  -- sending SIGTERM (deploy handover) --');
   await stop(s1.child);
   const logAfter = s1.log();
-  ok('SIGTERM flushed the database before exit', /flushing database/i.test(logAfter), logAfter.slice(-300));
+  // Asserts the OUTCOME (the flush completed) rather than merely that shutdown
+  // began. shutdown() now drains connections, flushes db.json, awaits the
+  // off-site backup push, then exits — in that order.
+  ok('SIGTERM flushed the database before exit', /database flushed to disk/i.test(logAfter), logAfter.slice(-400));
   ok('no flush error on shutdown', !/flush failed/i.test(logAfter), logAfter.slice(-300));
 
   // ---------------- BOOT 2 (new instance, same disk) ----------------
@@ -158,7 +161,100 @@ const ok = (n, c, x) => { if (c) { pass++; console.log('  ✔', n); } else { fai
 
   await stop(s2.child);
 
+  // ---------------------------------------------------------------------
+  // Boot-integrity guard: a failed restore must never silently seed an empty
+  // database, because the 10-minute sync would then PUT that empty db.json over
+  // the real backup and destroy it. This is the scenario the guard exists for.
+  // ---------------------------------------------------------------------
+  console.log('\n  -- boot-integrity guard (restore failure must not seed) --');
+
+  function bootOnce(dataDir, extra) {
+    return new Promise(resolve => {
+      const child = spawn(process.execPath, ['server.js'], {
+        cwd: ROOT,
+        env: { ...process.env, PORT: '0', HOST: '127.0.0.1', DATA_DIR: dataDir,
+               NODE_ENV: 'production', RATE_LIMIT: 'off',
+               ADMIN_PASSWORD: ADMIN_PW, JWT_SECRET: JWT,
+               // Credentials that cannot possibly authenticate. Whatever the
+               // failure mode — 401, 404 or no network at all — restore() must
+               // classify it as 'failed', never as 'empty'.
+               BACKUP_REPO: 'nonexistent-owner-8f2a1c/nonexistent-repo-4d7e9b',
+               BACKUP_TOKEN: 'ghp_definitely_not_a_real_token_0000000000',
+               BACKUP_BRANCH: 'main', BACKUP_DIR: 'data',
+               RESTORE_ATTEMPTS: '1',           // keep the test fast
+               SMTP_HOST: '', NOTIFY_EMAIL: 'owner@example.com',
+               SITE_URL: 'https://persist.example', ...extra },
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+      let log = '';
+      child.stdout.on('data', d => log += d);
+      child.stderr.on('data', d => log += d);
+      const killer = setTimeout(() => { try { child.kill('SIGKILL'); } catch (e) {} }, 60000);
+      child.on('exit', code => { clearTimeout(killer); resolve({ code, log }); });
+    });
+  }
+
+  const guardDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bb-guard-'));
+  const g1 = await bootOnce(guardDir, {});
+  ok('refuses to boot when the backup cannot be restored', g1.code !== 0 && g1.code !== null,
+    { code: g1.code, log: g1.log.slice(-500) });
+  ok('the refusal is stated explicitly in the log',
+    /REFUSING TO START ON AN EMPTY DATABASE/.test(g1.log), g1.log.slice(-500));
+  ok('it explains WHY (credentials / reachability)',
+    /BACKUP_TOKEN|BACKUP_REPO|api\.github\.com/.test(g1.log), g1.log.slice(-400));
+  ok('no database was seeded over the unrestored backup',
+    !fs.existsSync(path.join(guardDir, 'db.json')),
+    fs.existsSync(path.join(guardDir, 'db.json')) ? 'db.json WAS created' : '');
+  ok('it names the ALLOW_EMPTY_BOOT override', /ALLOW_EMPTY_BOOT=1/.test(g1.log));
+
+  const overDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bb-override-'));
+  const p3 = await freePort();
+  // This one BOOTS (that is the point of the override), so it never exits on its
+  // own — wait for a log marker instead, then tear it down.
+  const g2 = await new Promise(resolve => {
+    const child = spawn(process.execPath, ['server.js'], {
+      cwd: ROOT,
+      env: { ...process.env, PORT: String(p3), HOST: '127.0.0.1', DATA_DIR: overDir,
+             NODE_ENV: 'production', RATE_LIMIT: 'off',
+             ADMIN_PASSWORD: ADMIN_PW, JWT_SECRET: JWT,
+             BACKUP_REPO: 'nonexistent-owner-8f2a1c/nonexistent-repo-4d7e9b',
+             BACKUP_TOKEN: 'ghp_definitely_not_a_real_token_0000000000',
+             BACKUP_BRANCH: 'main', BACKUP_DIR: 'data',
+             RESTORE_ATTEMPTS: '1', ALLOW_EMPTY_BOOT: '1',
+             SMTP_HOST: '', NOTIFY_EMAIL: 'owner@example.com',
+             SITE_URL: 'https://persist.example' },
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    let log = '';
+    const onData = d => {
+      log += d;
+      // Wait for the real "listening" marker. sync DISABLED is logged earlier in
+      // the boot sequence, so matching on it would tear the child down before it
+      // finished starting — which is exactly what this case is asserting against.
+      if (/server running at/i.test(log)) finish();
+    };
+    child.stdout.on('data', onData); child.stderr.on('data', onData);
+    let done = false;
+    const timer = setTimeout(finish, 45000);
+    function finish() {
+      if (done) return; done = true;
+      clearTimeout(timer);
+      try { child.kill('SIGTERM'); } catch (e) {}
+      setTimeout(() => { try { child.kill('SIGKILL'); } catch (e) {} }, 3000).unref();
+      resolve({ log });
+    }
+    child.on('exit', () => finish());
+  });
+  ok('ALLOW_EMPTY_BOOT=1 lets a genuine first deploy start',
+    /server running at/i.test(g2.log), g2.log.slice(-400));
+  ok('the override DISABLES the backup sync so it cannot overwrite the real backup',
+    /sync DISABLED/i.test(g2.log), g2.log.slice(-400));
+  ok('the override still seeds a usable database',
+    fs.existsSync(path.join(overDir, 'db.json')), 'db.json missing');
+
   console.log(`\n========== PERSISTENCE: ${pass} passed, ${fail} failed ==========`);
   try { fs.rmSync(DISK, { recursive: true, force: true }); } catch(e){}
+  try { fs.rmSync(guardDir, { recursive: true, force: true }); } catch(e){}
+  try { fs.rmSync(overDir, { recursive: true, force: true }); } catch(e){}
   process.exit(fail === 0 ? 0 : 1);
 })();
