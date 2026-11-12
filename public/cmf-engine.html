@@ -97,10 +97,71 @@
 </div>
 </div>
 </section>
+
+<section class="section" id="cmf-workbench">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">CMF Engine · Member Workbench</span>
+      <h2>Plan With Structure. Manage Risk.</h2>
+      <p class="muted">Use your account to calculate position size, test a compounding sequence and review swing-based market structure. Calculations are saved to your private CMF history; no orders are placed.</p>
+    </div>
+    <div class="grid grid-2">
+      <div class="card reveal">
+        <h3><i class="fas fa-scale-balanced" style="color:var(--green)"></i> Risk-first trade plan</h3>
+        <p class="small muted mt-1">Set your entry and invalidation level before calculating position size.</p>
+        <form id="cmfPlanForm" class="mt-2">
+          <div class="grid grid-2" style="gap:12px">
+            <label class="small">Account equity (USD)<input id="cmfEquity" type="number" min="0.01" step="any" value="10000" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+            <label class="small">Direction<select id="cmfSide" style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"><option value="buy">Buy / Long</option><option value="sell">Sell / Short</option></select></label>
+            <label class="small">Entry price<input id="cmfEntry" type="number" min="0.00000001" step="any" value="100" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+            <label class="small">Stop-loss price<input id="cmfStop" type="number" min="0.00000001" step="any" value="95" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+            <label class="small">Target price (optional)<input id="cmfTarget" type="number" min="0" step="any" placeholder="110" style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+            <label class="small">Risk per trade (%)<input id="cmfRisk" type="number" min="0.1" max="5" step="0.1" value="1" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+            <label class="small">Leverage (1–10x)<input id="cmfLeverage" type="number" min="1" max="10" step="1" value="1" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+            <label class="small">Max margin allocation (%)<input id="cmfMargin" type="number" min="1" max="100" step="1" value="25" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+          </div>
+          <button class="btn btn-green mt-2" type="submit" id="cmfPlanSubmit">Calculate and save plan</button>
+        </form>
+        <div id="cmfPlanResult" class="mt-2" aria-live="polite"></div>
+      </div>
+      <div class="card reveal reveal-d1">
+        <h3><i class="fas fa-chart-line" style="color:var(--green)"></i> Compounding projection</h3>
+        <p class="small muted mt-1">Enter one percentage return per period, separated by commas. This is a mathematical scenario, not a market forecast.</p>
+        <form id="cmfProjectionForm" class="mt-2">
+          <label class="small">Starting capital (USD)<input id="cmfStartingCapital" type="number" min="0.01" step="any" value="1000" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+          <label class="small mt-1">Returns per period (%)<textarea id="cmfReturns" rows="3" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit;resize:vertical">5, -2, 4, 3, -1, 5</textarea></label>
+          <label class="small mt-1">Fee per period (%)<input id="cmfFee" type="number" min="0" max="10" step="0.01" value="0" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit"></label>
+          <button class="btn btn-green mt-2" type="submit" id="cmfProjectionSubmit">Calculate projection</button>
+        </form>
+        <div id="cmfProjectionResult" class="mt-2" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="grid grid-2 mt-3">
+      <div class="card reveal">
+        <h3><i class="fas fa-chart-area" style="color:var(--green)"></i> Market structure review</h3>
+        <p class="small muted mt-1">Paste OHLC candles as JSON. The engine identifies simple swing pivots and possible BOS / CHoCH events. It does not receive exchange order-flow data.</p>
+        <form id="cmfStructureForm" class="mt-2">
+          <label class="small">Candles (JSON array: high, low, close)<textarea id="cmfCandles" rows="6" required style="display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--card);color:var(--ink);font:inherit;resize:vertical">[{"high":10,"low":8,"close":9},{"high":12,"low":9,"close":11},{"high":11,"low":7,"close":8},{"high":10,"low":6,"close":7},{"high":9,"low":5,"close":8},{"high":11,"low":7,"close":10},{"high":13,"low":8,"close":12},{"high":12,"low":9,"close":11}]</textarea></label>
+          <button class="btn btn-green mt-2" type="submit" id="cmfStructureSubmit">Analyse structure</button>
+        </form>
+        <div id="cmfStructureResult" class="mt-2" aria-live="polite"></div>
+      </div>
+      <div class="card reveal reveal-d1">
+        <h3><i class="fas fa-book-open" style="color:var(--green)"></i> Your CMF history</h3>
+        <p class="small muted mt-1">Your saved plans, projections and manually recorded outcomes.</p>
+        <div id="cmfHistory" class="mt-2" aria-live="polite"><p class="small muted">Sign in to load your private history.</p></div>
+        <a class="btn btn-ghost mt-2" href="/login">Sign in to access your CMF history</a>
+      </div>
+    </div>
+    <p class="small muted mt-2">Risk calculations are estimates and do not guarantee execution price or loss limits. Leverage can magnify losses. CMF tools do not execute trades, access exchange balances or change your wallet or ledger.</p>
+  </div>
+</section>
+
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=22"></script>
   <script src="/assets/js/common.js?v=31"></script>
 <script src="/assets/js/tour.js?v=6"></script>
+<script src="/assets/js/cmf-engine.js?v=1"></script>
 <style>@media(max-width:1000px){#cmfSteps{grid-template-columns:1fr 1fr !important}}</style>
 </body>
 </html>
