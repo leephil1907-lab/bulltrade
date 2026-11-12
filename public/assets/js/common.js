@@ -659,6 +659,11 @@ function renderHeader() {
   renderHeaderActions();
 }
 
+window.addEventListener('resize', () => {
+  clearTimeout(window.__bbPickerT);
+  window.__bbPickerT = setTimeout(syncMobilePickers, 200);
+}, { passive: true });
+
 function renderHeaderActions() {
   const el = $('#headerActions'); if (!el) return;
   const PICKERS = `
@@ -717,6 +722,32 @@ function renderHeaderActions() {
       <a href="/signup" class="btn btn-primary btn-sm"><i class="fas fa-bolt"></i> <span data-i18n="hdr.signup">Sign Up Free</span></a>`;
   }
   bindPickers();
+  syncMobilePickers();
+}
+
+// Phones keep a single compact header row (brand · CTA · burger), so the
+// language and currency pickers move into the burger panel instead of being
+// dropped. Nodes are moved, never cloned — their listeners and open state stay
+// intact and there are no duplicate IDs.
+function syncMobilePickers() {
+  const acts = $('#headerActions');
+  const extra = document.querySelector('.nav-mobile-extra');
+  if (!acts || !extra) return;
+  const isPhone = window.matchMedia('(max-width: 720px)').matches;
+  const wraps = [...acts.querySelectorAll('.globe-wrap')];
+  let box = extra.querySelector('.mob-pickers');
+  if (isPhone) {
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'mob-pickers';
+      extra.insertBefore(box, extra.firstChild);
+    }
+    wraps.forEach(w => box.appendChild(w));
+  } else if (box) {
+    // back to the header, in their original order (language first)
+    for (let i = wraps.length - 1; i >= 0; i--) acts.insertBefore(wraps[i], acts.firstChild);
+    box.remove();
+  }
 }
 
 // The language/currency panels are anchored inside a very narrow button wrapper.

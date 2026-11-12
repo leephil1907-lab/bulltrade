@@ -1,28 +1,221 @@
-/* Bullhorn Premium visual layer */
-/* Warm cream page surface (matches blockchainbullhorn.com). This used to be a
-   near-white gradient (#fbfaf7/#f6f2ea) that cancelled the cream --bg token and
-   made every section look white. */
-body{background:radial-gradient(circle at 8% -4%,rgba(27,169,75,.09),transparent 30rem),radial-gradient(circle at 92% 4%,rgba(211,168,119,.16),transparent 28rem),linear-gradient(180deg,#faf4e6 0%,#f5ecd8 52%,#faf4e6 100%);background-attachment:fixed}
-.site-header{backdrop-filter:blur(18px) saturate(145%);-webkit-backdrop-filter:blur(18px) saturate(145%);background:rgba(255,255,255,.86)!important;border-bottom:1px solid rgba(16,24,32,.07)!important;box-shadow:0 10px 35px rgba(16,24,32,.045)}
-.hero-banner{position:relative;overflow:hidden;box-shadow:0 20px 70px rgba(16,24,32,.16)}
-.hero-banner:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,transparent 0 45%,rgba(255,255,255,.13) 50%,transparent 55%);transform:translateX(-110%);animation:bbSweep 7s ease-in-out infinite}
-@keyframes bbSweep{0%,62%{transform:translateX(-110%)}82%,100%{transform:translateX(110%)}}
-.hero-under{background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.58))!important;border-bottom:1px solid rgba(16,24,32,.06)}
-.hero-under h1,h1,h2,h3{letter-spacing:-.025em}
-.hero-under .lead{font-size:clamp(15px,1.7vw,18px);line-height:1.72}
-.hstat{padding:11px 16px;border:1px solid rgba(16,24,32,.07);border-radius:14px;background:rgba(255,255,255,.68);box-shadow:0 8px 25px rgba(16,24,32,.045)}
-.card{border-color:rgba(16,24,32,.075)!important;box-shadow:0 24px 70px rgba(18,27,34,.12);background:rgba(255,255,255,.88);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.card-hover{transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s,border-color .32s}
-.card-hover:hover{transform:translateY(-7px);box-shadow:0 30px 80px rgba(18,27,34,.15);border-color:rgba(211,168,119,.55)!important}
-.product-card .pc-img{position:relative;overflow:hidden}.product-card .pc-img img{transition:transform .65s cubic-bezier(.2,.75,.3,1),filter .65s}.product-card:hover .pc-img img{transform:scale(1.045);filter:saturate(1.08)}
-.btn{transition:transform .22s,box-shadow .22s,background .22s,border-color .22s}.btn:hover{transform:translateY(-2px)}
-.table-wrap{border-radius:18px!important;box-shadow:0 20px 55px rgba(16,24,32,.08)!important}
-.dt tbody tr{transition:background .2s,transform .2s}.dt tbody tr:hover{background:rgba(27,169,75,.035);transform:translateX(2px)}
-.mini-quote{border:1px solid rgba(16,24,32,.065)!important;box-shadow:0 10px 28px rgba(16,24,32,.055)}
-.page-hero{background:radial-gradient(circle at 80% 10%,rgba(211,168,119,.22),transparent 24rem),linear-gradient(135deg,#fff 0%,#f5efe5 100%)!important;border-bottom:1px solid rgba(16,24,32,.07)}
-.input,.select,.textarea,select{transition:border-color .2s,box-shadow .2s,background .2s}
-.input:focus,.select:focus,.textarea:focus,select:focus{border-color:rgba(27,169,75,.7)!important;box-shadow:0 0 0 4px rgba(27,169,75,.10)!important;background:#fff}
-.site-footer{background:linear-gradient(180deg,#5c2a16 0%,#43190e 46%,#2c1209 100%)!important;box-shadow:0 -20px 60px rgba(63,20,12,.16)}
-.pulse-stat,.bubbles-panel,.coin-chart,.view-seg{box-shadow:0 18px 48px rgba(16,24,32,.08)!important}
-@media(max-width:720px){.hero-cta .btn{width:100%}.card{box-shadow:0 14px 38px rgba(18,27,34,.09)}}
-@media(prefers-reduced-motion:reduce){.hero-banner:after{animation:none!important}.card-hover:hover,.btn:hover,.dt tbody tr:hover{transform:none!important}}
+/* ============================================================
+   Bullhorn Premium visual layer  (v2)
+   Loaded after main.css on every page (server-injected, cache-busted
+   by mtime). Everything here is additive polish — no structural
+   changes, so pages keep working if this file is removed.
+   ============================================================ */
+
+/* ---------- 1. tokens: softer radii, deeper shadows ---------- */
+:root {
+  --radius: 14px;
+  --radius-sm: 10px;
+  --shadow: 0 18px 50px rgba(63, 20, 12, .12), 0 2px 6px rgba(63, 20, 12, .05);
+  --shadow-soft: 0 1px 2px rgba(63, 20, 12, .04), 0 10px 30px rgba(63, 20, 12, .07);
+  --ring: 0 0 0 4px rgba(27, 169, 75, .18);
+}
+
+body {
+  background:
+    radial-gradient(circle at 8% -4%, rgba(27, 169, 75, .09), transparent 30rem),
+    radial-gradient(circle at 92% 4%, rgba(211, 168, 119, .16), transparent 28rem),
+    linear-gradient(180deg, #faf4e6 0%, #f5ecd8 52%, #faf4e6 100%);
+  background-attachment: fixed;
+}
+
+/* ---------- 2. header ---------- */
+.site-header {
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  background: rgba(255, 255, 255, .88) !important;
+  border-bottom: 1px solid rgba(16, 24, 32, .07) !important;
+  box-shadow: 0 10px 35px rgba(16, 24, 32, .045);
+}
+.brand img { transition: transform .3s cubic-bezier(.2, .8, .2, 1), box-shadow .3s; }
+.brand:hover img { transform: rotate(-4deg) scale(1.04); box-shadow: 0 8px 22px rgba(63, 20, 12, .26); }
+.main-nav a { border-radius: 10px; }
+.main-nav a.active { box-shadow: inset 0 0 0 1px rgba(27, 169, 75, .18); }
+
+/* ---------- 3. buttons ---------- */
+.btn {
+  border-radius: 10px;
+  letter-spacing: .1px;
+  transition: transform .22s, box-shadow .22s, background .22s, border-color .22s, color .22s;
+}
+.btn-primary {
+  background-image: linear-gradient(180deg, #22b551 0%, var(--green) 55%, #179840 100%);
+  box-shadow: 0 6px 16px rgba(15, 138, 60, .26), inset 0 1px 0 rgba(255, 255, 255, .22);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(15, 138, 60, .32), inset 0 1px 0 rgba(255, 255, 255, .25); }
+.btn-primary:active { transform: translateY(0); box-shadow: 0 4px 12px rgba(15, 138, 60, .28); }
+.btn-outline { background: rgba(255, 255, 255, .7); border-color: rgba(63, 20, 12, .16); }
+.btn-outline:hover { background: #fff; border-color: rgba(27, 169, 75, .55); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(63, 20, 12, .1); }
+.btn-gold { background-image: linear-gradient(180deg, #e0b98d, #cf9f68); }
+.btn:focus-visible, .nav-toggle:focus-visible, .tab-btn:focus-visible,
+.input:focus-visible, .select:focus-visible, a:focus-visible, button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+/* ---------- 4. cards & icons ---------- */
+.card {
+  border-color: rgba(16, 24, 32, .075) !important;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(18, 27, 34, .10);
+  background: rgba(255, 255, 255, .9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.card-hover { transition: transform .32s cubic-bezier(.2, .8, .2, 1), box-shadow .32s, border-color .32s; }
+.card-hover:hover { transform: translateY(-7px); box-shadow: 0 30px 80px rgba(18, 27, 34, .15); border-color: rgba(211, 168, 119, .55) !important; }
+.feat-icon {
+  background-image: linear-gradient(150deg, rgba(27, 169, 75, .14), rgba(211, 168, 119, .18));
+  border-radius: 14px;
+}
+.product-card .pc-img { position: relative; overflow: hidden; }
+.product-card .pc-img img { transition: transform .65s cubic-bezier(.2, .75, .3, 1), filter .65s; }
+.product-card:hover .pc-img img { transform: scale(1.045); filter: saturate(1.08); }
+.mini-quote { border: 1px solid rgba(16, 24, 32, .065) !important; box-shadow: 0 10px 28px rgba(16, 24, 32, .055); }
+
+/* ---------- 5. hero ---------- */
+.hero-banner { position: relative; overflow: hidden; box-shadow: 0 20px 70px rgba(16, 24, 32, .16); }
+.hero-banner img { display: block; width: 100%; height: auto; }
+.hero-banner:after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 0 45%, rgba(255, 255, 255, .13) 50%, transparent 55%);
+  transform: translateX(-110%); animation: bbSweep 7s ease-in-out infinite;
+}
+@keyframes bbSweep { 0%, 62% { transform: translateX(-110%); } 82%, 100% { transform: translateX(110%); } }
+/* the banner is a baked-in graphic — on tall desktops cap it so the fold still
+   shows real content, and on phones crop to the bull artwork instead of
+   shrinking the whole poster to an unreadable thumbnail */
+@media (min-width: 1180px) {
+  .hero-banner img { max-height: 560px; object-fit: cover; object-position: center 42%; }
+}
+/* phones keep the whole poster (cropping a baked-in graphic cuts the headline);
+   it simply reads as a short decorative band, which is what it already did */
+.hero-under {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .94), rgba(255, 255, 255, .55)) !important;
+  border-bottom: 1px solid rgba(16, 24, 32, .06);
+}
+.hero-under h1, h1, h2, h3 { letter-spacing: -.025em; }
+.hero-under .lead { font-size: clamp(15px, 1.7vw, 18px); line-height: 1.72; }
+.hstat {
+  padding: 12px 18px; border: 1px solid rgba(16, 24, 32, .07); border-radius: 16px;
+  background: rgba(255, 255, 255, .72);
+  box-shadow: 0 8px 25px rgba(16, 24, 32, .045);
+  transition: transform .25s, box-shadow .25s;
+}
+.hstat:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(16, 24, 32, .09); }
+.hero-price-card { border-radius: 18px; }
+
+/* ---------- 6. ticker: readable edges instead of a hard cut ---------- */
+.ticker-bar {
+  height: 40px;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 42px, #000 calc(100% - 42px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 42px, #000 calc(100% - 42px), transparent 100%);
+}
+.tick-item { padding: 2px 0; }
+.tick-item .chg { font-variant-numeric: tabular-nums; }
+
+/* ---------- 7. section rhythm ---------- */
+.eyebrow {
+  background: rgba(27, 169, 75, .09);
+  border: 1px solid rgba(27, 169, 75, .16);
+  border-radius: 99px;
+  padding: 5px 14px 5px 12px;
+  letter-spacing: 2px;
+}
+.eyebrow::before, .eyebrow::after { display: none; }
+.section-head h2 { letter-spacing: -.03em; }
+.page-hero {
+  background:
+    radial-gradient(circle at 80% 10%, rgba(211, 168, 119, .22), transparent 24rem),
+    linear-gradient(135deg, #fff 0%, #f5efe5 100%) !important;
+  border-bottom: 1px solid rgba(16, 24, 32, .07);
+}
+
+/* newsletter band: the old card had a 25%-alpha blue over white and read as a
+   washed-out grey rectangle */
+.nl-band {
+  background:
+    radial-gradient(circle at 88% 12%, rgba(77, 220, 130, .30), transparent 22rem),
+    linear-gradient(120deg, #3f140c 0%, #5a2817 52%, #2c1209 100%) !important;
+  border: 1px solid rgba(211, 168, 119, .35) !important;
+  border-radius: 22px;
+  box-shadow: 0 26px 70px rgba(63, 20, 12, .28);
+  color: #f6ecd8;
+  overflow: hidden;
+  position: relative;
+}
+.nl-band h2 { color: #fff; }
+.nl-band p, .nl-band .muted { color: #e8d9c4 !important; }
+.nl-band .eyebrow { background: rgba(255, 255, 255, .10); border-color: rgba(211, 168, 119, .5); color: #f0d3a8; }
+.nl-band img { border-radius: 14px; box-shadow: 0 18px 40px rgba(0, 0, 0, .35); }
+@media (max-width: 720px) {
+  .nl-band { grid-template-columns: 1fr !important; gap: 20px !important; padding: 24px !important; text-align: center; }
+  .nl-band img { margin: 0 auto; width: 170px !important; }
+}
+
+/* announcement strip: readable on a phone instead of clipped mid-sentence */
+@media (max-width: 640px) {
+  .announce-stage { height: 32px; }
+  .announce-item { font-size: 12px; }
+  .announce-label { padding: 0 9px; }
+}
+
+/* ---------- 8. forms ---------- */
+.input, .select, .textarea, select { border-radius: 11px; transition: border-color .2s, box-shadow .2s, background .2s; }
+.input:focus, .select:focus, .textarea:focus, select:focus {
+  border-color: rgba(27, 169, 75, .7) !important;
+  box-shadow: 0 0 0 4px rgba(27, 169, 75, .10) !important;
+  background: #fff;
+}
+
+/* ---------- 9. tables & panels ---------- */
+.table-wrap { border-radius: 18px !important; box-shadow: 0 20px 55px rgba(16, 24, 32, .08) !important; }
+.dt tbody tr { transition: background .2s; }
+.dt tbody tr:hover { background: rgba(27, 169, 75, .035); }
+.pulse-stat, .bubbles-panel, .coin-chart, .view-seg { box-shadow: 0 18px 48px rgba(16, 24, 32, .08) !important; }
+
+/* ---------- 10. footer ---------- */
+.site-footer {
+  background: linear-gradient(180deg, #5c2a16 0%, #43190e 46%, #2c1209 100%) !important;
+  box-shadow: 0 -20px 60px rgba(63, 20, 12, .16);
+  border-top: 3px solid var(--gold);
+}
+
+/* ---------- 11. scrollbars ---------- */
+@media (pointer: fine) {
+  * { scrollbar-width: thin; scrollbar-color: #cdb697 var(--bg-soft); }
+}
+
+/* ---------- 12. phones: one compact header row ---------- */
+@media (max-width: 720px) {
+  .hero-cta .btn { width: 100%; }
+  .card { box-shadow: 0 14px 38px rgba(18, 27, 34, .09); }
+  .section { padding: 46px 0; }
+  .section-tight { padding: 32px 0; }
+  /* brand + burger on one line, auth/pickers live inside the menu panel */
+  .header-inner { flex-wrap: nowrap !important; gap: 8px; padding: 8px 0; }
+  .nav-toggle { order: 3; margin-left: 0; }
+  .header-actions {
+    order: 2; width: auto !important; margin-left: auto !important;
+    gap: 6px; flex-wrap: nowrap; justify-content: flex-end;
+  }
+  .header-actions .globe-wrap { display: none; }          /* moved into the drawer (js) */
+  .brand img { width: 40px; height: 40px; border-radius: 9px; }
+  .brand-name { font-size: 15.5px; }
+  .brand { gap: 8px; min-width: 0; }
+  .brand-name { white-space: nowrap; }
+  .header-actions .btn { flex: 0 0 auto !important; height: 38px; padding: 0 10px !important; font-size: 12.5px; white-space: nowrap; }
+  .header-actions .btn-ghost, .header-actions .btn-outline { display: none; }  /* keep one primary CTA */
+  .header-actions .user-chip .avatar { width: 34px; height: 34px; font-size: 13px; }
+  .nav-mobile-extra .globe-wrap { display: flex; }
+  .main-nav.mobile-open .mob-pickers { display: flex; gap: 8px; padding: 10px 16px 4px; }
+}
+
+/* ---------- 13. motion preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hero-banner:after { animation: none !important; }
+  .card-hover:hover, .btn:hover, .dt tbody tr:hover, .hstat:hover, .brand:hover img { transform: none !important; }
+}

@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="/assets/css/fonts.css?v=2">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
   <link rel="stylesheet" href="/assets/css/main.css?v=32">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=9">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=10">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="robots" content="noindex, nofollow"/>
   <link rel="canonical" href="__SITE_URL__/admin"/>
@@ -70,15 +70,20 @@
         <a data-view="settings"><i class="fas fa-gear"></i> Settings</a>
         <a data-view="audit"><i class="fas fa-clipboard-list"></i> Audit Log</a>
       </nav>
-      <div style="margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--line)">
-        <div class="muted small font-head mb-1" id="admWho">—</div>
+      <div class="side-foot">
+        <div id="admWho">—</div>
         <button class="btn btn-outline btn-sm btn-block" id="admLogout"><i class="fas fa-arrow-right-from-bracket"></i> Log Out</button>
         <a class="btn btn-ghost btn-sm btn-block mt-1" href="/"><i class="fas fa-globe"></i> View Site</a>
       </div>
     </aside>
+    <div class="admin-backdrop" id="admBackdrop" aria-hidden="true"></div>
     <main class="admin-main">
       <div class="admin-top">
-        <div><h1 id="viewTitle">Overview</h1><div class="sub" id="viewSub">Platform health at a glance</div></div>
+        <div class="admin-top-lead">
+          <button class="admin-burger" id="admBurger" type="button" aria-label="Open menu"
+                  aria-controls="admNav" aria-expanded="false"><i class="fas fa-bars"></i></button>
+          <div><h1 id="viewTitle">Overview</h1><div class="sub" id="viewSub">Platform health at a glance</div></div>
+        </div>
         <div class="kpi-row" id="marketKpis"></div>
       </div>
       <div id="viewRoot"></div>
@@ -86,7 +91,7 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=31"></script>
+  <script src="/assets/js/common.js?v=32"></script>
 <script src="/assets/js/tour.js?v=6"></script>
   <script>
     'use strict';
@@ -120,7 +125,20 @@
       if (h) h.remove(); if (f) f.remove();
       R('admWho').textContent = ME.email;
       R('admLogout').addEventListener('click', async () => { await api('/api/auth/logout', { method: 'POST', body: {} }); location.reload(); });
-      $$('#admNav a').forEach(a => a.addEventListener('click', () => switchView(a.dataset.view)));
+      $$('#admNav a').forEach(a => a.addEventListener('click', () => {
+        switchView(a.dataset.view);
+        closeDrawer();          // the drawer is an overlay on phones — get out of the way
+      }));
+      setupDrawer();
+      // any view that repaints a table at any time gets the scroll affordance too
+      if (window.MutationObserver) {
+        let t = null;
+        new MutationObserver(() => {
+          clearTimeout(t);
+          t = setTimeout(() => markScrollableTables(R('viewRoot')), 120);
+        }).observe(R('viewRoot'), { childList: true, subtree: true });
+      }
+      window.addEventListener('resize', () => markScrollableTables(R('viewRoot')), { passive: true });
       setInterval(refreshCounts, 30000);
       refreshCounts();
       switchView('overview');
@@ -166,6 +184,55 @@
     // Settings tab rendered blank — the page where email delivery is configured.
     let currentAnns = [];
 
+    /* ---------- mobile drawer ----------
+       Below 1024px the sidebar becomes an off-canvas panel. Without this the whole
+       nav stacked on top of the content and you had to scroll ~700px of menu
+       before reaching a single number. */
+    function setupDrawer() {
+      const burger = R('admBurger'), backdrop = R('admBackdrop');
+      if (!burger || burger.dataset.wired) return;
+      burger.dataset.wired = '1';
+      burger.addEventListener('click', () => {
+        const open = !document.body.classList.contains('admin-drawer-open');
+        document.body.classList.toggle('admin-drawer-open', open);
+        burger.setAttribute('aria-expanded', String(open));
+        burger.innerHTML = open ? '<i class="fas fa-xmark"></i>' : '<i class="fas fa-bars"></i>';
+      });
+      if (backdrop) backdrop.addEventListener('click', closeDrawer);
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && document.body.classList.contains('admin-drawer-open')) closeDrawer();
+      });
+      window.addEventListener('resize', () => { if (window.innerWidth > 1024) closeDrawer(); });
+    }
+    function closeDrawer() {
+      document.body.classList.remove('admin-drawer-open');
+      const burger = R('admBurger');
+      if (burger) { burger.setAttribute('aria-expanded', 'false'); burger.innerHTML = '<i class="fas fa-bars"></i>'; }
+    }
+
+    /* ---------- table scroll affordance ----------
+       Wide tables scroll horizontally instead of being clipped, but an invisible
+       scrollbar reads as "the last columns are missing". Flag wrappers that
+       actually overflow so CSS can show a fade + the styled scrollbar. */
+    function markScrollableTables(scope) {
+      (scope || document).querySelectorAll('.table-wrap').forEach(w => {
+        const check = () => {
+          const over = w.scrollWidth - w.clientWidth > 2;
+          w.classList.toggle('is-scrollable', over && !w.classList.contains('at-end'));
+        };
+        if (!w.dataset.scrollWired) {
+          w.dataset.scrollWired = '1';
+          w.addEventListener('scroll', () => {
+            const atEnd = w.scrollLeft + w.clientWidth >= w.scrollWidth - 2;
+            w.classList.toggle('at-end', atEnd);
+          }, { passive: true });
+        }
+        w.classList.remove('at-end');
+        requestAnimationFrame(check);
+        setTimeout(check, 120);
+      });
+    }
+
     function switchView(v) {
       VIEW = v;
       $$('#admNav a').forEach(a => a.classList.toggle('active', a.dataset.view === v));
@@ -184,6 +251,9 @@
       R('viewTitle').textContent = titles[v][0];
       R('viewSub').textContent = titles[v][1];
       ({ overview: viewOverview, users: viewUsers, kyc: viewKyc, txs: viewTxs, positions: viewPositions, community: viewCommunity, copy: viewCopy, chats: viewChats, settings: viewSettings, audit: viewAudit })[v]();
+      // views paint asynchronously — re-check the wrappers as their HTML lands
+      markScrollableTables(R('viewRoot'));
+      setTimeout(() => markScrollableTables(R('viewRoot')), 350);
     }
 
     // ---------- views ----------
@@ -230,13 +300,16 @@
         <div class="stat-grid">${cards.map(([i, l, v]) => `<div class="stat-c"><div class="l"><i class="fas ${i}" style="color:var(--gold)"></i> ${l}</div><div class="v">${v}</div></div>`).join('')}</div>
         <div class="grid grid-2">
           <div class="admin-card"><h3><i class="fas fa-user-clock" style="color:var(--gold)"></i> Newest Users</h3>
-            <div class="table-wrap" style="border:none"><table class="dt"><thead><tr><th>User</th><th>Joined</th><th>KYC</th><th>Community</th></tr></thead><tbody>
-            ${r.recentUsers.map(u => `<tr style="cursor:pointer" data-user="${u.id}">
-              <td><b class="font-head">${BB.esc(u.name || u.email)}</b>${u.isBot ? ' <span class="pill badge badge-blue" style="font-size:9px">BOT</span>' : ''}${u.banned ? ' <span class="pill badge badge-red" style="font-size:9px">SUSPENDED</span>' : ''}<br><small class="muted">${BB.esc(u.email)}</small></td>
-              <td class="muted small">${BB.timeAgo(u.joinedAt)}</td>
-              <td><span class="pill badge ${u.kyc === 'approved' ? 'badge-green' : u.kyc === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.kyc.replace('_', ' ')}</span></td>
-              <td class="muted small">${u.communityStatus && u.communityStatus !== 'none' ? `<span class="pill badge ${u.communityStatus === 'approved' ? 'badge-green' : u.communityStatus === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.communityStatus}</span>` : '<span class="muted">—</span>'}</td></tr>`).join('')}
-            </tbody></table></div></div>
+            <div class="u-feed">
+            ${r.recentUsers.map(u => `<button type="button" class="u-feed-row" data-user="${u.id}">
+              <span class="u-feed-av" style="background:${u.isBot ? '#8a5a2b' : 'var(--green)'}">${BB.esc((u.name || u.email).trim().charAt(0).toUpperCase())}</span>
+              <span class="u-feed-main">
+                <span class="u-feed-name">${BB.esc(u.name || u.email)}${u.isBot ? ' <span class="pill badge badge-blue">BOT</span>' : ''}${u.banned ? ' <span class="pill badge badge-red">SUSPENDED</span>' : ''}</span>
+                <span class="u-feed-meta">${BB.esc(u.email)} · joined ${BB.timeAgo(u.joinedAt)}</span>
+              </span>
+              <span class="pill badge ${u.kyc === 'approved' ? 'badge-green' : u.kyc === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.kyc.replace('_', ' ')}</span>
+            </button>`).join('')}
+            </div></div>
           <div class="admin-card"><h3><i class="fas fa-arrows-up-down" style="color:var(--gold)"></i> Market Movers (live)</h3>
             <div class="grid grid-2" style="gap:10px">
               <div><b class="font-head small" style="color:var(--green-bright)">▲ Gainers</b>
@@ -307,18 +380,18 @@
             <div class="u-actions"><button class="btn btn-primary btn-sm" data-open="${u.id}"><i class="fas fa-sliders"></i> Manage account</button></div>
           </div>`).join('')}</div>
         <div class="table-wrap u-table-desktop"><table class="dt"><thead><tr>
-          <th>User</th><th>Country</th><th>Joined</th><th>Last Login</th><th>KYC</th><th>Community</th><th>Leader</th><th>Live Eq</th><th>Demo Eq</th><th>Pos</th><th></th></tr></thead><tbody>
+          <th class="wrap-cell">User</th><th class="hide-xl">Country</th><th class="hide-lg">Joined</th><th class="hide-xxl">Last Login</th><th>KYC</th><th>Community</th><th class="hide-xl">Leader</th><th class="num">Live Eq</th><th class="num">Demo Eq</th><th class="num hide-lg">Pos</th><th></th></tr></thead><tbody>
           ${rows.map(u => `<tr>
-            <td><b class="font-head">${BB.esc(u.name || '—')}</b><br><small class="muted">${BB.esc(u.email)}</small>${u.banned ? ' <span class="pill badge-red">BANNED</span>' : ''}${u.role === 'admin' ? ' <span class="pill badge-blue">ADMIN</span>' : ''}${u.isBot ? ' <span class="pill badge-gold">BOT</span>' : ''}</td>
-            <td class="muted small">${BB.esc(u.country || '—')}</td>
-            <td class="muted small">${new Date(u.joinedAt).toLocaleDateString()}</td>
-            <td class="muted small">${u.lastLogin ? BB.timeAgo(u.lastLogin) : 'never'}</td>
+            <td class="wrap-cell u-cell"><span class="u-cell-top"><b class="font-head">${BB.esc(u.name || '—')}</b>${u.banned ? ' <span class="pill badge-red">BANNED</span>' : ''}${u.role === 'admin' ? ' <span class="pill badge-blue">ADMIN</span>' : ''}${u.isBot ? ' <span class="pill badge-gold">BOT</span>' : ''}</span><small class="muted">${BB.esc(u.email)}</small></td>
+            <td class="muted small hide-xl">${BB.esc(u.country || '—')}</td>
+            <td class="muted small hide-lg">${new Date(u.joinedAt).toLocaleDateString()}</td>
+            <td class="muted small hide-xxl">${u.lastLogin ? BB.timeAgo(u.lastLogin) : 'never'}</td>
             <td><span class="pill badge ${u.kycStatus === 'approved' ? 'badge-green' : u.kycStatus === 'pending' ? 'badge-gold' : u.kycStatus === 'rejected' ? 'badge-red' : 'badge-gray'}">${u.kycStatus.replace('_', ' ')}</span></td>
             <td><span class="pill badge ${u.communityStatus === 'approved' ? 'badge-green' : u.communityStatus === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.communityStatus}</span></td>
-            <td>${u.copyLeader ? `<span class="pill badge ${u.copyLeader === 'active' ? 'badge-green' : 'badge-gold'}">${u.copyLeader}</span>` : '<span class="muted">—</span>'}</td>
+            <td class="hide-xl">${u.copyLeader ? `<span class="pill badge ${u.copyLeader === 'active' ? 'badge-green' : 'badge-gold'}">${u.copyLeader}</span>` : '<span class="muted">—</span>'}</td>
             <td class="num">$${u.liveEquity.toLocaleString()}</td>
             <td class="num">$${u.demoEquity.toLocaleString()}</td>
-            <td class="num">${u.positions}</td>
+            <td class="num hide-lg">${u.positions}</td>
             <td><button class="btn btn-outline btn-sm" data-open="${u.id}">Manage</button></td></tr>`).join('')}
         </tbody></table></div>${rows.length ? '' : '<div class="empty-state">No accounts match this filter.</div>'}`;
         $$('[data-open]').forEach(b => b.addEventListener('click', () => openUser(b.dataset.open)));
