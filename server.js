@@ -17,6 +17,7 @@ const mailer = require('./lib/mailer');
 const gamify = require('./lib/gamify');
 const markets = require('./lib/markets');
 const trading = require('./lib/trading');
+const CMF = require('./lib/cmf-engine');
 const Backup = require('./lib/backup');
 const bots = require('./lib/bots');
 const HubSpot = require('./lib/hubspot');
@@ -609,6 +610,78 @@ api['GET /api/markets/candles'] = async (req, res, body, cookies, query) => {
     const data = await markets.candles(query.get('asset'), query.get('range') || '1D');
     ok(res, { candles: data });
   } catch (e) { fail(res, e.status || 502, e.status ? e.message : 'Market data temporarily unavailable'); }
+};
+
+// ---- CMF compounding engine (calculation only; never places orders) ----
+api['GET /api/cmf/overview'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const runs = D.filter('cmf_runs', r => r.userId === user.id)
+    .sort((a, b) => b.createdAt - a.createdAt).slice(0, 50);
+  const journal = D.filter('cmf_journal', j => j.userId === user.id)
+    .sort((a, b) => b.createdAt - a.createdAt).slice(0, 100);
+  ok(res, { runs, journal, engine: 'cmf-v1', executionEnabled: false });
+};
+
+api['POST /api/cmf/plan'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  let plan;
+  try { plan = CMF.buildTradePlan(body); }
+  catch (e) { return fail(res, 400, e.message); }
+  const run = D.insert('cmf_runs', {
+    id: U.uid('cmf_'), userId: user.id, type: 'trade_plan',
+    mode: 'demo', status: 'planned', plan, createdAt: Date.now()
+  });
+  ok(res, { run, plan, executionEnabled: false });
+};
+
+api['POST /api/cmf/projection'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  try {
+    const projection = CMF.projectCompounding(body);
+    const run = D.insert('cmf_runs', {
+      id: U.uid('cmfp_'), userId: user.id, type: 'projection',
+      mode: 'demo', status: 'projected', projection, createdAt: Date.now()
+    });
+    ok(res, { run, projection, isForecast: false });
+  } catch (e) { fail(res, 400, e.message); }
+};
+
+api['POST /api/cmf/structure'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  if (!Array.isArray(body.candles) || body.candles.length > 500) {
+    return fail(res, 400, 'Provide between 1 and 500 candles.');
+  }
+  const candles = body.candles.map(c => ({
+    high: Number(c && c.high), low: Number(c && c.low), close: Number(c && c.close)
+  }));
+  if (candles.some(c => !Number.isFinite(c.high) || !Number.isFinite(c.low) ||
+      !Number.isFinite(c.close) || c.high <= 0 || c.low <= 0 || c.close <= 0 || c.high < c.low)) {
+    return fail(res, 400, 'Every candle must contain valid positive high, low and close values.');
+  }
+  const structure = CMF.analyseMarketStructure(candles, body.pivotWindow);
+  ok(res, { structure, source: 'user-supplied candles', executionEnabled: false });
+};
+
+api['POST /api/cmf/journal'] = async (req, res, body, cookies) => {
+  const user = requireUser(req, res, cookies); if (!user) return;
+  const run = D.find('cmf_runs', r => r.id === String(body.runId || '') && r.userId === user.id);
+  if (!run || run.type !== 'trade_plan') return fail(res, 404, 'CMF trade plan not found.');
+  if (run.journalId) return fail(res, 409, 'This plan already has a journal result.');
+  const pnlUsd = Number(body.pnlUsd);
+  if (!Number.isFinite(pnlUsd) || Math.abs(pnlUsd) > Number(run.plan.notional) * 10) {
+    return fail(res, 400, 'Enter a valid realised P/L amount.');
+  }
+  const entry = D.insert('cmf_journal', {
+    id: U.uid('cmfj_'), userId: user.id, runId: run.id,
+    symbol: String(body.symbol || '').trim().slice(0, 24).toUpperCase(),
+    pnlUsd: U.round(pnlUsd), returnPct: run.plan.notional ? U.round(pnlUsd / run.plan.notional * 100, 4) : 0,
+    notes: String(body.notes || '').trim().slice(0, 1000),
+    createdAt: Date.now()
+  });
+  run.journalId = entry.id;
+  run.status = 'journaled';
+  D.save();
+  ok(res, { entry, run });
 };
 
 // ---- trading ----
