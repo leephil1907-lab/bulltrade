@@ -90,6 +90,10 @@ class CandleChart {
         sig.push(prev);
       } }
     const hist = macd.map((v, i) => (v != null && sig[i] != null ? v - sig[i] : null));
+    // `validMacd` was referenced but never defined — this threw a ReferenceError
+    // inside setData(), so draw() never ran and the terminal chart sat on
+    // "Loading chart…" forever. Count the usable MACD points instead.
+    const validMacd = hist.reduce((n, v) => (v != null ? n + 1 : n), 0);
     return { ema20, bbU, bbL, rsi, macd, sig, hist, validMacd };
   }
 
@@ -148,7 +152,12 @@ class CandleChart {
     const tSteps = Math.min(7, cs.length);
     for (let i = 0; i < tSteps; i++) {
       const idx = Math.floor(i * (cs.length - 1) / (tSteps - 1 || 1));
-      ctx.fillText(this.fmtT(cs[idx].t), x(idx), h - 7);
+      const label = this.fmtT(cs[idx].t);
+      // the first/last labels used to be drawn centred on the plot edge and were
+      // clipped by the canvas — keep them inside the drawing area
+      const half = ctx.measureText(label).width / 2;
+      const px = Math.min(Math.max(x(idx), padL + half), w - padR - half);
+      ctx.fillText(label, px, h - 7);
     }
 
     // volume

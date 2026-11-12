@@ -41,7 +41,7 @@
 <section class="page-hero">
 <div class="container">
 <div class="crumbs"><a data-i18n="mkt.s1" href="/">Home</a> · Trading Bots</div>
-<h1 data-i18n="tbo.s1">Trading Bots 🤖</h1>
+<h1 data-i18n="tbo.s1">Trading Bots <i class="fas fa-robot"></i> </h1>
 <p class="lead" data-i18n-html="tbo.h2">Automated strategies that place and manage trades on your account — momentum scouting, commodity swings, compounding and aggressive momentum. Every bot requires an admin-issued <b>connection key</b> and a <b>minimum live portfolio balance</b> before it starts working for you.</p>
 </div>
 </section>
@@ -76,8 +76,9 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=31"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/countries.js?v=1"></script>
+  <script src="/assets/js/common.js?v=35"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script>
     let bots = [], minCopy = 50, ctx = null;
@@ -119,7 +120,7 @@
         const s = b.stats, g = b.strategy || {};
         const st = botState(b);
         let btn = '';
-        if (st.key === 'active') btn = `<span class="badge badge-green" style="margin-bottom:8px">🛠️ MANAGING YOUR ALLOCATION</span><br><button class="btn btn-danger btn-sm mt-1" data-stopbot="${b.id}"><i class="fas fa-stop"></i> Stop Bot</button>`;
+        if (st.key === 'active') btn = `<span class="badge badge-green" style="margin-bottom:8px"><i class="fas fa-screwdriver-wrench"></i> MANAGING YOUR ALLOCATION</span><br><button class="btn btn-danger btn-sm mt-1" data-stopbot="${b.id}"><i class="fas fa-stop"></i> Stop Bot</button>`;
         else if (st.key === 'activate') btn = `<button class="btn btn-gold btn-sm mt-1" data-activate="${b.id}"><i class="fas fa-bolt"></i> Activate Bot</button><div class="muted small mt-1"><i class="fas fa-key"></i> Key issued — ready to activate</div>`;
         else if (st.key === 'pending') btn = `<button class="btn btn-outline btn-sm mt-1" disabled><i class="fas fa-hourglass-half"></i> Key Under Review…</button>`;
         else if (st.key === 'locked') btn = `<button class="btn btn-outline btn-sm mt-1" disabled><i class="fas fa-lock"></i> Requires $${b.minBalance.toLocaleString()} portfolio</button><div class="muted small mt-1">Your live portfolio: <b>$${(ctx ? ctx.liveEquity : 0).toLocaleString()}</b></div>`;
@@ -129,18 +130,18 @@
         const riskBadge = b.risk === 'Low' ? 'badge-green' : b.risk === 'High' ? 'badge-red' : 'badge-gold';
         const av = b.avatar
           ? `<img class="avatar-lg" src="${BB.esc(b.avatar)}" alt="${BB.esc(b.name)} avatar" style="object-fit:cover;border:2px solid ${BB.esc(b.avatarColor)};background:#fff">`
-          : `<div class="avatar-lg" style="background:${BB.esc(b.avatarColor)};font-size:26px">${b.emoji || '🤖'}</div>`;
+          : `<div class="avatar-lg" style="background:${BB.esc(b.avatarColor)};font-size:26px">${b.emoji || '<i class="fas fa-robot"></i> '}</div>`;
 
         // --- strategy rules: what the bot actually does. These are facts about
         // the configuration, not results, so they are always safe to show. ---
         const pct = (v, sign) => v == null ? null : (sign && v > 0 ? '+' : '') + v + '%';
         const facts = [
-          { k: 'tbo.stratLeverage', icon: 'fa-scale-unbalanced', v: g.leverage != null ? g.leverage + '×' : null },
-          { k: 'tbo.stratTp',       icon: 'fa-bullseye',         v: pct(g.takeProfitPct, true) },
-          { k: 'tbo.stratSl',       icon: 'fa-shield-halved',    v: pct(g.stopLossPct, true) },
-          { k: 'tbo.stratSize',     icon: 'fa-layer-group',      v: pct(g.positionSizePct) },
-          { k: 'tbo.stratMaxPos',   icon: 'fa-table-cells',      v: g.maxPositions != null ? String(g.maxPositions) : null },
-          { k: 'tbo.stratTrigger',  icon: 'fa-wave-square',      v: pct(g.momentumTriggerPct) }
+          { k: 'tbo.stratLeverage', icon: 'fa-balance-scale', v: g.leverage != null ? g.leverage + '×' : null },
+          { k: 'tbo.stratTp', icon: 'fa-bullseye', v: pct(g.takeProfitPct, true) },
+          { k: 'tbo.stratSl', icon: 'fa-shield-halved', v: pct(g.stopLossPct, true) },
+          { k: 'tbo.stratSize', icon: 'fa-layer-group', v: pct(g.positionSizePct) },
+          { k: 'tbo.stratMaxPos', icon: 'fa-th', v: g.maxPositions != null ? String(g.maxPositions) : null },
+          { k: 'tbo.stratTrigger', icon: 'fa-wave-square', v: pct(g.momentumTriggerPct) }
         ].filter(f => f.v != null);
         const strategy = facts.length ? `<div class="bot-strategy">${facts.map(f =>
           `<div class="bot-sfact"><small><i class="fas ${f.icon}"></i> ${BB.t(f.k)}</small><b>${BB.esc(f.v)}</b></div>`).join('')}</div>` : '';

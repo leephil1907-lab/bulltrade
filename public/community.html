@@ -97,7 +97,7 @@
 <section class="page-hero" style="padding-bottom:26px">
 <div class="container">
 <span class="badge badge-green mb-1"><i class="fas fa-check"></i> APPROVED MEMBER</span>
-<h1 data-i18n="com.s14" style="font-size:clamp(26px,4vw,40px)">Welcome to the Herd 🐂</h1>
+<h1 data-i18n="com.s14" style="font-size:clamp(26px,4vw,40px)">Welcome to the Herd </h1>
 <p data-i18n="com.s15">The Trading Academy — learn how the whole system works, from reading your first candle to managing risk like a professional.</p>
 </div>
 </section>
@@ -128,22 +128,22 @@
 <svg height="27" style="flex-shrink:0" viewbox="0 0 27 27" width="27"><path d="M12.9 1.6l3 6.1 6.7 1-4.9 4.7 1.2 6.7-6-3.1-6 3.1 1.2-6.7L3.2 8.7l6.7-1z" fill="#00b67a"></path></svg>
 <b class="font-head" data-i18n="com.s22" style="font-size:15px">Trustpilot</b>
 </div>
-<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px"></span>
 <div class="font-head" data-i18n-html="com.h23" style="font-size:14px;margin-top:6px"><b>Excellent</b> · 4.7 / 5 · 312 reviews</div>
 <p class="muted small mt-1" data-i18n="com.s24">Verified students and traders across the Blockchain Bullhorn ecosystem.</p>
 <a class="btn btn-outline btn-sm mt-2" data-i18n="com.s25" href="https://www.trustpilot.com" rel="noopener" target="_blank">Read all reviews</a>
 </div>
 <div class="card member-card" style="padding:22px;text-align:left">
-<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px"></span>
 <b class="font-head" data-i18n="idx.s74" style="display:block;margin-top:8px">"Finally, honest crypto education"</b>
 <p class="small mt-1" data-i18n="com.s26" style="color:var(--ink-soft)">"The only course where the guy actually trades what he teaches. Paid for itself in two weeks of disciplined demo trading."</p>
-<div class="muted small font-head mt-1" data-i18n-html="com.h27">Marcus T. · <span style="color:#00b67a">✔ Verified</span></div>
+<div class="muted small font-head mt-1" data-i18n-html="com.h27">Marcus T. · <span style="color:#00b67a"><i class="fas fa-circle-check"></i> Verified</span></div>
 </div>
 <div class="card member-card" style="padding:22px;text-align:left">
-<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px">★★★★★</span>
+<span data-i18n="idx.s68" style="color:#00b67a;letter-spacing:2px;font-size:15px"></span>
 <b class="font-head" data-i18n="idx.s78" style="display:block;margin-top:8px">"The CMF Engine changed everything"</b>
 <p class="small mt-1" data-i18n="com.s28" style="color:var(--ink-soft)">"Risk management explained better than anywhere else. Withdrawal hit my wallet the same day it was approved."</p>
-<div class="muted small font-head mt-1" data-i18n-html="com.h29">Adebayo O. · <span style="color:#00b67a">✔ Verified</span></div>
+<div class="muted small font-head mt-1" data-i18n-html="com.h29">Adebayo O. · <span style="color:#00b67a"><i class="fas fa-circle-check"></i> Verified</span></div>
 </div>
 </div>
 </div>
@@ -157,8 +157,9 @@
 </section>
 </div>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=31"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/countries.js?v=1"></script>
+  <script src="/assets/js/common.js?v=35"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script>
     /* ---------------- Academy curriculum ---------------- */
@@ -367,7 +368,7 @@
         if (r.ok) {
           stage.innerHTML = `<div class="text-center" style="padding:26px 8px">
             <i class="fas fa-hourglass-half" style="font-size:38px;color:var(--gold);margin-bottom:16px"></i>
-            <h3 style="font-size:23px">Application Submitted${score}/5 🎯</h3>
+            <h3 style="font-size:23px">Application Submitted${score}/5 <i class="fas fa-bullseye"></i> </h3>
             <p class="muted mt-1">${r.message}</p></div>`;
         } else BB.toast(r.error, 'error');
       });
@@ -403,7 +404,7 @@
         b.innerHTML = '<i class="fas fa-check-double"></i> Completed';
         b.disabled = true;
         updateProgress();
-        BB.toast('Lesson complete! 🎓', 'success');
+        BB.toast('Lesson complete! <i class="fas fa-graduation-cap"></i> ', 'success');
       }));
       // open first incomplete
       const first = LESSONS.findIndex((_, i) => !done.has(i));

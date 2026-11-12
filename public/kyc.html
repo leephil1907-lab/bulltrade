@@ -40,71 +40,129 @@
 <h1 data-i18n="kyc.s1" style="font-size:clamp(24px,3.4vw,34px)">Identity Verification (KYC)</h1>
 <p data-i18n="kyc.s2">Manual verification by our compliance team — required for live trading and withdrawals. Usually completed within 24 hours.</p>
 </div>
-<div class="card" style="padding:32px">
-<div id="kycStatusBox"><span class="skeleton" style="width:100%;height:80px"></span></div>
+<div class="card kyc-shell" style="padding:0">
+<div id="kycStatusBox" style="padding:26px 28px 0"><span class="skeleton" style="width:100%;height:80px"></span></div>
 <div id="kycForm">
-<div class="field">
-<label data-i18n="kyc.s3">ID document type</label>
-<select class="input" id="idType">
-<option value="passport">Passport (recommended)</option>
-<option value="drivers_license">Driver's License</option>
-<option value="national_id">National ID Card</option>
-</select>
-</div>
-<div class="field">
-<label data-i18n="kyc.s4">1 · Your details (as shown on the document)</label>
-<div class="form-row">
-<input autocomplete="name" class="input" id="kycName" placeholder="Full legal name" data-i18n-ph="kyc.namePh"/>
-<input class="input" id="kycIdNo" placeholder="Document / ID number" data-i18n-ph="kyc.idPh"/>
-</div>
-<div class="form-row" style="margin-top:10px">
-<input autocomplete="street-address" class="input" id="kycAddress" placeholder="Residential address (street &amp; number)" style="grid-column:1/-1"/>
-<input class="input" id="kycCity" placeholder="City / State" data-i18n-ph="kyc.cityPh"/>
-<input autocomplete="country-name" class="input" id="kycCountry" placeholder="Country" data-i18n-ph="kyc.countryPh"/>
-</div>
-</div>
-<div class="field">
-<label data-i18n="kyc.s5">2 · Front side of your document</label>
-<div class="dropzone" id="dzFront">
-<i class="fas fa-id-card"></i>
-<b data-i18n="kyc.s6">Upload ID front</b>
-<small data-i18n="kyc.s7">All four corners visible · JPG, PNG, WEBP or PDF · max 5MB</small>
-<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fFront" type="file"/>
-</div>
-<div id="prevFront"></div>
-</div>
-<div class="field">
-<label data-i18n="kyc.s8">3 · Back side of your document</label>
-<div class="dropzone" id="dzBack">
-<i class="fas fa-id-card"></i>
-<b data-i18n="kyc.s9">Upload ID back</b>
-<small data-i18n="kyc.s10">Required for licenses and national IDs · passports without a back side may upload the front again</small>
-<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fBack" type="file"/>
-</div>
-<div id="prevBack"></div>
-</div>
-<div class="field">
-<label data-i18n-html="kyc.h11">4 · Selfie holding your document <span class="muted" style="font-weight:400">(optional, speeds up review)</span></label>
-<div class="dropzone" id="dzSelfie">
-<i class="fas fa-face-smile"></i>
-<b data-i18n="kyc.s12">Upload selfie with ID</b>
-<small data-i18n="kyc.s13">Hold the ID next to your face — no glare, face fully visible</small>
-<input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fSelfie" type="file"/>
-</div>
-<div id="prevSelfie"></div>
-</div>
-<div class="card" style="background:rgba(0,71,194,.1);border-color:rgba(46,145,252,.25);font-size:13px;margin-bottom:18px">
-<b class="font-head"><i class="fas fa-lock" style="color:var(--sky)"></i><span data-i18n="kyc.s14">Your data is protected</span></b>
-<p class="muted" data-i18n-html="kyc.h15" style="font-size:12.5px;margin-top:6px">Documents are stored securely, visible only to our compliance team, and never shared with third parties. See our <a href="/legal?p=gdpr">Privacy Policy</a>.</p>
-</div>
-<button class="btn btn-gold btn-lg btn-block" id="kycSubmit"><i class="fas fa-paper-plane"></i><span data-i18n="kyc.s16">Submit for Verification</span></button>
+  <!-- stepper -->
+  <div class="kyc-steps" id="kycSteps">
+    <button type="button" class="kstep active" data-step="1"><span class="knum">1</span><span class="ktxt"><b>Identity</b><small>Who you are</small></span></button>
+    <span class="kline"></span>
+    <button type="button" class="kstep" data-step="2"><span class="knum">2</span><span class="ktxt"><b>Address</b><small>Where you live</small></span></button>
+    <span class="kline"></span>
+    <button type="button" class="kstep" data-step="3"><span class="knum">3</span><span class="ktxt"><b>Documents</b><small>Photos &amp; submit</small></span></button>
+  </div>
+
+  <div class="kyc-body">
+    <!-- STEP 1 -->
+    <section class="kpanel active" data-panel="1">
+      <h3 class="kpanel-title"><i class="fas fa-id-card"></i> Document &amp; details</h3>
+      <p class="muted small">Use the exact name printed on your ID — a mismatch is the most common reason applications are rejected.</p>
+
+      <div class="field">
+        <label data-i18n="kyc.s3">ID document type</label>
+        <div class="kdoc-types" id="docTypes">
+          <label class="kdoc-type on"><input type="radio" name="idType" value="passport" checked>
+            <span class="kt-ic"><i class="fas fa-passport"></i></span><b>Passport</b><small>Fastest to verify</small></label>
+          <label class="kdoc-type"><input type="radio" name="idType" value="drivers_license">
+            <span class="kt-ic"><i class="fas fa-car"></i></span><b>Driver's licence</b><small>Front &amp; back</small></label>
+          <label class="kdoc-type"><input type="radio" name="idType" value="national_id">
+            <span class="kt-ic"><i class="fas fa-address-card"></i></span><b>National ID</b><small>Front &amp; back</small></label>
+        </div>
+        <select class="input khidden" id="idType" aria-hidden="true" tabindex="-1">
+          <option value="passport">Passport (recommended)</option>
+          <option value="drivers_license">Driver's License</option>
+          <option value="national_id">National ID Card</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label data-i18n="kyc.s4">Your details (as shown on the document)</label>
+        <div class="form-row">
+          <input autocomplete="name" class="input" id="kycName" placeholder="Full legal name" data-i18n-ph="kyc.namePh"/>
+          <input class="input" id="kycIdNo" placeholder="Document / ID number" data-i18n-ph="kyc.idPh"/>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2 -->
+    <section class="kpanel" data-panel="2">
+      <h3 class="kpanel-title"><i class="fas fa-location-dot"></i> Residential address</h3>
+      <p class="muted small">Your address must match the country you select — this is checked against your document.</p>
+      <div class="field">
+        <label>Country of residence</label>
+        <div class="kselect">
+          <i class="fas fa-globe"></i>
+          <select class="input" id="kycCountry"><option value="">Select your country…</option></select>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+      <div class="field">
+        <label>Street address</label>
+        <input autocomplete="street-address" class="input" id="kycAddress" placeholder="Residential address (street &amp; number)"/>
+      </div>
+      <div class="field">
+        <label>City / state</label>
+        <input class="input" id="kycCity" placeholder="City / State" data-i18n-ph="kyc.cityPh"/>
+      </div>
+    </section>
+
+    <!-- STEP 3 -->
+    <section class="kpanel" data-panel="3">
+      <h3 class="kpanel-title"><i class="fas fa-camera"></i> Document photos</h3>
+      <p class="muted small">Photograph the physical document on a flat surface in daylight. Screenshots and photos of a screen are rejected.</p>
+      <div class="field">
+        <label data-i18n="kyc.s5">Front side of your document</label>
+        <div class="dropzone" id="dzFront">
+          <i class="fas fa-id-card"></i>
+          <b data-i18n="kyc.s6">Upload ID front</b>
+          <small data-i18n="kyc.s7">All four corners visible · JPG, PNG, WEBP or PDF · max 5MB</small>
+          <input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fFront" type="file"/>
+        </div>
+        <div id="prevFront"></div>
+      </div>
+      <div class="field">
+        <label data-i18n="kyc.s8">Back side of your document</label>
+        <div class="dropzone" id="dzBack">
+          <i class="fas fa-id-card"></i>
+          <b data-i18n="kyc.s9">Upload ID back</b>
+          <small data-i18n="kyc.s10">Required for licences and national IDs · passports may upload the front again</small>
+          <input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fBack" type="file"/>
+        </div>
+        <div id="prevBack"></div>
+      </div>
+      <div class="field">
+        <label data-i18n-html="kyc.h11">Selfie holding your document <span class="muted" style="font-weight:400">(optional, speeds up review)</span></label>
+        <div class="dropzone" id="dzSelfie">
+          <i class="fas fa-face-smile"></i>
+          <b data-i18n="kyc.s12">Upload selfie with ID</b>
+          <small data-i18n="kyc.s13">Hold the ID next to your face — no glare, face fully visible</small>
+          <input accept="image/jpeg,image/png,image/webp,application/pdf" hidden="" id="fSelfie" type="file"/>
+        </div>
+        <div id="prevSelfie"></div>
+      </div>
+      <div class="card" style="background:rgba(0,71,194,.08);border-color:rgba(46,145,252,.25);font-size:13px">
+        <b class="font-head"><i class="fas fa-lock" style="color:var(--sky)"></i><span data-i18n="kyc.s14">Your data is protected</span></b>
+        <p class="muted" data-i18n-html="kyc.h15" style="font-size:12.5px;margin-top:6px">Documents are stored securely, visible only to our compliance team, and never shared with third parties. See our <a href="/legal?p=gdpr">Privacy Policy</a>.</p>
+      </div>
+    </section>
+
+    <div class="kyc-nav">
+      <button type="button" class="btn btn-outline" id="kycBack" style="visibility:hidden"><i class="fas fa-arrow-left"></i> Back</button>
+      <div class="kyc-nav-right">
+        <span class="muted small" id="kycStepNote">Step 1 of 3</span>
+        <button type="button" class="btn btn-green" id="kycNext">Continue <i class="fas fa-arrow-right"></i></button>
+        <button type="button" class="btn btn-gold btn-lg" id="kycSubmit" style="display:none"><i class="fas fa-paper-plane"></i><span data-i18n="kyc.s16">Submit for Verification</span></button>
+      </div>
+    </div>
+  </div>
 </div>
 </div>
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=31"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/countries.js?v=1"></script>
+  <script src="/assets/js/common.js?v=35"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -128,7 +186,7 @@
           box.innerHTML = `<div class="card" style="background:rgba(27,169,75,.12);border-color:rgba(27,169,75,.45)">
             <div class="flex-between"><div>
             <span class="badge badge-green"><i class="fas fa-check-double"></i> VERIFIED</span>
-            <h3 style="margin-top:12px">Identity confirmed ✅</h3>
+            <h3 style="margin-top:12px">Identity confirmed <i class="fas fa-circle-check" style="color:var(--green)"></i> </h3>
             <p class="muted small mt-1">Live trading and withdrawals are unlocked on your account.</p>
             </div><i class="fas fa-shield-halved" style="font-size:40px;color:var(--green-bright)"></i></div>
             <div class="mt-2"><a href="/trade" class="btn btn-green"><i class="fas fa-bolt"></i> Start Live Trading</a></div></div>`;
@@ -172,6 +230,51 @@
           rd.readAsDataURL(file);
         }
       }
+      /* ---- guided steps ---- */
+      const COUNTRY_SEL = $('#kycCountry');
+      COUNTRY_SEL.innerHTML = '<option value="">Select your country…</option>' + BB.countryOptions();
+      const panels = $$('.kpanel'), steps = $$('.kstep');
+      let step = 1;
+      const setStep = n => {
+        step = Math.max(1, Math.min(3, n));
+        panels.forEach(p => p.classList.toggle('active', +p.dataset.panel === step));
+        steps.forEach(s => {
+          const k = +s.dataset.step;
+          s.classList.toggle('active', k === step);
+          s.classList.toggle('done', k < step);
+        });
+        $('#kycBack').style.visibility = step === 1 ? 'hidden' : 'visible';
+        $('#kycNext').style.display = step === 3 ? 'none' : 'inline-flex';
+        $('#kycSubmit').style.display = step === 3 ? 'inline-flex' : 'none';
+        $('#kycStepNote').textContent = `Step ${step} of 3`;
+        document.querySelector('.kyc-shell').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      function validateStep(n) {
+        if (n === 1) {
+          if (!$('#kycName').value.trim()) { BB.toast('Enter your full legal name as printed on the document.', 'error'); return false; }
+          if (!$('#kycIdNo').value.trim()) { BB.toast('Enter your document / ID number.', 'error'); return false; }
+        }
+        if (n === 2) {
+          if (!COUNTRY_SEL.value) { BB.toast('Select your country of residence.', 'error'); return false; }
+          if (!$('#kycAddress').value.trim()) { BB.toast('Enter your residential address.', 'error'); return false; }
+        }
+        return true;
+      }
+      $('#kycNext').addEventListener('click', () => { if (validateStep(step)) setStep(step + 1); });
+      $('#kycBack').addEventListener('click', () => setStep(step - 1));
+      steps.forEach(s => s.addEventListener('click', () => {
+        const target = +s.dataset.step;
+        if (target < step) return setStep(target);
+        for (let i = step; i < target; i++) if (!validateStep(i)) return setStep(i);
+        setStep(target);
+      }));
+      // document-type cards drive the hidden native select
+      $$('.kdoc-type').forEach(el => el.addEventListener('click', () => {
+        $$('.kdoc-type').forEach(x => x.classList.remove('on'));
+        el.classList.add('on');
+        const v = el.querySelector('input').value;
+        $('#idType').value = v;
+      }));
       hookDrop('#dzFront', '#fFront', 'front', '#prevFront');
       hookDrop('#dzBack', '#fBack', 'back', '#prevBack');
       hookDrop('#dzSelfie', '#fSelfie', 'selfie', '#prevSelfie');
@@ -179,13 +282,17 @@
       BB.api('/api/auth/me', { silent: true }).then(m => {
         if (m.ok && m.user) {
           if (m.user.name) $('#kycName').value = m.user.name;
-          if (m.user.country) $('#kycCountry').value = m.user.country;
+          if (m.user.country) {
+            const code = BB.countryCode(m.user.country);
+            if ([...COUNTRY_SEL.options].some(o => o.value === code)) COUNTRY_SEL.value = code;
+          }
         }
       });
 
       $('#kycSubmit').addEventListener('click', async () => {
-        if (!$('#kycName').value.trim() || !$('#kycIdNo').value.trim() || !$('#kycAddress').value.trim())
-          return BB.toast('Please fill in your full legal name, ID number and address.', 'error');
+        for (const n of [1, 2]) {
+          if (!validateStep(n)) return setStep(n);
+        }
         if (!docs.front || !docs.back) return BB.toast('Please upload BOTH the front and back of your ID document.', 'error');
         const btn = $('#kycSubmit');
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting…';
@@ -193,7 +300,7 @@
           idType: $('#idType').value,
           details: {
             fullName: $('#kycName').value, idNumber: $('#kycIdNo').value, address: $('#kycAddress').value,
-            city: $('#kycCity').value, country: $('#kycCountry').value
+            city: $('#kycCity').value, country: COUNTRY_SEL.value
           },
           docs: [docs.front, docs.back, docs.selfie].filter(Boolean)
         };
@@ -206,6 +313,7 @@
           BB.toast(r.message, 'success');
           const s = await BB.api('/api/kyc/status', { silent: true });
           renderStatus(s.kyc);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         } else BB.toast(r.error, 'error');
       });
     });

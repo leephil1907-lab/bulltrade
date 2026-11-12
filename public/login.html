@@ -42,7 +42,7 @@
 <img alt="Blockchain Bullhorn" src="/assets/img/brand/login-art.jpg"/>
 <div class="auth-art-caption">
 <span class="eyebrow" data-i18n="log.s1">The Blockchain Bullhorn</span>
-<h2 data-i18n="log.s2">The markets missed you 🐂</h2>
+<h2 data-i18n="log.s2">The markets missed you </h2>
 <p data-i18n="log.s3">Pick up where you left off — your demo portfolio, live positions and the Crypto Ready Report are waiting.</p>
 </div>
 </div>
@@ -93,8 +93,9 @@
 </div>
 </div>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=31"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/countries.js?v=1"></script>
+  <script src="/assets/js/common.js?v=35"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
@@ -124,7 +125,7 @@
           return;
         }
         if (r.ok) {
-          BB.toast('Welcome back! 🐂', 'success');
+          BB.toast('Welcome back! ', 'success');
           const next = new URLSearchParams(location.search).get('next') || '/dashboard';
           location.href = next;
         } else {
@@ -143,7 +144,7 @@
           body: { challenge: window._totpChallenge, code: $('#totpCode').value.trim() }
         });
         if (r.ok) {
-          BB.toast('Welcome back! 🐂', 'success');
+          BB.toast('Welcome back! ', 'success');
           const next = new URLSearchParams(location.search).get('next') || '/dashboard';
           location.href = next;
         } else {

@@ -210,7 +210,7 @@
 <!-- STEP 5 — done -->
 <div class="wizard-pane" data-pane="5">
 <div class="text-center" style="padding:30px 10px">
-<div class="floaty" style="font-size:64px">🐂</div>
+<div class="floaty" style="font-size:64px"></div>
 <h2 data-i18n="sig.s43" style="font-size:28px;margin:12px 0 8px">Welcome to the herd!</h2>
 <p class="muted" data-i18n-html="sig.h44">Your account is ready with <b style="color:var(--green-bright)"><span data-usd="10000">$10,000</span> in demo funds</b>.<br/>Your dashboard, the trading terminal and live markets are one click away.</p>
 <div class="mt-3" style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
@@ -231,8 +231,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=31"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/common.js?v=34"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script src="/assets/js/countries.js"></script>
 <script>
@@ -255,10 +255,10 @@
 
       // populate countries (CTRY: {n: name, c: ISO} — flags + currency follow)
       const cs = $('#suCountry');
-      COUNTRIES.forEach(x => { const o = document.createElement('option'); o.value = x.n; o.textContent = flagOf(x.c) + '  ' + x.n; cs.appendChild(o); });
+      COUNTRIES.forEach(x => { const o = document.createElement('option'); o.value = x.n; o.textContent = flagOf(x.c) + ' ' + x.n; cs.appendChild(o); });
       cs.addEventListener('change', () => {
         const pick = COUNTRIES.find(x => x.n === cs.value);
-        if (pick) BB.setCountry(pick.c);   // sets the display currency to the country's currency
+        if (pick) BB.setCountry(pick.c); // sets the display currency to the country's currency
       });
 
       // password eye + meter

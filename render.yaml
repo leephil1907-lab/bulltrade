@@ -139,8 +139,12 @@ services:
         sync: false
 
       # ---- canonical URL (drives canonical/OG tags, sitemap, robots, emails) ----
+      # The live service is blockchainbullhorn.onrender.com. Keeping the value
+      # here means canonical/OG tags, robots.txt, sitemap.xml and outgoing email
+      # links are correct straight after the first deploy; override it in the
+      # dashboard (or attach a custom domain and set it there).
       - key: SITE_URL
-        sync: false
+        value: https://blockchainbullhorn.onrender.com
 
       # ---- email ----
       # Paid instances can reach SMTP directly, so plain SMTP is now the
