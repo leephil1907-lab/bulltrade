@@ -457,3 +457,161 @@ html { scroll-padding-top: calc(var(--header-h) + 56px); }
 .fbc-go { margin-left: auto; font-size: 10px; color: rgba(246, 236, 225, .5); }
 .footer-tools { margin-top: 12px; }
 .footer-tools a { display: flex; align-items: center; gap: 7px; }
+
+/* ============================================================
+   23. LIQUID GLASS + SPATIAL DEPTH
+   A translucency layer on the surfaces that actually float above
+   content (header, menus, sheets, toasts, sticky bars) plus a light
+   pointer-reactive sheen on cards. Same palette — no new colours,
+   only alpha over the existing cream/white/green/gold.
+   All of it is progressive: solid fallbacks, and it switches itself
+   off for reduced transparency / reduced motion / no backdrop-filter.
+   ============================================================ */
+:root {
+  --glass-1: rgba(255, 253, 248, .72);   /* lightest sheet  */
+  --glass-2: rgba(255, 251, 243, .84);   /* panels          */
+  --glass-3: rgba(255, 248, 238, .92);   /* dense sheets    */
+  --glass-rim: inset 0 1px 0 rgba(255, 255, 255, .85);
+  --glass-edge: 1px solid rgba(211, 168, 119, .28);
+  --elev-1: 0 1px 2px rgba(63, 20, 12, .05), 0 4px 12px rgba(63, 20, 12, .05);
+  --elev-2: 0 2px 6px rgba(63, 20, 12, .06), 0 14px 34px rgba(63, 20, 12, .09);
+  --elev-3: 0 4px 10px rgba(63, 20, 12, .08), 0 30px 70px rgba(63, 20, 12, .16);
+  --ease-spring: cubic-bezier(.22, 1, .36, 1);
+}
+
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+
+  /* ---- header: frosted sheet with a specular rim ---- */
+  .site-header {
+    background: var(--glass-1) !important;
+    backdrop-filter: blur(22px) saturate(165%);
+    -webkit-backdrop-filter: blur(22px) saturate(165%);
+    border-bottom: var(--glass-edge) !important;
+    box-shadow: var(--glass-rim), 0 10px 30px rgba(63, 20, 12, .06);
+  }
+
+  /* ---- floating menus and sheets ---- */
+  /* NOTE: the nav dropdown and account menu deliberately stay SOLID. They open
+     over the hero artwork, and blurring busy, high-contrast text behind a menu
+     hurts legibility more than the glass effect is worth. */
+  .modal,
+  .mobile-drawer,
+  .nav-mobile-extra,
+  .bb-chat-panel,
+  .pwa-sheet {
+    background: var(--glass-2) !important;
+    backdrop-filter: blur(26px) saturate(170%);
+    -webkit-backdrop-filter: blur(26px) saturate(170%);
+    border: var(--glass-edge) !important;
+    box-shadow: var(--glass-rim), var(--elev-3) !important;
+  }
+
+  /* ---- toasts: smallest floating unit, densest glass ---- */
+  .toast {
+    background: var(--glass-3) !important;
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: var(--glass-rim), var(--elev-2);
+  }
+
+  /* ---- sticky market toolbar + session bar ---- */
+  .mkt-toolbar {
+    background: rgba(251, 247, 240, .78) !important;
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    box-shadow: var(--glass-rim);
+  }
+  .session-bar {
+    background:
+      linear-gradient(135deg, rgba(43, 20, 16, .93), rgba(63, 20, 12, .90) 60%, rgba(74, 28, 18, .92));
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .10), 0 16px 40px rgba(43, 20, 16, .28);
+  }
+
+  /* ---- admin console: same language, denser tone ---- */
+  .admin-top,
+  .admin-side {
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+  }
+  .admin-top { background: rgba(251, 247, 240, .82) !important; box-shadow: var(--glass-rim); }
+  .adm-search, .adm-icon-btn, .adm-user-btn {
+    background: rgba(255, 255, 255, .78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .kyc-acc, .admin-card {
+    box-shadow: var(--glass-rim), var(--elev-1);
+  }
+}
+
+/* ---- spatial depth: cards respond to the pointer ---- */
+.card-hover, .asset-row, .qa, .stat-c, .kyc-kpi, .u-feed-row, .q-row {
+  transition: transform .26s var(--ease-spring), box-shadow .26s var(--ease-spring),
+              border-color .2s ease, background .2s ease;
+}
+.card-hover:hover { transform: translateY(-3px); box-shadow: var(--elev-2); }
+.qa:hover, .stat-c:hover, .kyc-kpi:hover { box-shadow: var(--elev-2); }
+
+/* pointer sheen — a soft light that follows the cursor across a card face */
+.has-sheen { position: relative; overflow: hidden; }
+.has-sheen::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(320px circle at var(--sx, 50%) var(--sy, 0%),
+              rgba(255, 255, 255, .55), rgba(211, 168, 119, .12) 42%, transparent 68%);
+  transition: opacity .3s ease;
+}
+.has-sheen:hover::after { opacity: 1; }
+
+/* ---- primary buttons get a slow specular sweep ---- */
+.btn-green, .btn-gold, .btn-primary {
+  position: relative; overflow: hidden; isolation: isolate;
+}
+.btn-green::after, .btn-gold::after, .btn-primary::after {
+  content: ''; position: absolute; top: 0; bottom: 0; width: 42%;
+  left: -60%; z-index: -1; opacity: 0;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .42), transparent);
+  transform: skewX(-14deg);
+}
+.btn-green:hover::after, .btn-gold:hover::after, .btn-primary:hover::after {
+  opacity: 1; animation: bbSheen .85s var(--ease-spring);
+}
+@keyframes bbSheen { from { left: -60%; } to { left: 120%; } }
+
+/* ---- spatial parallax on the page-hero watermark (JS sets --px/--py) ---- */
+.page-hero::after {
+  transform: translate3d(calc(-50% + var(--px, 0px)), calc(-50% + var(--py, 0px)), 0) rotate(-7deg);
+  transition: transform .5s var(--ease-spring);
+}
+
+/* ---- graceful degradation ---------------------------------------- */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-header { background: #fffdf8 !important; }
+  .nav-drop-menu, .adm-user-menu, .modal, .toast, .mkt-toolbar { background: #fffdf8 !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .site-header, .nav-drop-menu, .adm-user-menu, .modal, .toast,
+  .mkt-toolbar, .admin-top, .adm-search, .adm-icon-btn, .adm-user-btn {
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+    background: #fffdf8 !important;
+  }
+  .has-sheen::after { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .has-sheen::after, .btn-green::after, .btn-gold::after, .btn-primary::after { display: none; }
+  .page-hero::after { transform: translate(-50%, -50%) rotate(-7deg); transition: none; }
+  .card-hover:hover { transform: none; }
+}
+
+/* menus sit over busy artwork — keep the frost but raise the density */
+.nav-drop-menu, .adm-user-menu {
+  background: #fffdf8 !important;
+  border: 1px solid rgba(211, 168, 119, .32) !important;
+  box-shadow: var(--elev-3) !important;
+}
+.modal, .toast { background: rgba(255, 252, 246, .97) !important; }
+.mobile-drawer, .nav-mobile-extra, .bb-chat-panel, .pwa-sheet {
+  background: rgba(255, 252, 246, .96) !important;
+}

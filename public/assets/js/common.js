@@ -303,6 +303,64 @@ window.BB = {
   }
 };
 
+// ---------- spatial polish ----------
+// Two very small effects that make the UI feel three-dimensional without
+// changing the design: a pointer-following sheen on card faces, and a gentle
+// parallax on the page-hero watermark. Both are opt-in by capability and are
+// switched off for touch, reduced-motion and low-power devices.
+(function spatialUI() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (reduce.matches) return;
+  const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const conn = navigator.connection || {};
+  if (conn.saveData || /2g/.test(conn.effectiveType || '')) return;
+
+  // --- card sheen ---
+  if (fine) {
+    const SEL = '.card-hover, .qa, .stat-c, .kyc-kpi, .asset-row, .pulse-stat';
+    let raf = 0, last = null;
+    document.addEventListener('pointerover', e => {
+      const el = e.target.closest && e.target.closest(SEL);
+      if (!el) return;
+      el.classList.add('has-sheen');
+      last = el;
+    }, { passive: true });
+    document.addEventListener('pointermove', e => {
+      if (!last) return;
+      const el = last;
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const r = el.getBoundingClientRect();
+        el.style.setProperty('--sx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+        el.style.setProperty('--sy', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+      });
+    }, { passive: true });
+    document.addEventListener('pointerout', e => {
+      if (last && e.target === last) { last = null; }
+    }, { passive: true });
+  }
+
+  // --- hero watermark parallax ---
+  const hero = document.querySelector('.page-hero');
+  if (hero && fine) {
+    let pending = false, tx = 0, ty = 0;
+    window.addEventListener('pointermove', e => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => {
+        pending = false;
+        const cx = (e.clientX / window.innerWidth - .5) * 2;
+        const cy = (e.clientY / window.innerHeight - .5) * 2;
+        tx = (-cx * 10).toFixed(1) + 'px';
+        ty = (-cy * 8).toFixed(1) + 'px';
+        hero.style.setProperty('--px', tx);
+        hero.style.setProperty('--py', ty);
+      });
+    }, { passive: true });
+  }
+})();
+
 // ---------- instant-feeling navigation ----------
 // Warm the next page while the pointer is already on the link. Cheap (one
 // prefetch per URL, skipped on slow connections and save-data) and it removes
@@ -518,7 +576,7 @@ const COUNTRY_CUR = {
 const I18N = {
   en: {
     'nav.markets': 'Markets', 'nav.trading': 'Trading', 'nav.bots': 'Trading Bots', 'nav.community': 'Community', 'nav.guide': 'Guide',
-    'nav.products': 'Products', 'nav.mentorship': 'Mentorship', 'nav.faq': 'FAQ', 'nav.contact': 'Contact',
+    'nav.products': 'Products', 'nav.mentorship': 'Mentorship', 'nav.faq': 'FAQ', 'nav.contact': 'Contact', 'nav.cmf': 'CMF Engine', 'nav.scams': 'Fraud Alert',
     'hdr.login': 'Log In', 'hdr.signup': 'Sign Up Free', 'hdr.logout': 'Log Out', 'hdr.dashboard': 'Dashboard',
     'hdr.funding': 'Funding', 'hdr.kyc': 'KYC Verification', 'hdr.tradenow': 'Trade Now', 'hdr.notify': 'Notifications',
     'hdr.tagline': 'Grab the Bull by the Horns',
@@ -538,7 +596,7 @@ const I18N = {
   },
   es: {
     'nav.markets': 'Mercados', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidad',
-    'nav.products': 'Productos', 'nav.mentorship': 'Mentoría', 'nav.faq': 'Preguntas frecuentes', 'nav.contact': 'Contacto',
+    'nav.products': 'Productos', 'nav.mentorship': 'Mentoría', 'nav.faq': 'Preguntas frecuentes', 'nav.contact': 'Contacto', 'nav.cmf': 'Motor CMF', 'nav.scams': 'Alerta de fraude',
     'hdr.login': 'Iniciar sesión', 'hdr.signup': 'Regístrate gratis', 'hdr.logout': 'Cerrar sesión', 'hdr.dashboard': 'Panel',
     'hdr.funding': 'Fondos', 'hdr.kyc': 'Verificación KYC', 'hdr.tradenow': 'Operar ahora', 'hdr.notify': 'Notificaciones',
     'hdr.tagline': 'Agarra al toro por los cuernos',
@@ -558,7 +616,7 @@ const I18N = {
   },
   fr: {
     'nav.markets': 'Marchés', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Communauté',
-    'nav.products': 'Produits', 'nav.mentorship': 'Mentorat', 'nav.faq': 'FAQ', 'nav.contact': 'Contact',
+    'nav.products': 'Produits', 'nav.mentorship': 'Mentorat', 'nav.faq': 'FAQ', 'nav.contact': 'Contact', 'nav.cmf': 'Moteur CMF', 'nav.scams': 'Alerte fraude',
     'hdr.login': 'Se connecter', 'hdr.signup': 'Créer un compte gratuit', 'hdr.logout': 'Se déconnecter', 'hdr.dashboard': 'Tableau de bord',
     'hdr.funding': 'Financement', 'hdr.kyc': 'Vérification KYC', 'hdr.tradenow': 'Trader maintenant', 'hdr.notify': 'Notifications',
     'hdr.tagline': 'Prends le taureau par les cornes',
@@ -578,7 +636,7 @@ const I18N = {
   },
   pt: {
     'nav.markets': 'Mercados', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidade',
-    'nav.products': 'Produtos', 'nav.mentorship': 'Mentoria', 'nav.faq': 'Perguntas frequentes', 'nav.contact': 'Contato',
+    'nav.products': 'Produtos', 'nav.mentorship': 'Mentoria', 'nav.faq': 'Perguntas frequentes', 'nav.contact': 'Contato', 'nav.cmf': 'Motor CMF', 'nav.scams': 'Alerta de fraude',
     'hdr.login': 'Entrar', 'hdr.signup': 'Cadastre-se grátis', 'hdr.logout': 'Sair', 'hdr.dashboard': 'Painel',
     'hdr.funding': 'Fundos', 'hdr.kyc': 'Verificação KYC', 'hdr.tradenow': 'Operar agora', 'hdr.notify': 'Notificações',
     'hdr.tagline': 'Pegue o touro pelos chifres',
@@ -598,7 +656,7 @@ const I18N = {
   },
   de: {
     'nav.markets': 'Märkte', 'nav.trading': 'Trading', 'nav.bots': 'Trading-Bots', 'nav.community': 'Community',
-    'nav.products': 'Produkte', 'nav.mentorship': 'Mentoring', 'nav.faq': 'FAQ', 'nav.contact': 'Kontakt',
+    'nav.products': 'Produkte', 'nav.mentorship': 'Mentoring', 'nav.faq': 'FAQ', 'nav.contact': 'Kontakt', 'nav.cmf': 'CMF-Engine', 'nav.scams': 'Betrugswarnung',
     'hdr.login': 'Anmelden', 'hdr.signup': 'Kostenlos registrieren', 'hdr.logout': 'Abmelden', 'hdr.dashboard': 'Dashboard',
     'hdr.funding': 'Finanzierung', 'hdr.kyc': 'KYC-Verifizierung', 'hdr.tradenow': 'Jetzt traden', 'hdr.notify': 'Benachrichtigungen',
     'hdr.tagline': 'Pack den Stier bei den Hörnern',
@@ -618,7 +676,7 @@ const I18N = {
   },
   zh: {
     'nav.markets': '市场', 'nav.trading': '交易', 'nav.bots': '交易机器人', 'nav.community': '社区',
-    'nav.products': '产品', 'nav.mentorship': '精英辅导', 'nav.faq': '常见问题', 'nav.contact': '联系我们',
+    'nav.products': '产品', 'nav.mentorship': '精英辅导', 'nav.faq': '常见问题', 'nav.contact': '联系我们', 'nav.cmf': 'CMF 引擎', 'nav.scams': '诈骗警告',
     'hdr.login': '登录', 'hdr.signup': '免费注册', 'hdr.logout': '退出登录', 'hdr.dashboard': '仪表盘',
     'hdr.funding': '资金', 'hdr.kyc': 'KYC 认证', 'hdr.tradenow': '立即交易', 'hdr.notify': '通知',
     'hdr.tagline': '擒牛执角',
@@ -638,7 +696,7 @@ const I18N = {
   },
   hi: {
     'nav.markets': 'बाज़ार', 'nav.trading': 'ट्रेडिंग', 'nav.bots': 'ट्रेडिंग बॉट्स', 'nav.community': 'कम्युनिटी',
-    'nav.products': 'उत्पाद', 'nav.mentorship': 'मेंटरशिप', 'nav.faq': 'सामान्य प्रश्न', 'nav.contact': 'संपर्क',
+    'nav.products': 'उत्पाद', 'nav.mentorship': 'मेंटरशिप', 'nav.faq': 'सामान्य प्रश्न', 'nav.contact': 'संपर्क', 'nav.cmf': 'CMF इंजन', 'nav.scams': 'धोखाधड़ी चेतावनी',
     'hdr.login': 'लॉग इन', 'hdr.signup': 'मुफ़्त रजिस्टर करें', 'hdr.logout': 'लॉग आउट', 'hdr.dashboard': 'डैशबोर्ड',
     'hdr.funding': 'फंडिंग', 'hdr.kyc': 'KYC सत्यापन', 'hdr.tradenow': 'अभी ट्रेड करें', 'hdr.notify': 'सूचनाएँ',
     'hdr.tagline': 'बैल के सींग पकड़ो',
