@@ -10,6 +10,8 @@ navigation, responsive breakpoints and page scripts are intentionally untouched.
 - Exposure and margin caps so position size cannot grow without limit.
 - Transparent compounding projections with fees, equity curve and maximum drawdown.
 - Swing-pivot market-structure analysis with BOS / CHoCH event labels.
+- User-scoped API endpoints for plans, projections, market structure and journaling.
+- Persistent JSON collections for CMF runs and journals, isolated by authenticated user.
 - Unit tests for core calculations and invalid inputs.
 
 ## Safety and scope
@@ -27,8 +29,16 @@ navigation, responsive breakpoints and page scripts are intentionally untouched.
 node tests/cmf.js
 ```
 
-## Next integration stage
+## API surface
 
-Expose these calculations through authenticated, user-scoped API handlers and
-persist strategy configurations / run history. Only then wire the existing CMF
-experience to the API, preserving its current markup and visual treatment.
+- `GET /api/cmf/overview` — the signed-in user's latest plans and journal entries.
+- `POST /api/cmf/plan` — calculate and persist a risk-first plan.
+- `POST /api/cmf/projection` — calculate and persist a compounding scenario.
+- `POST /api/cmf/structure` — analyse up to 500 supplied OHLC candles.
+- `POST /api/cmf/journal` — attach one manually entered realised P/L result to a plan.
+
+All endpoints require authentication. The journal is an educational performance
+record and does not change wallet balances, positions, orders or the financial
+ledger. The existing CMF page is not modified in this phase; connecting its
+existing interface is the next UI integration step and must preserve its markup
+and visual treatment.
