@@ -35,6 +35,12 @@ assert.ok(projection.maxDrawdownPct > 0);
 assert.throws(() => CMF.projectCompounding({
   startingCapital: 1000, returnsPct: [-101]
 }), /between -100% and 1000%/);
+assert.throws(() => CMF.projectCompounding({
+  startingCapital: 1000, returnsPct: [5], feePct: 'not-a-number'
+}), /Fee percentage must be a finite number/);
+assert.throws(() => CMF.buildTradePlan({
+  equity: 1000, side: 'buy', entry: 100, stop: 95, riskPct: 'not-a-number'
+}), /Risk percentage must be a finite number/);
 
 const candles = [
   { high: 10, low: 8, close: 9 },
