@@ -78,7 +78,7 @@
 <div>
 <h4 class="font-head mb-1" data-i18n="fun.s5" style="font-size:15px">2 · Send to the deposit address</h4>
 <div class="addr-box"><span id="addrText">—</span><button id="copyAddr" title="Copy address"><i class="fas fa-copy"></i></button></div>
-<p class="muted small mt-1" data-i18n-html="fun.h6">⚠️ Send only <b id="assetName">USDT</b> on the displayed network. Sending other coins or the wrong network may result in permanent loss.</p>
+<p class="muted small mt-1" data-i18n-html="fun.h6"><i class="fas fa-triangle-exclamation"></i> Send only <b id="assetName">USDT</b> on the displayed network. Sending other coins or the wrong network may result in permanent loss.</p>
 <div class="addr-box mt-2" id="depGuide" style="background:rgba(27,169,75,.07);border-style:solid;border-color:rgba(27,169,75,.35)"></div>
 <h4 class="font-head mb-1 mt-2" data-i18n="fun.s7" style="font-size:15px">3 · Confirm your deposit</h4>
 <div class="form-row">
@@ -144,8 +144,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=32"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/common.js?v=34"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script src="/assets/js/qrcode.js"></script>
 <script>
@@ -264,15 +264,15 @@
       const DEP_INFO = {
         USDT: { network: 'TRON (TRC-20)', min: 10, mins: '2–5 minutes', conf: '19 network confirmations', note: 'USDT on TRC-20 only. Do NOT send via ERC-20, BEP-20 or any other network.' },
         'USDT-ERC20': { network: 'Ethereum (ERC-20)', min: 20, mins: '2–15 minutes', conf: '12 block confirmations', note: 'USDT on the Ethereum network (ERC-20) only. Do NOT send via TRC-20, BEP-20 or any other network.' },
-        BTC:  { network: 'Bitcoin (BTC)', min: 50, mins: '10–60 minutes', conf: '2 block confirmations', note: 'Bitcoin native network only. Do not send BCH or other forks.' },
-        ETH:  { network: 'Ethereum (ERC-20)', min: 20, mins: '2–15 minutes', conf: '12 block confirmations', note: 'ETH on ERC-20 only. Do NOT send via Arbitrum, Base or other L2 networks.' },
-        SOL:  { network: 'Solana (SOL)', min: 10, mins: '1–5 minutes', conf: '32 confirmations (finalized)', note: 'SOL on the Solana network only. Do not send SPL tokens to this address.' },
-        BNB:  { network: 'BNB Smart Chain (BEP-20)', min: 10, mins: '1–5 minutes', conf: '15 block confirmations', note: 'BNB on BEP-20 only. Do NOT send via ERC-20 or any other network.' },
-        XRP:  { network: 'XRP Ledger', min: 10, mins: '2–5 minutes', conf: 'ledger confirmations', note: 'XRP on the XRP Ledger only. Contact support before your first XRP deposit if a destination tag is required.' },
-        LTC:  { network: 'Litecoin (LTC)', min: 10, mins: '2–10 minutes', conf: '6 block confirmations', note: 'Litecoin native network only. Do not send via MWEB.' },
+        BTC: { network: 'Bitcoin (BTC)', min: 50, mins: '10–60 minutes', conf: '2 block confirmations', note: 'Bitcoin native network only. Do not send BCH or other forks.' },
+        ETH: { network: 'Ethereum (ERC-20)', min: 20, mins: '2–15 minutes', conf: '12 block confirmations', note: 'ETH on ERC-20 only. Do NOT send via Arbitrum, Base or other L2 networks.' },
+        SOL: { network: 'Solana (SOL)', min: 10, mins: '1–5 minutes', conf: '32 confirmations (finalized)', note: 'SOL on the Solana network only. Do not send SPL tokens to this address.' },
+        BNB: { network: 'BNB Smart Chain (BEP-20)', min: 10, mins: '1–5 minutes', conf: '15 block confirmations', note: 'BNB on BEP-20 only. Do NOT send via ERC-20 or any other network.' },
+        XRP: { network: 'XRP Ledger', min: 10, mins: '2–5 minutes', conf: 'ledger confirmations', note: 'XRP on the XRP Ledger only. Contact support before your first XRP deposit if a destination tag is required.' },
+        LTC: { network: 'Litecoin (LTC)', min: 10, mins: '2–10 minutes', conf: '6 block confirmations', note: 'Litecoin native network only. Do not send via MWEB.' },
         DOGE: { network: 'Dogecoin (DOGE)', min: 10, mins: '5–15 minutes', conf: '12 block confirmations', note: 'DOGE on the Dogecoin network only.' },
-        TRX:  { network: 'Tron (TRX)', min: 10, mins: '1–5 minutes', conf: '19 network confirmations', note: 'TRX native (TRC-10) on the Tron network only. Do not send TRC-20 tokens unless stated.' },
-        ZEC:  { network: 'Zcash (ZEC)', min: 10, mins: '5–30 minutes', conf: '6 block confirmations', note: 'Zcash transparent (t-) addresses only. Shielded or memo deposits cannot be credited.' }
+        TRX: { network: 'Tron (TRX)', min: 10, mins: '1–5 minutes', conf: '19 network confirmations', note: 'TRX native (TRC-10) on the Tron network only. Do not send TRC-20 tokens unless stated.' },
+        ZEC: { network: 'Zcash (ZEC)', min: 10, mins: '5–30 minutes', conf: '6 block confirmations', note: 'Zcash transparent (t-) addresses only. Shielded or memo deposits cannot be credited.' }
       };
       function updateAddr() {
         const addr = data ? (data.addresses[selAsset] || '') : '';
@@ -288,14 +288,14 @@
               <b class="font-head" style="font-size:13px"><i class="fas fa-circle-info" style="color:var(--green-deep)"></i> ${selAsset} deposit instructions</b>
               <div class="muted small" style="margin-top:5px;line-height:1.7">
                 Network: <b>${i.network}</b> · Min deposit: <b>$${i.min}</b> · Arrival: <b>${i.mins}</b> (${i.conf})<br>
-                <span style="color:var(--red)">⚠ ${i.note}</span>
+                <span style="color:var(--red)"><i class="fas fa-triangle-exclamation"></i> ${i.note}</span>
               </div>
             </div>`;
         }
       }
 
       $('#copyAddr').addEventListener('click', () => {
-        navigator.clipboard.writeText($('#addrText').textContent).then(() => BB.toast('Address copied to clipboard 📋', 'success'));
+        navigator.clipboard.writeText($('#addrText').textContent).then(() => BB.toast('Address copied to clipboard <i class="fas fa-clipboard-list"></i> ', 'success'));
       });
 
       $$('#fundTabs .tab-btn').forEach(b => b.addEventListener('click', () => {

@@ -21,13 +21,34 @@
 <style>
     .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .bal-card { position: relative; overflow: hidden; }
-    .bal-card .bc-label { font-family: var(--font-head); font-size: 11.5px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--ink-dim); display: flex; align-items: center; gap: 7px; }
-    .bal-card .bc-value { font-family: var(--font-head); font-size: 26px; font-weight: 700; margin: 9px 0 4px; }
-    .bal-card .bc-sub { font-size: 12.5px; color: var(--ink-soft); font-family: var(--font-head); }
-    .qa-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
-    .qa { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 10px; border-radius: 12px; border: 1px solid var(--line); background: #fff; color: var(--ink-soft); font-family: var(--font-head); font-size: 12.5px; font-weight: 700; cursor: pointer; transition: all .18s; text-align: center; }
-    .qa:hover { border-color: var(--green); color: var(--ink); transform: translateY(-3px); box-shadow: var(--shadow-soft); }
-    .qa i { font-size: 18px; color: var(--green-deep); }
+    .bal-card { position: relative; overflow: hidden; }
+    .bal-card .bc-head { display: flex; align-items: center; gap: 9px; }
+    .bal-card .bc-ic {
+    width: 30px; height: 30px; border-radius: 9px; flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; font-size: 12.5px;
+    background: rgba(63, 20, 12, .05);
+    }
+    .bal-card .bc-label { font-family: var(--font-head); font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-dim); }
+    .bal-card .bc-value { font-family: var(--font-head); font-size: clamp(21px, 2.1vw, 27px); font-weight: 700; margin: 10px 0 4px; letter-spacing: -.02em; }
+    .bal-card .bc-sub { font-size: 12.5px; color: var(--ink-soft); font-family: var(--font-head); line-height: 1.5; }
+    /* auto-fit keeps the tiles evenly sized instead of leaving the 7th tile
+    stranded on its own row */
+    .qa-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 12px; }
+    .qa {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px;
+    padding: 16px 10px; border-radius: 14px; border: 1px solid var(--line);
+    background: linear-gradient(180deg, #fff, #fffdf9); color: var(--ink-soft);
+    font-family: var(--font-head); font-size: 12.5px; font-weight: 700;
+    cursor: pointer; transition: transform .18s, box-shadow .18s, border-color .18s, color .18s;
+    text-align: center; box-shadow: 0 1px 2px rgba(63,20,12,.04);
+    }
+    .qa:hover { border-color: rgba(27,169,75,.55); color: var(--ink); transform: translateY(-3px); box-shadow: 0 12px 26px rgba(63,20,12,.10); }
+    .qa i {
+    width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--green-deep);
+    background: linear-gradient(150deg, rgba(27,169,75,.14), rgba(211,168,119,.18));
+    }
+    .qa:hover i { background: var(--green); color: #fff; }
     .kyc-track { display: flex; align-items: center; margin-top: 16px; }
     .kyc-step { flex: 1; text-align: center; position: relative; }
     .kyc-step .kdot { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-soft); border: 2px solid var(--line); display: flex; align-items: center; justify-content: center; margin: 0 auto 7px; color: var(--ink-dim); font-size: 13px; z-index: 2; position: relative; }
@@ -55,7 +76,7 @@
     .gs-item a.gs-go { font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--green-deep); display: inline-flex; gap: 5px; align-items: center; }
     .gs-item a.gs-go:hover { text-decoration: underline; }
     .gs-item.done a.gs-go { color: var(--ink-dim); }
-    @media (max-width: 1080px) { .dash-grid { grid-template-columns: 1fr 1fr; } .qa-row { grid-template-columns: repeat(3, 1fr); } .gs-list { grid-template-columns: 1fr; } }
+    @media (max-width: 1080px) { .dash-grid { grid-template-columns: 1fr 1fr; } .qa-row { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); } .gs-list { grid-template-columns: 1fr; } }
     @media (max-width: 640px) { .dash-grid { grid-template-columns: 1fr; } .qa-row { grid-template-columns: 1fr 1fr; } }
   </style>
 <script>document.documentElement.classList.add('js')</script>
@@ -75,13 +96,15 @@
 <div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
 <section class="section-tight reveal">
 <div class="container-wide">
-<div class="flex-between mb-2">
-<div>
-<h1 data-i18n="hdr.dashboard" id="welcomeTitle" style="font-size:clamp(24px,3vw,32px)">Dashboard</h1>
+<div class="dash-hero">
+<img class="dh-mark" src="/assets/img/brand/logo.png" alt="" aria-hidden="true">
+<div class="dh-body">
+<span class="dh-eyebrow"><i class="fas fa-gauge-high"></i> <span data-i18n="hdr.dashboard">Account overview</span></span>
+<h1 data-i18n="hdr.dashboard" id="welcomeTitle">Dashboard</h1>
 <p class="muted" data-i18n="dash.s1" id="welcomeSub">Loading your account…</p>
 <div class="acct-row mt-1" id="acctChips"></div>
 </div>
-<div style="display:flex;gap:10px;flex-wrap:wrap">
+<div class="dh-actions">
 <a class="btn btn-green" href="/funding"><i class="fas fa-wallet"></i><span data-i18n="dash.s2">Deposit</span></a>
 <a class="btn btn-gold" href="/trade"><i class="fas fa-chart-line"></i><span data-i18n="dash.s3">Trade</span></a>
 </div>
@@ -271,22 +294,22 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=32"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/common.js?v=34"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script src="/assets/js/qrcode.js"></script>
 <script>
     document.addEventListener('bb:ready', async () => {
       if (!BB.user) { location.href = '/login?next=' + encodeURIComponent('/dashboard'); return; }
       let posMode = 'demo', perfMode = 'demo';
-      let assetMap = {};   // assetId -> asset (for logos)
+      let assetMap = {}; // assetId -> asset (for logos)
 
-      $('#welcomeTitle').textContent = `Welcome, ${BB.user.name ? BB.user.name.split(' ')[0] : 'trader'} 🐂`;
+      $('#welcomeTitle').textContent = `Welcome back, ${BB.user.name ? BB.user.name.split(' ')[0] : 'trader'}`;
       $('#welcomeSub').textContent = `Member since ${new Date(BB.user.joinedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
       $('#acctChips').innerHTML = `
         <span class="acct-chip"><i class="fas fa-envelope"></i> ${BB.esc(BB.user.email)}</span>
         <span class="acct-chip"><i class="fas fa-id-card"></i> KYC: ${BB.user.kycStatus.replace('_', ' ')}</span>
-        <span class="acct-chip"><i class="fas fa-users"></i> Community: ${BB.user.communityStatus === 'approved' ? 'Member ✅' : BB.user.communityStatus === 'pending' ? 'In review' : 'Not applied'}</span>
+        <span class="acct-chip"><i class="fas fa-users"></i> Community: ${BB.user.communityStatus === 'approved' ? 'Member <i class="fas fa-circle-check" style="color:var(--green)"></i>' : BB.user.communityStatus === 'pending' ? 'In review' : 'Not applied'}</span>
         <span class="acct-chip"><i class="fas fa-gift"></i> Referral: ${BB.esc(BB.user.referralCode)}</span>`;
 
       // ----- Getting started checklist -----
@@ -335,7 +358,7 @@
         $('#gsCount').textContent = `${doneCount} / ${items.length} done`;
         $('#gsBar').style.width = Math.round(doneCount / items.length * 100) + '%';
         $('#gsNote').innerHTML = nextIdx === -1
-          ? '🎉 <b>All set.</b> Everything is wired up — the markets are yours.'
+          ? '<i class="fas fa-circle-check" style="color:var(--green)"></i> <b>All set.</b> Everything is wired up — the markets are yours.'
           : `Next up: <b>${items[nextIdx].title}</b>. Steps tick themselves off as you go.`;
         $('#gsList').innerHTML = items.map((i, n) => `
           <div class="gs-item ${i.done ? 'done' : n === nextIdx ? 'next' : ''}">
@@ -363,7 +386,7 @@
       if (kycStatus === 'approved') {
         kycCard.innerHTML = `<div class="flex-between">
           <div><span class="badge badge-green"><i class="fas fa-check"></i> KYC VERIFIED</span>
-          <h3 style="margin-top:10px">You're fully verified ✅</h3>
+          <h3 style="margin-top:10px">You're fully verified</h3>
           <p class="muted small">Live trading and withdrawals are unlocked.</p></div>
           <a href="/trade" class="btn btn-green"><i class="fas fa-bolt"></i> Trade Live</a></div>${kycTrack(4)}`;
       } else if (kycStatus === 'pending') {
@@ -395,15 +418,18 @@
         const live = meR.live, demo = meR.demo;
         const cards = [
           { label: BB.t('dash.liveEq'), icon: 'fa-bolt', value: live.equity, sub: `${BB.fmtUSD(live.free)} free · ${BB.fmtUSD(live.marginUsed)} margin · ${BB.fmtUSD(live.spot || 0)} coins · ${BB.fmtUSD(live.inCopy || 0)} copying`, cls: 'var(--green-bright)' },
-          { label: 'Live Unrealized P/L', icon: 'fa-arrow-up', value: live.unrealized, sub: 'across open live positions', cls: live.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' },
+          { label: 'Live Unrealized P/L', icon: live.unrealized >= 0 ? 'fa-arrow-up' : 'fa-arrow-down', value: live.unrealized, sub: 'across open live positions', cls: live.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' },
           { label: BB.t('dash.demoEq'), icon: 'fa-flask', value: demo.equity, sub: `${BB.fmtUSD(demo.free)} free · ${BB.fmtUSD(demo.marginUsed)} margin · ${BB.fmtUSD(demo.spot || 0)} coins · ${BB.fmtUSD(demo.inCopy || 0)} copying`, cls: 'var(--sky)' },
-          { label: 'Demo Unrealized P/L', icon: 'fa-arrow-up', value: demo.unrealized, sub: 'practice account', cls: demo.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' }
+          { label: 'Demo Unrealized P/L', icon: demo.unrealized >= 0 ? 'fa-arrow-up' : 'fa-arrow-down', value: demo.unrealized, sub: 'practice account', cls: demo.unrealized >= 0 ? 'var(--green-bright)' : 'var(--red)' }
         ];
         const adj = (live.manualPnl || 0) + (demo.manualPnl || 0);
         if (Math.abs(adj) > 0.004) cards.push({ label: BB.t('dash.adj'), icon: 'fa-sliders', value: adj, sub: `live ${BB.fmtUSD(live.manualPnl || 0)} · demo ${BB.fmtUSD(demo.manualPnl || 0)}`, cls: adj >= 0 ? 'var(--gold-deep)' : 'var(--red)' });
         $('#balCards').innerHTML = cards.map(c => `
           <div class="card bal-card">
-            <div class="bc-label"><i class="fas ${c.icon}"></i> ${c.label}</div>
+            <div class="bc-head">
+            <span class="bc-ic" style="color:${c.cls}"><i class="fas ${c.icon}"></i></span>
+            <span class="bc-label">${c.label}</span>
+            </div>
             <div class="bc-value" style="color:${c.cls}">${BB.fmtUSD(c.value)}</div>
             <div class="bc-sub">${c.sub}</div>
           </div>`).join('');
@@ -676,7 +702,7 @@
           if (a.status === 'triggered' && !seenTriggered.has(a.id)) {
             seenTriggered.add(a.id);
             if (seenTriggered.size > r.alerts.length + 5) seenTriggered = new Set([...seenTriggered].slice(-10));
-            BB.toast(`⚡ ${a.symbol} ${a.dir} ${BB.fmtPx(a.target)} — triggered @ ${BB.fmtPx(a.triggeredPrice)}!`, 'success');
+            BB.toast(`<i class="fas fa-bolt"></i> ${a.symbol} ${a.dir} ${BB.fmtPx(a.target)} — triggered @ ${BB.fmtPx(a.triggeredPrice)}!`, 'success');
             try { if (window.Notification && Notification.permission === 'granted') new Notification(`Blockchain Bullhorn — ${a.symbol} alert`, { body: `${a.symbol} is ${a.dir} ${BB.fmtPx(a.target)} (now ${BB.fmtPx(a.triggeredPrice)})`, icon: '/assets/img/app-icon.png' }); } catch (e) {}
           }
         }
@@ -807,7 +833,7 @@
           </div>`);
         $('#tfaConfirm', bd).addEventListener('click', async () => {
           const r2 = await BB.api('/api/auth/2fa-enable', { method: 'POST', body: { code: $('#tfaCode2', bd).value } });
-          if (r2.ok) { bd.remove(); BB.toast('2FA enabled — your account is safer now 🔐', 'success'); boot2(); }
+          if (r2.ok) { bd.remove(); BB.toast('2FA enabled — your account is safer now ', 'success'); boot2(); }
           else BB.toast(r2.error, 'error');
         });
       }

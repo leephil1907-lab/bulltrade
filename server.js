@@ -1429,6 +1429,10 @@ api['GET /api/admin/overview'] = async (req, res, body, cookies) => {
         n + ['demo','live'].filter(m => !D.reconcileWallet(u.id, m).balanced).length, 0)
     },
     recentUsers,
+    recentActivity: db.audit.slice().sort((a, b) => b.at - a.at).slice(0, 6).map(a => ({
+      action: a.action, target: a.target, detail: a.detail, at: a.at,
+      admin: (users.find(u => u.id === a.adminId) || {}).email || 'admin'
+    })),
     topGainers: movers.slice(0, 5),
     topLosers: movers.slice(-5).reverse(),
     marketUpdated: markets.lastRefresh

@@ -8,6 +8,54 @@
 const $ = (s, el) => (el || document).querySelector(s);
 const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
 
+
+// ---------------- asset glyphs (drawn, not emoji) ----------------
+// One 24×24 line-icon per asset family, tinted with the asset's own colour.
+const ICON_PATHS = {
+  ingot: '<path d="M6.4 13.6h11.2l-2 5.4H8.4z"/><path d="M9.1 13.6 10.4 9h3.2l1.3 4.6"/>',
+  barrel: '<rect x="7" y="4.5" width="10" height="15" rx="2.2"/><path d="M7 9.2h10M7 14.8h10"/><path d="M12 4.5v15"/>',
+  flame: '<path d="M12 3.5c3.2 3 4.6 5.3 4.6 8a4.6 4.6 0 0 1-9.2 0c0-1.6.7-3 2.1-4.4.2 1.3.8 2.1 1.9 2.6-.2-2.2-.1-3.9.6-6.2Z"/>',
+  wheat: '<path d="M12 21V8"/><path d="M12 9.5 8.6 6.9M12 9.5l3.4-2.6M12 13.2l-3.4-2.6M12 13.2l3.4-2.6M12 16.9l-3.4-2.6M12 16.9l3.4-2.6"/>',
+  corn: '<path d="M13.4 4.2c2.4 2 3.6 4.9 3.6 8.4 0 3.4-1.5 5.6-4.2 6.6-2.7-1-4.1-3.2-4.1-6.6 0-3.5 1.6-6.3 4.7-8.4Z"/><path d="M9.4 8.4c-1.5.3-2.5 1.4-3 3.3M14.9 8.4c1.5.3 2.5 1.4 3 3.3"/>',
+  bean: '<ellipse cx="9.4" cy="12" rx="3.2" ry="4.6" transform="rotate(-18 9.4 12)"/><ellipse cx="15" cy="13.6" rx="2.6" ry="3.8" transform="rotate(16 15 13.6)"/>',
+  cup: '<path d="M5.5 8.5h9v5.2a4.5 4.5 0 0 1-9 0z"/><path d="M14.5 9.6h1.7a2.4 2.4 0 0 1 0 4.8h-1.7"/><path d="M8.2 4.4c-.7.7-.7 1.4 0 2.1M11.4 4.2c-.7.7-.7 1.4 0 2.1"/>',
+  chart: '<path d="M4 19h16"/><path d="M7 19v-5M12 19V9M17 19v-8"/><path d="M5.6 9.4 10.2 5l3 2.6 4.6-3.2"/>',
+  bank: '<path d="M4 9.6 12 5l8 4.6"/><path d="M6.4 10.6v6.2M10.2 10.6v6.2M13.8 10.6v6.2M17.6 10.6v6.2"/><path d="M4.2 19.4h15.6"/>',
+  horn: '<path d="M4.4 15.2c4.6-.2 8-2.4 9.8-6.6 1.1 2.4 1.2 4.9.3 7.4-1.6 4.3-6.1 5.6-10.1 4.6"/><path d="M14.2 8.6c1.6-.8 3.2-1 4.8-.6"/>',
+  globe: '<circle cx="12" cy="12" r="7.6"/><path d="M4.4 12h15.2M12 4.4c2 2.2 3 4.8 3 7.6s-1 5.4-3 7.6c-2-2.2-3-4.8-3-7.6s1-5.4 3-7.6Z"/>'
+};
+const ASSET_GLYPH = {
+  'rwa-xau': { glyph: 'ingot', tone: '#b8860b' },
+  'rwa-xag': { glyph: 'ingot', tone: '#8d97a3' },
+  'rwa-xpt': { glyph: 'ingot', tone: '#9aa8b4' },
+  'rwa-xpd': { glyph: 'ingot', tone: '#a9a29b' },
+  'rwa-hg': { glyph: 'ingot', tone: '#b4703a' },
+  'rwa-wti': { glyph: 'barrel', tone: '#3c4a63' },
+  'rwa-brent': { glyph: 'barrel', tone: '#2c3850' },
+  'rwa-ng': { glyph: 'flame', tone: '#d9713a' },
+  'rwa-wheat': { glyph: 'wheat', tone: '#c99a34' },
+  'rwa-corn': { glyph: 'corn', tone: '#d9a520' },
+  'rwa-soy': { glyph: 'bean', tone: '#6f9d4a' },
+  'rwa-coffee': { glyph: 'cup', tone: '#7a4a2a' },
+  'idx-spx': { glyph: 'chart', tone: '#1ba94b' },
+  'idx-ndx': { glyph: 'chart', tone: '#0047c2' },
+  'idx-dji': { glyph: 'bank', tone: '#3f140c' },
+  'idx-rut': { glyph: 'chart', tone: '#7a6a5c' },
+  'idx-ftse': { glyph: 'bank', tone: '#8a3a5e' },
+  'idx-dax': { glyph: 'chart', tone: '#c0392b' },
+  'idx-cac': { glyph: 'chart', tone: '#2f6fb5' },
+  'idx-nikkei': { glyph: 'chart', tone: '#b23b3b' },
+  'idx-hsi': { glyph: 'chart', tone: '#c8622a' },
+  'idx-nifty': { glyph: 'chart', tone: '#d98324' },
+  'idx-asx': { glyph: 'chart', tone: '#1f7a5a' },
+  'idx-vix': { glyph: 'flame', tone: '#d98324' },
+  __default: { glyph: 'horn', tone: '#1ba94b' }
+};
+function svgGlyph(name) {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name] || ICON_PATHS.horn}</svg>`;
+}
+
 window.BB = {
   user: null,
   settings: { smartsuppKey: '', chatOnline: true },
@@ -75,7 +123,7 @@ window.BB = {
       const cur = COUNTRY_CUR[iso] || 'USD';
       if (cur !== BB.cur) {
         BB.setCur(cur, false);
-        if (opts.toast !== false) BB.toast(`💰 Display currency set to ${CURS[cur].f} ${cur}`, 'success');
+        if (opts.toast !== false) BB.toast(`Display currency set to ${CURS[cur].f} ${cur}`, 'success');
       }
     }
     renderHeader(); renderFooter();
@@ -210,17 +258,41 @@ window.BB = {
 
   assetIcon(a, size = 30) {
     if (a.logo) return `<img class="a-logo" src="${a.logo}" alt="${BB.esc(a.symbol)}" loading="lazy" style="width:${size}px;height:${size}px">`;
-    const icons = {
-      'rwa-xau': '🥇', 'rwa-xag': '🥈', 'rwa-xpt': '⚪', 'rwa-xpd': '🔘', 'rwa-hg': '🔶',
-      'rwa-wti': '🛢️', 'rwa-brent': '⛽', 'rwa-ng': '🔥',
-      'rwa-wheat': '🌾', 'rwa-corn': '🌽', 'rwa-soy': '🫘', 'rwa-coffee': '☕',
-      'idx-spx': '📊', 'idx-ndx': '📈', 'idx-dji': '🏛️', 'idx-rut': '📉',
-      'idx-ftse': '🏦', 'idx-dax': '🇩🇪', 'idx-cac': '🇫🇷', 'idx-nikkei': '🇯🇵',
-      'idx-hsi': '🇭🇰', 'idx-nifty': '🇮🇳', 'idx-asx': '🇦🇺', 'idx-vix': '🌪️'
-    };
-    return `<div class="a-icon" style="width:${size}px;height:${size}px">${icons[a.icon] || '💠'}</div>`;
+    // Commodities and indices have no logo artwork. These used to be emoji
+    // (🥇 🛢️ 📈 …) which rendered differently on every OS and looked out of place
+    // next to the real coin/stock logos — they now use a drawn SVG icon set.
+    const spec = ASSET_GLYPH[a.icon] || ASSET_GLYPH.__default;
+    const dim = `style="width:${size}px;height:${size}px;background:${spec.tone}22;color:${spec.tone}"`;
+    return `<span class="a-icon a-icon-svg" ${dim}>${svgGlyph(spec.glyph)}</span>`;
   }
 };
+
+// ---------- instant-feeling navigation ----------
+// Warm the next page while the pointer is already on the link. Cheap (one
+// prefetch per URL, skipped on slow connections and save-data) and it removes
+// most of the wait when clicking through the site.
+(function prefetchOnIntent() {
+  if (!('requestIdleCallback' in window)) return;
+  const conn = navigator.connection || {};
+  if (conn.saveData || /2g/.test(conn.effectiveType || '')) return;
+  const seen = new Set();
+  const warm = href => {
+    if (!href || seen.has(href) || seen.size > 24) return;
+    seen.add(href);
+    const l = document.createElement('link');
+    l.rel = 'prefetch'; l.href = href; l.as = 'document';
+    document.head.appendChild(l);
+  };
+  document.addEventListener('pointerover', e => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a) return;
+    const url = new URL(a.href, location.href);
+    if (url.origin !== location.origin) return;
+    if (/\.(pdf|zip|png|jpe?g|webp|csv)$/i.test(url.pathname)) return;
+    if (url.pathname === location.pathname) return;
+    requestIdleCallback(() => warm(url.pathname + url.search), { timeout: 1200 });
+  }, { passive: true });
+})();
 
 // graceful fallback when an asset logo file is missing (newly added coins/stocks):
 // swap the broken <img> for a deterministic colored letter avatar
@@ -386,7 +458,7 @@ const CTRY = [
   { n: 'Yemen', c: 'YE' }, { n: 'Zambia', c: 'ZM' }, { n: 'Zimbabwe', c: 'ZW' }
 ];
 const flagOf = c => c && /^[A-Z]{2}$/.test(c)
-  ? String.fromCodePoint(...[...c].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65)) : '🏳️';
+  ? String.fromCodePoint(...[...c].map(ch => 0x1F1E6 + ch.charCodeAt(0) - 65)) : '<i class="fas fa-flag"></i>';
 // country → display currency (the master mapping; unsupported currencies fall back to USD)
 const COUNTRY_CUR = {
   NG: 'NGN', US: 'USD', GB: 'GBP', CA: 'CAD', AU: 'AUD', JP: 'JPY', CN: 'CNY', IN: 'INR',
@@ -421,7 +493,7 @@ const I18N = {
     'ftr.contact': 'Contact', 'ftr.fraudAlert': 'Fraud Alert', 'ftr.fraudText': 'We NEVER DM first or ask for crypto. Verify official accounts on our',
     'ftr.fraudLink': 'Fraud Alert page', 'ftr.blurb': 'Premier crypto education & trading platform. Structure over hype — build disciplined investing skills for every market cycle.',
     'ftr.risk': 'Trading involves risk. Nothing here is financial advice.',
-    'hero.h1': 'Grab the Bull by the <span class=\"gold\">HORNS</span> 🐂', 'hero.lead': 'Master crypto with a simple, proven system — then put it to work. Learn, trade crypto, stocks, indices and real-world assets from one account, with live prices and a free $10,000 demo.',
+    'hero.h1': 'Grab the Bull by the <span class=\"gold\">HORNS</span> ', 'hero.lead': 'Master crypto with a simple, proven system — then put it to work. Learn, trade crypto, stocks, indices and real-world assets from one account, with live prices and a free $10,000 demo.',
     'hero.ctaStart': 'Start Free — Get $10,000 Demo', 'hero.ctaExplore': 'Explore the Terminal',
     'hero.stat1': 'TikTok Community', 'hero.stat2': 'Power of Publish Family', 'hero.stat3': 'Live-Tracked Assets', 'hero.stat4': 'Markets & Support',
     'auth.welcomeBack': 'Welcome Back', 'auth.signupTitle': 'Join the Blockchain Bullhorn',
@@ -441,7 +513,7 @@ const I18N = {
     'ftr.contact': 'Contacto', 'ftr.fraudAlert': 'Alerta de fraude', 'ftr.fraudText': 'NUNCA enviamos mensajes primero ni pedimos cripto. Verifica las cuentas oficiales en nuestra',
     'ftr.fraudLink': 'página de Alerta de Fraude', 'ftr.blurb': 'Plataforma premier de educación cripto y trading. Estructura sobre hype: desarrolla habilidades de inversión disciplinadas para cada ciclo del mercado.',
     'ftr.risk': 'Operar implica riesgos. Nada de lo que aparece aquí es asesoramiento financiero.',
-    'hero.h1': 'Agarra al toro por los <span class=\"gold\">CUERNOS</span> 🐂', 'hero.lead': 'Domina el cripto con un sistema simple y probado — y ponlo a trabajar. Aprende y opera cripto, acciones, índices y activos reales desde una sola cuenta, con precios en vivo y un demo gratuito de $10,000.',
+    'hero.h1': 'Agarra al toro por los <span class=\"gold\">CUERNOS</span> ', 'hero.lead': 'Domina el cripto con un sistema simple y probado — y ponlo a trabajar. Aprende y opera cripto, acciones, índices y activos reales desde una sola cuenta, con precios en vivo y un demo gratuito de $10,000.',
     'hero.ctaStart': 'Empieza gratis — Demo de $10,000', 'hero.ctaExplore': 'Explora la Terminal',
     'hero.stat1': 'Comunidad de TikTok', 'hero.stat2': 'Familia Power of Publish', 'hero.stat3': 'Activos en vivo', 'hero.stat4': 'Mercados y soporte 24/7',
     'auth.welcomeBack': 'Bienvenido de nuevo', 'auth.signupTitle': 'Únete al Blockchain Bullhorn',
@@ -461,7 +533,7 @@ const I18N = {
     'ftr.contact': 'Contact', 'ftr.fraudAlert': 'Alerte fraude', 'ftr.fraudText': "Nous n'envoyons JAMAIS de message en premier et ne demandons pas de crypto. Vérifiez les comptes officiels sur notre",
     'ftr.fraudLink': "page Alerte Fraude", 'ftr.blurb': "Plateforme premium d'éducation crypto et de trading. La structure plutôt que le hype — développez des compétences d'investissement disciplinées pour chaque cycle de marché.",
     'ftr.risk': 'Le trading comporte des risques. Rien ici ne constitue un conseil financier.',
-    'hero.h1': 'Prends le taureau par les <span class=\"gold\">CORNES</span> 🐂', 'hero.lead': 'Maîtrisez le crypto avec un système simple et éprouvé — puis mettez-le au travail. Apprenez et tradez crypto, actions, indices et actifs réels depuis un seul compte, avec des prix en direct et un démo gratuit de 10 000 $.',
+    'hero.h1': 'Prends le taureau par les <span class=\"gold\">CORNES</span> ', 'hero.lead': 'Maîtrisez le crypto avec un système simple et éprouvé — puis mettez-le au travail. Apprenez et tradez crypto, actions, indices et actifs réels depuis un seul compte, avec des prix en direct et un démo gratuit de 10 000 $.',
     'hero.ctaStart': 'Commencer gratuitement — Démo de 10 000 $', 'hero.ctaExplore': 'Explorer le Terminal',
     'hero.stat1': 'Communauté TikTok', 'hero.stat2': 'Famille Power of Publish', 'hero.stat3': 'Actifs suivis en direct', 'hero.stat4': 'Marchés & support 24/7',
     'auth.welcomeBack': 'Bon retour', 'auth.signupTitle': 'Rejoignez le Blockchain Bullhorn',
@@ -481,7 +553,7 @@ const I18N = {
     'ftr.contact': 'Contato', 'ftr.fraudAlert': 'Alerta de fraude', 'ftr.fraudText': 'NUNCA enviamos mensagem primeiro nem pedimos cripto. Verifique as contas oficiais na nossa',
     'ftr.fraudLink': 'página de Alerta de Fraude', 'ftr.blurb': 'Plataforma premier de educação cripto e trading. Estrutura em vez de hype — desenvolva habilidades de investimento disciplinadas para cada ciclo de mercado.',
     'ftr.risk': 'Operar envolve riscos. Nada aqui é aconselhamento financeiro.',
-    'hero.h1': 'Pegue o touro pelos <span class=\"gold\">CHIFRES</span> 🐂', 'hero.lead': 'Domine o cripto com um sistema simples e comprovado — e coloque-o para trabalhar. Aprenda e opere cripto, ações, índices e ativos reais em uma única conta, com preços ao vivo e um demo gratuito de $10.000.',
+    'hero.h1': 'Pegue o touro pelos <span class=\"gold\">CHIFRES</span> ', 'hero.lead': 'Domine o cripto com um sistema simples e comprovado — e coloque-o para trabalhar. Aprenda e opere cripto, ações, índices e ativos reais em uma única conta, com preços ao vivo e um demo gratuito de $10.000.',
     'hero.ctaStart': 'Comece grátis — Demo de $10.000', 'hero.ctaExplore': 'Explore o Terminal',
     'hero.stat1': 'Comunidade TikTok', 'hero.stat2': 'Família Power of Publish', 'hero.stat3': 'Ativos ao vivo', 'hero.stat4': 'Mercados e suporte 24/7',
     'auth.welcomeBack': 'Bem-vindo de volta', 'auth.signupTitle': 'Junte-se ao Blockchain Bullhorn',
@@ -501,7 +573,7 @@ const I18N = {
     'ftr.contact': 'Kontakt', 'ftr.fraudAlert': 'Betrugswarnung', 'ftr.fraudText': 'Wir schreiben NIEMALS zuerst und fragen nie nach Krypto. Prüfe offizielle Konten auf unserer',
     'ftr.fraudLink': 'Betrugswarnungs-Seite', 'ftr.blurb': 'Premier-Krypto-Bildungs- und Trading-Plattform. Struktur statt Hype — baue disziplinierte Anlagefähigkeiten für jeden Marktzyklus auf.',
     'ftr.risk': 'Trading birgt Risiken. Nichts hier ist Finanzberatung.',
-    'hero.h1': 'Pack den Stier bei den <span class=\"gold\">HÖRNERN</span> 🐂', 'hero.lead': 'Meistere Krypto mit einem einfachen, bewährten System — und setze es ein. Lerne und handle Krypto, Aktien, Indizes und Real-Assets über ein Konto, mit Live-Preisen und einem kostenlosen 10.000-$-Demo.',
+    'hero.h1': 'Pack den Stier bei den <span class=\"gold\">HÖRNERN</span> ', 'hero.lead': 'Meistere Krypto mit einem einfachen, bewährten System — und setze es ein. Lerne und handle Krypto, Aktien, Indizes und Real-Assets über ein Konto, mit Live-Preisen und einem kostenlosen 10.000-$-Demo.',
     'hero.ctaStart': 'Kostenlos starten — 10.000 $ Demo', 'hero.ctaExplore': 'Terminal entdecken',
     'hero.stat1': 'TikTok-Community', 'hero.stat2': 'Power of Publish Familie', 'hero.stat3': 'Live-verfolgte Assets', 'hero.stat4': 'Märkte & Support 24/7',
     'auth.welcomeBack': 'Willkommen zurück', 'auth.signupTitle': 'Werde Teil des Blockchain Bullhorn',
@@ -521,7 +593,7 @@ const I18N = {
     'ftr.contact': '联系我们', 'ftr.fraudAlert': '防诈警报', 'ftr.fraudText': '我们绝不会主动私信或索要加密货币。请在我们的人工智能上核实官方账号',
     'ftr.fraudLink': '防诈警报页面', 'ftr.blurb': '顶级加密教育与交易平台。结构胜于炒作 — 培养纪律性投资技能，从容应对每个市场周期。',
     'ftr.risk': '交易有风险。本文内容不构成财务建议。',
-    'hero.h1': '抓住牛角，<span class=\"gold\">掌控行情</span> 🐂', 'hero.lead': '用简单且经过验证的系统掌握加密交易 — 然后让它为你工作。一个账户学习并交易加密货币、股票、指数和实物资产，实时价格，另赠 $10,000 免费模拟金。',
+    'hero.h1': '抓住牛角，<span class=\"gold\">掌控行情</span> ', 'hero.lead': '用简单且经过验证的系统掌握加密交易 — 然后让它为你工作。一个账户学习并交易加密货币、股票、指数和实物资产，实时价格，另赠 $10,000 免费模拟金。',
     'hero.ctaStart': '免费开始 — 领取 $10,000 模拟金', 'hero.ctaExplore': '探索交易终端',
     'hero.stat1': 'TikTok 社区', 'hero.stat2': 'Power of Publish 家族', 'hero.stat3': '实时追踪资产', 'hero.stat4': '市场与支持 24/7',
     'auth.welcomeBack': '欢迎回来', 'auth.signupTitle': '加入 Blockchain Bullhorn',
@@ -541,7 +613,7 @@ const I18N = {
     'ftr.contact': 'संपर्क', 'ftr.fraudAlert': 'फ्रॉड अलर्ट', 'ftr.fraudText': 'हम कभी पहले DM नहीं करते और क्रिप्टो नहीं मांगते। हमारे',
     'ftr.fraudLink': 'फ्रॉड अलर्ट पेज', 'ftr.blurb': 'प्रीमियर क्रिप्टो शिक्षा और ट्रेडिंग प्लेटफ़ॉर्म। हाइप नहीं, अनुशासन — हर मार्केट चक्र के लिए अनुशासित निवेश कौशल बनाएं।',
     'ftr.risk': 'ट्रेडिंग में जोखिम है। यहाँ की सामग्री वित्तीय सलाह नहीं है।',
-    'hero.h1': 'बैल के <span class=\"gold\">सींग पकड़ो</span> 🐂', 'hero.lead': 'एक सरल, सिद्ध प्रणाली से क्रिप्टो में महारत हासिल करें — फिर उसे काम पर लगाएं। एक ही खाते से क्रिप्टो, स्टॉक, इंडेक्स और रियल-वर्ल्ड एसेट सीखें और ट्रेड करें, लाइव कीमतों और मुफ़्त $10,000 डेमो के साथ।',
+    'hero.h1': 'बैल के <span class=\"gold\">सींग पकड़ो</span> ', 'hero.lead': 'एक सरल, सिद्ध प्रणाली से क्रिप्टो में महारत हासिल करें — फिर उसे काम पर लगाएं। एक ही खाते से क्रिप्टो, स्टॉक, इंडेक्स और रियल-वर्ल्ड एसेट सीखें और ट्रेड करें, लाइव कीमतों और मुफ़्त $10,000 डेमो के साथ।',
     'hero.ctaStart': 'मुफ़्त शुरू करें — $10,000 डेमो पाएं', 'hero.ctaExplore': 'टर्मिनल देखें',
     'hero.stat1': 'TikTok कम्युनिटी', 'hero.stat2': 'Power of Publish परिवार', 'hero.stat3': 'लाइव-ट्रैक किए एसेट', 'hero.stat4': 'मार्केट और सहायता 24/7',
     'auth.welcomeBack': 'वापसी पर स्वागत है', 'auth.signupTitle': 'Blockchain Bullhorn से जुड़ें',
@@ -668,16 +740,16 @@ function renderHeaderActions() {
   const el = $('#headerActions'); if (!el) return;
   const PICKERS = `
     <div class="globe-wrap" id="langWrap">
-      <button class="globe-btn" id="langBtn" aria-label="Language" aria-haspopup="true">🌐 <b>${BB.lang.toUpperCase()}</b><i class="fas fa-chevron-down" style="font-size:8px;margin-left:4px"></i></button>
+      <button class="globe-btn" id="langBtn" aria-label="Language" aria-haspopup="true"><i class="fas fa-globe"></i> <b>${BB.lang.toUpperCase()}</b><i class="fas fa-chevron-down" style="font-size:8px;margin-left:4px"></i></button>
       <div class="globe-menu" id="langMenu">
-        <div class="gm-head">🌐 Language</div>
+        <div class="gm-head"><i class="fas fa-globe"></i> Language</div>
         ${LANGS.map(l => `<button class="gm-item${l.c === BB.lang ? ' active' : ''}" data-lang="${l.c}"><span class="gm-flag">${l.f}</span>${l.n}</button>`).join('')}
       </div>
     </div>
     <div class="globe-wrap" id="curWrap">
       <button class="globe-btn" id="curBtn" aria-label="Currency" aria-haspopup="true">${CURS[BB.cur].f} <b>${BB.cur}</b><i class="fas fa-chevron-down" style="font-size:8px;margin-left:4px"></i></button>
       <div class="globe-menu" id="curMenu">
-        <div class="gm-head">💰 Currency</div>
+        <div class="gm-head"><i class="fas fa-coins"></i> Currency</div>
         ${Object.entries(CURS).map(([c, m]) => `<button class="gm-item gm-cur${c === BB.cur ? ' active' : ''}" data-cur="${c}"><span class="gm-flag">${m.f}</span>${m.n} <small>${c} · ${m.s.trim()}</small></button>`).join('')}
         <div class="gm-note">${BB.t('globe.note')}</div>
       </div>
@@ -693,7 +765,7 @@ function renderHeaderActions() {
         <div class="user-menu" id="userMenu">
           <div class="um-head"><b>${BB.esc(BB.user.name || BB.user.email)}</b>
             <small>${BB.esc(BB.user.email)}</small>
-            <div class="mt-1"><span class="kyc-pill ${kyc}">${kyc === 'approved' ? '✔ Verified' : kyc === 'pending' ? '⏳ KYC Review' : kyc === 'rejected' ? '✖ KYC Rejected' : 'KYC Required'}</span></div>
+            <div class="mt-1"><span class="kyc-pill ${kyc}">${kyc === 'approved' ? '<i class="fas fa-circle-check"></i> Verified' : kyc === 'pending' ? '<i class="fas fa-hourglass-half"></i> KYC Review' : kyc === 'rejected' ? '<i class="fas fa-circle-xmark"></i> KYC Rejected' : 'KYC Required'}</span></div>
           </div>
           <a href="/dashboard"><i class="fas fa-gauge-high"></i> ${BB.t('hdr.dashboard')}</a>
           <a href="/funding"><i class="fas fa-wallet"></i> ${BB.t('hdr.funding')}</a>
@@ -842,7 +914,7 @@ function renderFooter() {
           <a href="https://x.com/Blockchainbhorn" target="_blank" rel="noopener" title="X / Twitter"><i class="fab fa-x-twitter"></i></a>
           <a href="https://www.youtube.com/@blockchainbullhorn" target="_blank" rel="noopener" title="YouTube"><i class="fab fa-youtube"></i></a>
         </div>
-        <div class="footer-fraud">⚠️ <b>${BB.t('ftr.fraudAlert')}:</b> ${BB.t('ftr.fraudText')} <a href="/avoid-scams" style="color:#ffd7de;text-decoration:underline">${BB.t('ftr.fraudLink')}</a>.</div>
+        <div class="footer-fraud"><i class="fas fa-triangle-exclamation"></i> <b>${BB.t('ftr.fraudAlert')}:</b> ${BB.t('ftr.fraudText')} <a href="/avoid-scams" style="color:#ffd7de;text-decoration:underline">${BB.t('ftr.fraudLink')}</a>.</div>
       </div>
       <div>
         <h5 data-i18n="ftr.platform">Platform</h5>
@@ -879,7 +951,7 @@ function renderFooter() {
     </div>
     <div class="footer-bottom">
       <span>© ${new Date().getFullYear()} Blockchain Bullhorn — A Power of Publish Company</span>
-      <span>Grab the Bull by the HORNS 🐂</span>
+      <span>Grab the Bull by the HORNS </span>
     </div>
   </div>`;
 }
@@ -1257,7 +1329,7 @@ const PWA = {
       b.innerHTML = `
         <img src="/assets/img/brand/logo.png" alt="">
         <div class="ib-txt"><b data-i18n="pwa.installTitle">Get the Blockchain Bullhorn app</b>
-          <small>${mode === 'ios' ? 'Tap <b>Share</b> ⬆️ then <b>Add to Home Screen</b>' : '<span data-i18n="pwa.installSub">Fast, full-screen, works offline</span>'}</small></div>
+          <small>${mode === 'ios' ? 'Tap <b>Share</b> then <b>Add to Home Screen</b>' : '<span data-i18n="pwa.installSub">Fast, full-screen, works offline</span>'}</small></div>
         ${mode === 'ios' ? '' : '<button class="ib-go" id="bbInstallGo" data-i18n="pwa.installGo">Install</button>'}
         <button class="ib-x" aria-label="Dismiss">✕</button>`;
       document.body.appendChild(b);
@@ -1289,7 +1361,7 @@ const PWA = {
       <div style="text-align:center;padding:6px 0 2px">
         <i class="fas fa-bell" style="font-size:34px;color:var(--gold-deep)"></i>
         <p class="muted" style="font-size:13.5px;line-height:1.6;margin:10px 0 4px">Get pop-up notifications for deposits, withdrawals, KYC results, bot activity and platform announcements — even when the app is closed.</p>
-        <p class="small" style="font-size:12px">Status: <b>${perm === 'granted' && sub ? '🔔 Enabled' : perm === 'denied' ? '⛔ Blocked in browser settings' : '🔕 Not enabled'}</b></p>
+        <p class="small" style="font-size:12px">Status: <b>${perm === 'granted' && sub ? '<i class="fas fa-bell"></i> Enabled' : perm === 'denied' ? '<i class="fas fa-ban"></i> Blocked in browser settings' : 'Not enabled'}</b></p>
         ${PWA.isIOS() && !PWA.isStandalone() ? '<p class="small" style="font-size:11.5px;color:#b3541e">On iPhone/iPad, notifications require the installed app: tap Share ⬆️ → Add to Home Screen first.</p>' : ''}
         <div style="display:flex;gap:8px;justify-content:center;margin-top:14px">
           ${perm === 'denied' ? '' : (sub
@@ -1312,7 +1384,7 @@ const PWA = {
         const j = s2.toJSON();
         const r = await BB.api('/api/push/subscribe', { method: 'POST', body: { endpoint: j.endpoint, keys: j.keys } });
         if (!r.ok) throw new Error(r.error || 'Could not save the subscription.');
-        bd.remove(); BB.toast('🔔 Notifications enabled!', 'success');
+        bd.remove(); BB.toast('Notifications enabled', 'success');
       } catch (e) { BB.toast(e.message, 'error'); on.disabled = false; on.innerHTML = 'Enable Notifications'; }
     });
     if (off) off.addEventListener('click', async () => {
@@ -1336,8 +1408,8 @@ const PWA = {
     const mn = $('#menuNotify'); if (mn) mn.addEventListener('click', openNotify);
     const doInstall = e => { e.preventDefault();
       if (PWA.deferredPrompt) { const dp = PWA.deferredPrompt; PWA.deferredPrompt = null; dp.prompt(); }
-      else if (PWA.isIOS()) BB.toast('On iPhone/iPad: tap the Share button ⬆️ then "Add to Home Screen".', 'info');
-      else if (PWA.isStandalone()) BB.toast('You already have the app installed 🎉', 'success');
+      else if (PWA.isIOS()) BB.toast('On iPhone/iPad: tap the Share button then "Add to Home Screen".', 'info');
+      else if (PWA.isStandalone()) BB.toast('You already have the app installed', 'success');
       else BB.toast('Use your browser menu (⋮): "Install app" / "Add to Home screen".', 'info');
     };
     const mi = $('#menuInstall'); if (mi) mi.addEventListener('click', doInstall);

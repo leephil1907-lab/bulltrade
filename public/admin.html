@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="/assets/css/fonts.css?v=2">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
   <link rel="stylesheet" href="/assets/css/main.css?v=32">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=10">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=12">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="robots" content="noindex, nofollow"/>
   <link rel="canonical" href="__SITE_URL__/admin"/>
@@ -59,14 +59,17 @@
         <div class="brand-name" style="font-size:15px">Blockchain <span>Bullhorn</span><small>Admin Console</small></div>
       </a>
       <nav id="admNav">
+      <div class="nav-group-label">Operations</div>
         <a data-view="overview" class="active"><i class="fas fa-gauge-high"></i> Overview</a>
         <a data-view="users"><i class="fas fa-users"></i> Users <span class="cnt" id="cntUsers" style="display:none"></span></a>
         <a data-view="kyc"><i class="fas fa-id-card"></i> KYC Review <span class="cnt" id="cntKyc" style="display:none"></span></a>
         <a data-view="txs"><i class="fas fa-money-bill-transfer"></i> Transactions <span class="cnt" id="cntTx" style="display:none"></span></a>
         <a data-view="positions"><i class="fas fa-layer-group"></i> Positions &amp; Trades</a>
-        <a data-view="community"><i class="fas fa-people-group"></i> Community Apps <span class="cnt" id="cntCommunity" style="display:none"></span></a>
+        <div class="nav-group-label">Growth</div>
+        <a data-view="community"><i class="fas fa-people-group"></i> Community <span class="cnt" id="cntCommunity" style="display:none"></span></a>
         <a data-view="copy"><i class="fas fa-robot"></i> Trading Bots <span class="cnt" id="cntCopy" style="display:none"></span></a>
         <a data-view="chats"><i class="fas fa-comments"></i> Live Chat <span class="cnt" id="cntChats" style="display:none"></span></a>
+        <div class="nav-group-label">System</div>
         <a data-view="settings"><i class="fas fa-gear"></i> Settings</a>
         <a data-view="audit"><i class="fas fa-clipboard-list"></i> Audit Log</a>
       </nav>
@@ -82,16 +85,41 @@
         <div class="admin-top-lead">
           <button class="admin-burger" id="admBurger" type="button" aria-label="Open menu"
                   aria-controls="admNav" aria-expanded="false"><i class="fas fa-bars"></i></button>
-          <div><h1 id="viewTitle">Overview</h1><div class="sub" id="viewSub">Platform health at a glance</div></div>
+          <div class="admin-titles">
+          <div class="admin-crumb"><span>Control Panel</span><i class="fas fa-angle-right"></i><b id="crumbView">Overview</b></div>
+          <h1 id="viewTitle">Overview</h1>
+          <div class="sub" id="viewSub">Platform health at a glance</div>
         </div>
+        </div>
+        <div class="admin-tools">
         <div class="kpi-row" id="marketKpis"></div>
+        <form class="adm-search" id="admSearchForm" role="search">
+        <i class="fas fa-magnifying-glass"></i>
+        <input id="admSearch" type="search" placeholder="Search users…" autocomplete="off" aria-label="Search users">
+        <kbd>/</kbd>
+        </form>
+        <button class="adm-icon-btn" id="admBell" type="button" title="Pending approvals" aria-label="Pending approvals">
+        <i class="fas fa-bell"></i><span class="adm-dot" id="admBellDot" hidden></span>
+        </button>
+        <div class="adm-user">
+        <button class="adm-user-btn" id="admUserBtn" type="button" aria-haspopup="true" aria-expanded="false">
+        <span class="adm-av">A</span><span class="adm-user-mail" id="admUserMail">admin</span><i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="adm-user-menu" id="admUserMenu" role="menu">
+        <div class="adm-user-head"><b id="admMenuName">Administrator</b><small id="admMenuMail">—</small></div>
+        <a href="/" role="menuitem"><i class="fas fa-globe"></i> View website</a>
+        <a href="/dashboard" role="menuitem"><i class="fas fa-gauge-high"></i> My dashboard</a>
+        <button type="button" id="admMenuLogout" role="menuitem"><i class="fas fa-arrow-right-from-bracket"></i> Log out</button>
+        </div>
+        </div>
+        </div>
       </div>
       <div id="viewRoot"></div>
     </main>
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=32"></script>
+  <script src="/assets/js/common.js?v=34"></script>
 <script src="/assets/js/tour.js?v=6"></script>
   <script>
     'use strict';
@@ -124,10 +152,26 @@
       const h = R('site-header'), f = R('site-footer');
       if (h) h.remove(); if (f) f.remove();
       R('admWho').textContent = ME.email;
-      R('admLogout').addEventListener('click', async () => { await api('/api/auth/logout', { method: 'POST', body: {} }); location.reload(); });
+      const logout = async () => { await api('/api/auth/logout', { method: 'POST', body: {} }); location.reload(); };
+      R('admLogout').addEventListener('click', logout);
+      R('admMenuLogout').addEventListener('click', logout);
+      // account chip in the top bar
+      R('admUserMail').textContent = (ME.email || '').split('@')[0];
+      R('admMenuName').textContent = ME.name || 'Administrator';
+      R('admMenuMail').textContent = ME.email || '';
+      const av = R('admUserBtn'), avMenu = R('admUserMenu');
+      av.addEventListener('click', e => {
+      e.stopPropagation();
+      const open = avMenu.classList.toggle('open');
+      av.setAttribute('aria-expanded', String(open));
+      });
+      document.addEventListener('click', () => { avMenu.classList.remove('open'); av.setAttribute('aria-expanded', 'false'); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') avMenu.classList.remove('open'); });
+      setupSearch();
+      setupBell();
       $$('#admNav a').forEach(a => a.addEventListener('click', () => {
         switchView(a.dataset.view);
-        closeDrawer();          // the drawer is an overlay on phones — get out of the way
+        closeDrawer(); // the drawer is an overlay on phones — get out of the way
       }));
       setupDrawer();
       // any view that repaints a table at any time gets the scroll affordance too
@@ -165,6 +209,7 @@
       set('cntCommunity', r.stats.communityPending);
       set('cntCopy', r.stats.leaderPending);
       set('cntChats', r.stats.unreadChats);
+      setBell(r.stats.approvalsWaiting || 0);
       $$('[data-goto]').forEach(b => b.addEventListener('click', e => {
         e.preventDefault(); switchView(b.dataset.goto);
       }));
@@ -210,11 +255,82 @@
       if (burger) { burger.setAttribute('aria-expanded', 'false'); burger.innerHTML = '<i class="fas fa-bars"></i>'; }
     }
 
+/* ---------- global search ----------
+Jump straight to a filtered Users list. Press "/" anywhere (outside an
+input) to focus it — the terminal habit most admins already have. */
+let PENDING_QUERY = '';
+function setupSearch() {
+const form = R('admSearchForm'), input = R('admSearch');
+if (!form || form.dataset.wired) return;
+form.dataset.wired = '1';
+form.addEventListener('submit', e => {
+e.preventDefault();
+const q = input.value.trim();
+if (!q) return;
+PENDING_QUERY = q;
+form.classList.remove('open');
+switchView('users');
+input.blur();
+});
+// on narrow screens the field collapses to an icon — first tap opens it
+form.addEventListener('click', () => {
+if (window.matchMedia('(max-width: 1024px)').matches && !form.classList.contains('open')) {
+form.classList.add('open');
+setTimeout(() => input.focus(), 30);
+}
+});
+input.addEventListener('blur', () => { if (!input.value.trim()) form.classList.remove('open'); });
+document.addEventListener('keydown', e => {
+if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
+e.preventDefault(); input.focus(); input.select();
+}
+});
+}
+
+/* ---------- notification bell → the approval queue ---------- */
+function setupBell() {
+const bell = R('admBell');
+if (!bell || bell.dataset.wired) return;
+bell.dataset.wired = '1';
+bell.addEventListener('click', () => switchView('overview'));
+}
+function setBell(n) {
+const dot = R('admBellDot');
+if (!dot) return;
+dot.hidden = !(n > 0);
+if (n > 0) dot.setAttribute('data-count', n > 99 ? '99+' : String(n));
+const bell = R('admBell');
+if (bell) bell.title = n > 0 ? `${n} approval${n === 1 ? '' : 's'} waiting` : 'Nothing waiting';
+}
+
+/* ---------- consistent empty states ---------- */
+function admEmpty(icon, title, msg, action) {
+return `<div class="adm-empty">
+<span class="adm-empty-ic"><i class="fas ${icon}"></i></span>
+<b>${title}</b>
+<p>${msg || ''}</p>
+${action || ''}
+</div>`;
+}
+
     /* ---------- table scroll affordance ----------
        Wide tables scroll horizontally instead of being clipped, but an invisible
        scrollbar reads as "the last columns are missing". Flag wrappers that
        actually overflow so CSS can show a fade + the styled scrollbar. */
     function markScrollableTables(scope) {
+    // empty tables used to render as a bare header row — give them a message
+    (scope || document).querySelectorAll('.table-wrap table.dt').forEach(t => {
+    const body = t.querySelector('tbody');
+    if (!body) return;
+    const realRows = [...body.querySelectorAll('tr')].filter(tr => !tr.classList.contains('adm-empty-row'));
+    if (realRows.length === 0 && !body.querySelector('.adm-empty-row')) {
+    const cols = t.querySelectorAll('thead th').length || 1;
+    const tr = document.createElement('tr');
+    tr.className = 'adm-empty-row';
+    tr.innerHTML = `<td colspan="${cols}"><div class="adm-empty adm-empty-sm"><span class="adm-empty-ic"><i class="fas fa-inbox"></i></span><b>Nothing here yet</b></div></td>`;
+    body.appendChild(tr);
+    }
+    });
       (scope || document).querySelectorAll('.table-wrap').forEach(w => {
         const check = () => {
           const over = w.scrollWidth - w.clientWidth > 2;
@@ -250,6 +366,7 @@
       };
       R('viewTitle').textContent = titles[v][0];
       R('viewSub').textContent = titles[v][1];
+      const crumb = R('crumbView'); if (crumb) crumb.textContent = titles[v][0];
       ({ overview: viewOverview, users: viewUsers, kyc: viewKyc, txs: viewTxs, positions: viewPositions, community: viewCommunity, copy: viewCopy, chats: viewChats, settings: viewSettings, audit: viewAudit })[v]();
       // views paint asynchronously — re-check the wrappers as their HTML lands
       markScrollableTables(R('viewRoot'));
@@ -274,32 +391,76 @@
         ['txs', 'Purchases', s.productsPending || 0],
         ['copy', 'Bot key requests', s.leaderPending],
         ['community', 'Community applications', s.communityPending]
-      ].filter(row => row[2] > 0);
-      const banner = waiting > 0
-        ? `<div class="admin-card" style="border-left:4px solid #d98324;background:#fff9f1">
-             <h3 style="margin-bottom:6px"><i class="fas fa-inbox" style="color:#d98324"></i> ${waiting} action${waiting === 1 ? '' : 's'} waiting for your approval</h3>
-             <p class="muted small" style="margin-bottom:10px">Nothing is approved automatically — every one of these needs a manual decision from you.</p>
-             <div style="display:flex;gap:8px;flex-wrap:wrap">
-               ${queue.map(q => `<a class="btn btn-outline btn-sm" href="#" data-goto="${q[0]}">${q[1]} <b style="color:#b4451f">${q[2]}</b></a>`).join('')}
-             </div>
-           </div>`
-        : `<div class="admin-card" style="border-left:4px solid #1ba94b;background:#f6fdf8">
-             <h3 style="margin:0"><i class="fas fa-check-circle" style="color:#1ba94b"></i> All caught up</h3>
-             <p class="muted small" style="margin:4px 0 0">No KYC, deposit, withdrawal, purchase, bot-key or community request is waiting on you.</p>
-           </div>`;
-      const cards = [
-        ['fa-users', 'Total Users', s.totalUsers], ['fa-user-plus', 'New (7d)', s.newUsersWeek],
-        ['fa-id-card', 'KYC Pending', s.kycPending], ['fa-money-bill-transfer', 'Tx Pending', s.depositsPending + s.withdrawalsPending],
-        ['fa-layer-group', 'Open Positions', s.openPositions], ['fa-exchange-alt', 'Total Trades', s.totalTrades],
-        ['fa-chart-line', 'Volume ($)', s.totalVolume.toLocaleString()], ['fa-wallet', 'Live Equity ($)', s.liveEquity.toLocaleString()],
-        ['fa-people-group', 'Community Pending', s.communityPending], ['fa-key', 'Bot Key Requests', s.leaderPending],
-        ['fa-robot', 'Active Bot Allocations', s.copyAllocations], ['fa-comments', 'Unread Chats', s.unreadChats]
       ];
+      // Approval queue — always visible, so the panel tells you what the work is
+        // before anything is waiting. Each row deep-links to the view that owns it.
+             const queueRows = queue.map(([view, label, n]) => `
+             <button type="button" class="q-row${n > 0 ? ' q-hot' : ''}" data-goto="${view}">
+             <span class="q-name">${label}</span>
+               <span class="q-count">${n}</span>
+               <i class="fas fa-angle-right"></i>
+               </button>`).join('');
+
+const cards = [
+['fa-users', 'Total Users', s.totalUsers, ''],
+['fa-user-plus', 'New (7d)', s.newUsersWeek, ''],
+['fa-id-card', 'KYC Pending', s.kycPending, s.kycPending > 0 ? 'hot' : ''],
+['fa-money-bill-transfer', 'Tx Pending', s.depositsPending + s.withdrawalsPending, (s.depositsPending + s.withdrawalsPending) > 0 ? 'hot' : ''],
+['fa-layer-group', 'Open Positions', s.openPositions, ''],
+['fa-exchange-alt', 'Total Trades', s.totalTrades, ''],
+['fa-chart-line', 'Volume ($)', s.totalVolume.toLocaleString(), ''],
+['fa-wallet', 'Live Equity ($)', s.liveEquity.toLocaleString(), ''],
+['fa-people-group', 'Community Pending', s.communityPending, s.communityPending > 0 ? 'hot' : ''],
+['fa-key', 'Bot Key Requests', s.leaderPending, s.leaderPending > 0 ? 'hot' : ''],
+['fa-robot', 'Active Bot Allocations', s.copyAllocations, ''],
+['fa-comments', 'Unread Chats', s.unreadChats, s.unreadChats > 0 ? 'hot' : '']
+];
+
+const activity = (r.recentActivity || []).length
+? r.recentActivity.map(a => `
+<div class="act-row">
+<span class="act-dot"></span>
+<div class="act-main">
+<b>${BB.esc((a.action || '').replace(/[-_]/g, ' '))}</b>
+<small>${BB.esc(a.detail || a.target || '')}</small>
+             </div>
+           <span class="act-time">${BB.timeAgo(a.at)}</span>
+        </div>`).join('')
+             : admEmpty('fa-clock-rotate-left', 'Nothing logged yet', 'Approvals, adjustments and account changes will appear here.');
+
       root.innerHTML = `
-        ${banner}
-        <div class="stat-grid">${cards.map(([i, l, v]) => `<div class="stat-c"><div class="l"><i class="fas ${i}" style="color:var(--gold)"></i> ${l}</div><div class="v">${v}</div></div>`).join('')}</div>
-        <div class="grid grid-2">
-          <div class="admin-card"><h3><i class="fas fa-user-clock" style="color:var(--gold)"></i> Newest Users</h3>
+        <div class="stat-grid">${cards.map(([i, l, v, cls]) => `
+        <div class="stat-c${cls ? ' stat-hot' : ''}">
+        <div class="l"><i class="fas ${i}"></i> ${l}</div>
+          <div class="v">${v}</div>
+          </div>`).join('')}</div>
+
+<div class="adm-cols">
+<div class="admin-card">
+<h3><i class="fas fa-inbox" style="color:var(--gold)"></i> Approval Queue
+${waiting > 0 ? `<span class="pill badge badge-gold">${waiting} waiting</span>` : '<span class="pill badge badge-green">All clear</span>'}
+</h3>
+<div class="q-list">${queueRows}</div>
+</div>
+
+<div class="admin-card">
+<h3><i class="fas fa-arrows-up-down" style="color:var(--gold)"></i> Market Movers <span class="muted">live</span></h3>
+<div class="movers">
+<div>
+<b class="movers-head up"><i class="fas fa-caret-up"></i> Gainers</b>
+${r.topGainers.map(a => `<div class="mv-row"><span>${a.symbol}</span><b class="up">${BB.fmtPct(a.changePct)}</b></div>`).join('')}
+</div>
+<div>
+<b class="movers-head down"><i class="fas fa-caret-down"></i> Losers</b>
+${r.topLosers.map(a => `<div class="mv-row"><span>${a.symbol}</span><b class="down">${BB.fmtPct(a.changePct)}</b></div>`).join('')}
+</div>
+</div>
+</div>
+</div>
+
+<div class="adm-cols">
+<div class="admin-card">
+<h3><i class="fas fa-user-clock" style="color:var(--gold)"></i> Newest Users <a class="adm-card-link" href="#" data-goto="users">View all <i class="fas fa-angle-right"></i></a></h3>
             <div class="u-feed">
             ${r.recentUsers.map(u => `<button type="button" class="u-feed-row" data-user="${u.id}">
               <span class="u-feed-av" style="background:${u.isBot ? '#8a5a2b' : 'var(--green)'}">${BB.esc((u.name || u.email).trim().charAt(0).toUpperCase())}</span>
@@ -309,15 +470,20 @@
               </span>
               <span class="pill badge ${u.kyc === 'approved' ? 'badge-green' : u.kyc === 'pending' ? 'badge-gold' : 'badge-gray'}">${u.kyc.replace('_', ' ')}</span>
             </button>`).join('')}
-            </div></div>
-          <div class="admin-card"><h3><i class="fas fa-arrows-up-down" style="color:var(--gold)"></i> Market Movers (live)</h3>
-            <div class="grid grid-2" style="gap:10px">
-              <div><b class="font-head small" style="color:var(--green-bright)">▲ Gainers</b>
-                ${r.topGainers.map(a => `<div class="flex-between" style="padding:5px 0;border-bottom:1px dashed var(--line)"><span class="font-head small">${a.symbol}</span><b class="small ${BB.chgClass(a.changePct)}">${BB.fmtPct(a.changePct)}</b></div>`).join('')}</div>
-              <div><b class="font-head small" style="color:var(--red)">▼ Losers</b>
-                ${r.topLosers.map(a => `<div class="flex-between" style="padding:5px 0;border-bottom:1px dashed var(--line)"><span class="font-head small">${a.symbol}</span><b class="small ${BB.chgClass(a.changePct)}">${BB.fmtPct(a.changePct)}</b></div>`).join('')}</div>
-            </div></div>
+            </div>
+          </div>
+
+              <div class="admin-card">
+                <h3><i class="fas fa-clock-rotate-left" style="color:var(--gold)"></i> Recent Activity <a class="adm-card-link" href="#" data-goto="audit">Audit log <i class="fas fa-angle-right"></i></a></h3>
+              <div class="act-list">${activity}</div>
+                </div>
         </div>`;
+
+$$('[data-goto]').forEach(el => el.addEventListener('click', e => {
+e.preventDefault();
+const target = el.dataset.goto || el.getAttribute('data-goto');
+if (target) switchView(target);
+}));
       $$('[data-user]').forEach(tr => tr.addEventListener('click', () => { switchView('users'); setTimeout(() => openUser(tr.dataset.user), 300); }));
     }
 
@@ -393,7 +559,7 @@
             <td class="num">$${u.demoEquity.toLocaleString()}</td>
             <td class="num hide-lg">${u.positions}</td>
             <td><button class="btn btn-outline btn-sm" data-open="${u.id}">Manage</button></td></tr>`).join('')}
-        </tbody></table></div>${rows.length ? '' : '<div class="empty-state">No accounts match this filter.</div>'}`;
+        </tbody></table></div>${rows.length ? '' : admEmpty('fa-user-slash', 'No accounts match', 'Try a different filter or clear the search box.')}`;
         $$('[data-open]').forEach(b => b.addEventListener('click', () => openUser(b.dataset.open)));
       };
       const load = async () => {
@@ -402,6 +568,7 @@
         if (!r.ok) return;
         ROWS = r.users; paint();
       };
+      if (PENDING_QUERY) { R('uSearch').value = PENDING_QUERY; PENDING_QUERY = ''; }
       root.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => { FILTER = b.dataset.filter; paint(); }));
       R('uSearch').addEventListener('input', load);
       R('uRefresh').addEventListener('click', load);
@@ -521,7 +688,7 @@
         }
         if (act === 'ban' && !confirm(`Suspend ${u.email}? They will be blocked from logging in.`)) return;
         const r2 = await api('/api/admin/user-action', { method: 'POST', body: { userId: u.id, action: act } });
-        if (r2.ok) { toast(act.replace('-', ' ') + ' ✓', 'success'); bd.remove(); if (act !== 'forcelogout' && act !== 'reset-password') openUser(userId); } else toast(r2.error, 'error');
+        if (r2.ok) { toast(act.replace('-', ' ') + ' <i class="fas fa-check"></i> ', 'success'); bd.remove(); if (act !== 'forcelogout' && act !== 'reset-password') openUser(userId); } else toast(r2.error, 'error');
       }));
       // KYC document lightbox — reviewing identity proofs at 2-column thumbnail
       // size is not good enough for a manual approval decision.
@@ -561,7 +728,7 @@
             <div class="card" style="padding:16px">
               <div class="flex-between"><div><b class="font-head">${BB.esc(u.name || '—')}</b><br><small class="muted">${BB.esc(u.email)}</small></div>
               <button class="btn btn-outline btn-sm" data-open="${u.id}">Open Documents</button></div>
-            </div>`).join('')}</div>` : '<div class="empty-state"><i class="fas fa-check"></i>No pending KYC — all caught up!</div>'}
+            </div>`).join('')}</div>` : admEmpty('fa-id-card', 'No KYC waiting', 'Every submitted document has been reviewed. New submissions land here automatically.')}
         </div>
         <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> Reviewed (${done.length})</h3>
           <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Status</th><th>Live Eq</th><th></th></tr></thead><tbody>
@@ -593,7 +760,7 @@
               : '<span class="badge badge-gray">none</span>'}</td>
             <td style="white-space:nowrap"><button class="btn btn-green btn-sm" data-txok="${t.id}"><i class="fas fa-check"></i> ${t.type === 'product' ? 'Approve &amp; Unlock' : 'Approve &amp; Credit'}</button>
             <button class="btn btn-danger btn-sm" data-txno="${t.id}"><i class="fas fa-xmark"></i> Reject</button></td></tr>`).join('')}
-          </tbody></table></div>` : '<div class="empty-state"><i class="fas fa-check"></i>Nothing pending.</div>'}
+          </tbody></table></div>` : admEmpty('fa-money-bill-transfer', 'Nothing pending', 'Deposits, withdrawals and product purchases that need a manual decision show up here.')}
         </div>
         <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> History (${hist.length})</h3>
           <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Type</th><th>Asset</th><th>Amount</th><th>Status</th><th>When</th><th>Note</th></tr></thead><tbody>
@@ -661,7 +828,7 @@
                 <button class="btn btn-green btn-sm" data-cmok="${a.id}"><i class="fas fa-check"></i> Approve Member</button>
                 <button class="btn btn-danger btn-sm" data-cmno="${a.id}"><i class="fas fa-xmark"></i> Reject</button>
               </div>
-            </div>`).join('') : '<div class="empty-state"><i class="fas fa-check"></i>No pending applications.</div>'}
+            </div>`).join('') : admEmpty('fa-people-group', 'No applications waiting', 'Community membership requests appear here for review.')}
         </div>
         <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> Reviewed (${reviewed.length})</h3>
           <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Status</th><th>Quiz</th><th>Applied</th><th>Reviewed</th><th>Reason</th></tr></thead><tbody>
@@ -697,7 +864,7 @@
             <td class="muted small">${BB.timeAgo(x.requestedAt)}</td>
             <td style="white-space:nowrap"><button class="btn btn-green btn-sm" data-bkok="${x.id}"><i class="fas fa-check"></i> Approve &amp; Issue Key</button>
             <button class="btn btn-danger btn-sm" data-bkno="${x.id}"><i class="fas fa-xmark"></i> Reject</button></td></tr>`).join('')}
-          </tbody></table></div>` : '<div class="empty-state"><i class="fas fa-check"></i>No pending key requests.</div>'}
+          </tbody></table></div>` : admEmpty('fa-key', 'No key requests', 'Bot connection keys submitted by members appear here.')}
           ${reviewed.length ? `<h4 class="font-head mt-2" style="color:var(--ink-soft)">Issued / rejected keys</h4>
           <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Bot</th><th>Status</th><th>Key</th><th>Reviewed</th></tr></thead><tbody>
           ${reviewed.slice(0, 15).map(x => `<tr><td><small>${BB.esc(x.userEmail)}</small></td><td class="small">${BB.esc(x.botName)}</td>
@@ -744,7 +911,7 @@
             ${c.unread ? `<span class="pill badge badge-red">${c.unread} new</span>` : ''}</div>
             <div class="muted small" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${BB.esc(c.lastText || '—')}</div>
             <small class="muted" style="font-family:var(--font-head)">${BB.timeAgo(c.lastMsgAt)} · ${c.email || 'guest'}</small>
-          </div>`).join('') || '<div class="empty-state">No conversations yet.</div>'}
+          </div>`).join('') || admEmpty('fa-comments', 'No conversations', 'Visitor chats from the website land here in real time.')}
           </div></div>
         <div class="admin-card" style="margin:0"><h3 id="chatThreadTitle"><i class="fas fa-reply" style="color:var(--gold)"></i> Select a conversation</h3>
           <div class="chat-thread" id="admThread"><div class="empty-state"><i class="fas fa-comments"></i>Pick a conversation on the left.</div></div>
@@ -790,7 +957,7 @@
           <p class="muted small mb-2">Announcements cycle site-wide in the top bar, one after another, with rolling / fade / wipe transitions — long ones scroll across in full like a live feed. The bar hides itself when the list is empty.</p>
           <div class="field"><label>New announcement (max 300 characters)</label>
             <div style="display:flex;gap:8px">
-              <input class="input" id="setAnnNew" maxlength="300" placeholder="e.g. 🔥 Golden Horn just closed a +4.2% gold swing">
+              <input class="input" id="setAnnNew" maxlength="300" placeholder="e.g. Golden Horn just closed a +4.2% gold swing">
               <button class="btn btn-green" id="setAnnAdd" style="white-space:nowrap"><i class="fas fa-plus"></i> Post</button>
             </div></div>
           <div id="setAnnList" class="mt-2"></div>
@@ -830,7 +997,7 @@
         </div>
         <div class="admin-card"><h3><i class="fas fa-trophy" style="color:var(--gold)"></i> Weekly Demo Contest</h3>
           <div class="checkline mb-1"><input type="checkbox" id="setContestOn" ${s.contest && s.contest.enabled !== false ? 'checked' : ''}> <span>Contest enabled (visible on dashboards)</span></div>
-          <div class="field"><label>Prize description</label><input class="input" id="setContestPrize" value="${BB.esc((s.contest && s.contest.prize) || '')}" placeholder="🥇 1st: $200 live credit · 🥈 2nd: $100 · 🥉 3rd: $50"></div>
+          <div class="field"><label>Prize description</label><input class="input" id="setContestPrize" value="${BB.esc((s.contest && s.contest.prize) || '')}" placeholder="1st: $200 live credit · 2nd: $100 · 3rd: $50"></div>
           <p class="muted small">Standings = demo ROI for the current week (Mon UTC), min 3 closed trades. Runs automatically.</p>
         </div>
         <div class="admin-card"><h3><i class="fas fa-envelope" style="color:var(--gold)"></i> Email Delivery</h3>
@@ -870,7 +1037,7 @@
             <span class="muted small">VAPID keys: <b id="pushKeyState">checking…</b></span>
             <button class="btn btn-outline btn-sm" id="pushKeyBtn"><i class="fas fa-key"></i> Generate New Keys</button>
           </div>
-          <div class="field"><label>Broadcast title</label><input class="input" id="pushTitle" maxlength="80" placeholder="e.g. 🥇 Contest results are in!"></div>
+          <div class="field"><label>Broadcast title</label><input class="input" id="pushTitle" maxlength="80" placeholder="e.g. Contest results are in!"></div>
           <div class="field"><label>Message</label><input class="input" id="pushBody" maxlength="200" placeholder="e.g. Check the leaderboard on your dashboard."></div>
           <div class="field"><label>Opens link (optional)</label><input class="input" id="pushUrl" placeholder="/dashboard"></div>
           <button class="btn btn-primary btn-sm" id="pushSendBtn"><i class="fas fa-paper-plane"></i> Send to Everyone</button>
@@ -920,7 +1087,7 @@
         const p = await api('/api/admin/push-subs');
         if (p.ok) {
           R('pushSubCount').textContent = p.total;
-          R('pushKeyState').textContent = p.keysConfigured ? 'configured ✓' : 'not configured';
+          R('pushKeyState').textContent = p.keysConfigured ? 'configured <i class="fas fa-check"></i> ' : 'not configured';
         }
       };
       loadPush();
@@ -1004,7 +1171,7 @@
         <div class="table-wrap"><table class="dt"><thead><tr><th>Time</th><th>Admin</th><th>Action</th><th>Target</th><th>Detail</th></tr></thead><tbody>
         ${r.audit.map(a => `<tr><td class="muted small">${BB.fmtTime(a.at)}</td><td><small>${BB.esc(a.adminEmail)}</small></td>
           <td><span class="pill badge badge-gold">${a.action}</span></td><td class="muted small">${BB.esc(a.target || '—')}</td>
-          <td class="muted small">${BB.esc(a.detail || '')}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No entries yet.</td></tr>'}
+          <td class="muted small">${BB.esc(a.detail || '')}</td></tr>`).join('') || `<tr><td colspan="5">${admEmpty('fa-clipboard-list', 'No entries yet', 'Approvals, balance adjustments, suspensions and settings changes are recorded here.')}</td></tr>`}
         </tbody></table></div></div>`;
     }
 

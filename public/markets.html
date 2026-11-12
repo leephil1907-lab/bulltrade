@@ -126,8 +126,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=32"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/common.js?v=34"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script src="/assets/js/chart.js?v=7"></script>
 <script>
@@ -213,7 +213,7 @@
           e.stopPropagation();
           if (!BB.user) return BB.toast('Log in to save your watchlist', 'error');
           const r = await BB.api('/api/watchlist/toggle', { method: 'POST', body: { assetId: st.dataset.star } });
-          if (r.ok) { BB._watch = r.watchlist; render(); BB.toast(r.added ? 'Added to watchlist ★' : 'Removed from watchlist'); }
+          if (r.ok) { BB._watch = r.watchlist; render(); BB.toast(r.added ? 'Added to watchlist ' : 'Removed from watchlist'); }
         }));
       }
 
@@ -255,7 +255,7 @@
           if (r.ok) {
             BB._watch = r.watchlist;
             $('#coinStar', bd).innerHTML = `<i class="fas fa-star${r.added ? '' : ' far'}"></i> ${r.added ? 'Watchlisted' : 'Watchlist'}`;
-            BB.toast(r.added ? 'Added to watchlist ★' : 'Removed from watchlist');
+            BB.toast(r.added ? 'Added to watchlist ' : 'Removed from watchlist');
             render();
           }
         });

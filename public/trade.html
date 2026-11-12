@@ -20,7 +20,7 @@
 <link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
 <link href="/assets/css/main.css?v=32" rel="stylesheet"/>
 <style>
-    .trade-layout { display: grid; grid-template-columns: 250px 1fr 320px; gap: 16px; align-items: start; }
+    .trade-layout { display: grid; grid-template-columns: 250px minmax(0,1fr) 350px; gap: 16px; align-items: start; }
     .asset-list { max-height: 560px; overflow-y: auto; }
     .asset-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; cursor: pointer; transition: background .15s; }
     .asset-row:hover { background: rgba(27,169,75,.07); }
@@ -40,17 +40,22 @@
     .mode-switch button.active-demo { background: linear-gradient(135deg,#0053e2,#2E91FC); color: #fff; }
     .mode-switch button.active-live { background: var(--green); color: #fff; }
     .ob-side { display: flex; flex-direction: column; gap: 1px; }
-    .ob-row { display: grid; grid-template-columns: 1.1fr 1fr 1.1fr; padding: 2.5px 8px; font-size: 12px; position: relative; border-radius: 3px; overflow: hidden; }
-    .ob-row .ob-bar { position: absolute; top: 0; bottom: 0; right: 0; opacity: .13; border-radius: 3px; }
+    .ob-head, .ob-row { display: grid; grid-template-columns: minmax(0,1.45fr) minmax(0,1fr) minmax(0,1fr); gap: 8px; }
+    .ob-head { padding: 0 8px 6px; }
+    .ob-row { padding: 3px 8px; font-size: 12px; position: relative; border-radius: 4px; overflow: hidden; }
+    .ob-row .ob-bar { position: absolute; top: 0; bottom: 0; right: 0; opacity: .13; border-radius: 4px; }
     .ob-row.ask { color: var(--red); } .ob-row.ask .ob-bar { background: var(--red); }
     .ob-row.bid { color: var(--green-deep); } .ob-row.bid .ob-bar { background: var(--green-deep); }
-    .ob-row span { position: relative; z-index: 1; }
+    .ob-row span { position: relative; z-index: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+    .ob-row:hover { background: rgba(63,20,12,.05); }
     .ob-row .ob-s { text-align: right; color: var(--ink-soft); } .ob-row .ob-t { text-align: right; color: var(--ink-dim); }
     .ob-mid { text-align: center; padding: 6px 0; font-size: 17px; font-weight: 800; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); margin: 4px 0; }
-    .tape-row { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; font-size: 12px; padding: 2.5px 6px; border-radius: 3px; font-family: var(--font-head); }
+    .tape-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr) minmax(0,.9fr); gap: 8px; font-size: 12px; padding: 3px 8px; border-radius: 4px; font-family: var(--font-head); }
+    .tape-row span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
     .tape-row .t-p { text-align: right; font-weight: 700; }
     .tape-row.up .t-p { color: var(--green-deep); } .tape-row.down .t-p { color: var(--red); }
     .tape-row .t-t { color: var(--ink-dim); }
+    .tape-head { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr) minmax(0,.9fr); gap: 8px; padding: 0 8px 6px; }
     @media (max-width: 720px) { #obGrid { grid-template-columns: 1fr !important; } }
     .side-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
     .side-tabs button { padding: 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg-soft); color: var(--ink-soft); font-family: var(--font-head); font-weight: 700; font-size: 15px; cursor: pointer; }
@@ -166,18 +171,20 @@
 <b class="font-head" data-i18n-html="trd.h30" style="font-size:15px">Order Book — <span id="obSym" style="color:var(--gold)"></span></b>
 <span class="badge badge-blue" data-i18n-html="trd.h31">Spread: <span id="obSpread" class="num">—</span></span>
 </div>
-<div style="display:grid;grid-template-columns:1.15fr 1fr;gap:18px" id="obGrid">
+<div id="obGrid">
 <div>
-<div style="display:flex;justify-content:space-between;padding:0 8px 6px" class="muted small">
-<span data-i18n="idx.s16">Price</span><span data-i18n="trd.obSize">Size</span><span data-i18n="trd.obTotal">Total</span>
+<div class="ob-head muted small">
+<span data-i18n="idx.s16">Price</span><span class="ob-s" style="text-align:right" data-i18n="trd.obSize">Size</span><span class="ob-t" style="text-align:right" data-i18n="trd.obTotal">Total</span>
 </div>
 <div id="obAsks" class="ob-side"></div>
 <div class="ob-mid num" id="obMid">—</div>
 <div id="obBids" class="ob-side"></div>
 </div>
-<div>
-<div class="muted small" style="padding:0 4px 6px;font-weight:700;letter-spacing:.5px" data-i18n="trd.obTape">TIME &amp; SALES</div>
-<div id="obTape" style="max-height:432px;overflow:hidden"></div>
+<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:12px">
+<div class="ob-head muted small" style="font-weight:700;letter-spacing:.5px">
+<span data-i18n="trd.obTape">TIME &amp; SALES</span><span style="text-align:right" data-i18n="idx.s16">Price</span><span style="text-align:right" data-i18n="trd.obSize">Size</span>
+</div>
+<div id="obTape" style="max-height:260px;overflow:hidden"></div>
 </div>
 </div>
 </div>
@@ -240,8 +247,8 @@
 </div>
 </section>
 <footer class="site-footer" id="site-footer"></footer>
-<script src="/assets/js/i18n-pages.js?v=22"></script>
-  <script src="/assets/js/common.js?v=32"></script>
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+  <script src="/assets/js/common.js?v=34"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script src="/assets/js/chart.js?v=7"></script>
 <script>
@@ -507,7 +514,7 @@
         const r = await BB.api('/api/trading/order', { method: 'POST', body });
         btn.disabled = false;
         if (r.ok) {
-          BB.toast(r.message + (r.order ? ' ✓' : ' — filled @ $' + r.position.entry), 'success');
+          BB.toast(r.message + (r.order ? ' <i class="fas fa-check"></i> ' : ' — filled @ $' + r.position.entry), 'success');
           $('#orderAmount').value = ''; $('#tpInput').value = ''; $('#slInput').value = '';
           updateQty();
           refreshState(); refreshAll();
