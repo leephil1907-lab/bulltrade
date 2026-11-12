@@ -256,6 +256,42 @@ window.BB = {
     Chat.toggle(true);
   },
 
+  // ---------------- countries ----------------
+  // One ISO-3166 list (assets/js/countries.js) shared by signup, KYC and the
+  // admin filters so a country is never spelled three different ways.
+  countries: () => (window.BB_COUNTRIES || []),
+  countryCode(input) {
+    const v = String(input || '').trim();
+    if (!v) return '';
+    const list = window.BB_COUNTRIES || [];
+    const up = v.toUpperCase();
+    const byCode = list.find(c => c.code === up);
+    if (byCode) return byCode.code;
+    const byName = list.find(c => c.name.toLowerCase() === v.toLowerCase());
+    return byName ? byName.code : up.slice(0, 2);
+  },
+  countryName(input) {
+    if (!input) return 'Unknown';
+    const code = BB.countryCode(input);
+    const hit = (window.BB_COUNTRIES || []).find(c => c.code === code);
+    return hit ? hit.name : String(input);
+  },
+  // flat, alphabetical options — optgroups were unreliable when the markup is
+  // generated as a string and injected into a <select>
+  countryOptions(selected) {
+    const sel = BB.countryCode(selected);
+    return BB.countries().slice().sort((a, b) => a.name.localeCompare(b.name))
+      .map(c => `<option value="${c.code}"${c.code === sel ? ' selected' : ''}>${BB.esc(c.name)}</option>`)
+      .join('');
+  },
+  // ISO badge used instead of flag emoji, which render inconsistently by OS
+  countryBadge(input, size = 30) {
+    const code = BB.countryCode(input) || '??';
+    let h = 0; for (const ch of code) h = (h * 31 + ch.charCodeAt(0)) % 360;
+    const bg = `hsl(${h},46%,93%)`, fg = `hsl(${h},52%,30%)`, bd = `hsl(${h},45%,80%)`;
+    return `<span class="c-badge" style="width:${size}px;height:${size}px;background:${bg};color:${fg};border-color:${bd}">${BB.esc(code)}</span>`;
+  },
+
   assetIcon(a, size = 30) {
     if (a.logo) return `<img class="a-logo" src="${a.logo}" alt="${BB.esc(a.symbol)}" loading="lazy" style="width:${size}px;height:${size}px">`;
     // Commodities and indices have no logo artwork. These used to be emoji
@@ -634,6 +670,8 @@ const NAV_MORE = [
   ['/community', 'community', 'fa-users', 'Members only · apply to join'],
   ['/store', 'products', 'fa-shopping-bag', 'Courses, guides & bundles'],
   ['/mentorship', 'mentorship', 'fa-graduation-cap', 'Elite 1-on-1 coaching'],
+  ['/cmf-engine', 'cmf', 'fa-gauge-high', 'The CMF compounding system'],
+  ['/avoid-scams', 'scams', 'fa-shield-halved', 'How to spot fakes using our name'],
   ['/faq', 'faq', 'fa-circle-question', 'Answers to common questions'],
   ['/contact', 'contact', 'fa-headset', 'Talk to the team']
 ];
@@ -919,33 +957,57 @@ function renderFooter() {
       <div>
         <h5 data-i18n="ftr.platform">Platform</h5>
         <div class="footer-links">
-          <a href="/markets" data-i18n="ftr.liveMarkets">Live Markets</a><a href="/trade" data-i18n="ftr.terminal">Trading Terminal</a>
+          <a href="/markets" data-i18n="ftr.liveMarkets">Live Markets</a>
+          <a href="/trade" data-i18n="ftr.terminal">Trading Terminal</a>
           <a href="/trading-bots" data-i18n="ftr.bots">Trading Bots</a>
-          <a href="/dashboard" data-i18n="ftr.dashboard">Dashboard</a><a href="/funding" data-i18n="ftr.funding">Funding</a>
-          <a href="/community"><span data-i18n="ftr.community">Community</span> <i class="fas fa-lock" style="font-size:9px;color:var(--gold)"></i></a>
-          <a href="/signup" data-i18n="ftr.createAccount">Create Account</a>
-          <a href="/login" data-i18n="ftr.login">Log In</a>
-          <a href="#" id="footInstall"><i class="fas fa-mobile-alt"></i> <span data-i18n="ftr.install">Install App</span></a>
-          <a href="#" id="footNotify"><i class="fas fa-bell"></i> <span data-i18n="ftr.notify">Notifications</span></a>
+          <a href="/dashboard" data-i18n="ftr.dashboard">Dashboard</a>
+          <a href="/funding" data-i18n="ftr.funding">Funding</a>
+          <a href="/kyc">Identity Verification</a>
         </div>
       </div>
       <div>
-        <h5 data-i18n="ftr.products">Products</h5>
+        <h5>Learn</h5>
         <div class="footer-links">
-          <a href="/store" data-i18n="ftr.store">Store</a><a href="/mentorship" data-i18n="ftr.mentorship">Elite Mentorship</a>
-          <a href="/cmf-engine" data-i18n="ftr.cmf">CMF Engine</a><a href="/faq" data-i18n="ftr.faq">FAQ</a>
-          <a href="/contact" data-i18n="ftr.contact">Contact</a><a href="/avoid-scams" data-i18n="ftr.fraudAlert">Fraud Alert</a>
+          <a href="/community"><span data-i18n="ftr.community">Community</span> <i class="fas fa-lock" style="font-size:9px;color:var(--gold)"></i></a>
+          <a href="/cmf-engine" data-i18n="ftr.cmf">CMF Engine</a>
+          <a href="/mentorship" data-i18n="ftr.mentorship">Elite Mentorship</a>
+          <a href="/store" data-i18n="ftr.store">Store</a>
+          <a href="/faq" data-i18n="ftr.faq">FAQ</a>
+          <a href="/avoid-scams">Fraud Alert</a>
+        </div>
+      </div>
+      <div>
+        <h5>Company</h5>
+        <div class="footer-links">
+          <a href="/contact" data-i18n="ftr.contact">Contact</a>
+          <a href="/signup" data-i18n="ftr.createAccount">Create Account</a>
+          <a href="/login" data-i18n="ftr.login">Log In</a>
+          <a href="https://www.facebook.com/profile.php?id=61595631804363&amp;mibextid=ZbWKwL" target="_blank" rel="noopener">Facebook Page <i class="fab fa-facebook" style="font-size:10px"></i></a>
+          <a href="/legal?p=terms">Terms &amp; Conditions</a>
+          <a href="/sitemap.xml">Sitemap</a>
         </div>
       </div>
       <div>
         <h5>Legal</h5>
         <div class="footer-links">
-          <a href="/legal?p=terms">Terms &amp; Conditions</a>
-          <a href="/legal?p=purchase">Fulfillment, Refund &amp; Purchase Policy</a>
-          <a href="/legal?p=disclaimer">Disclaimer</a>
+          <a href="/legal?p=purchase">Fulfillment &amp; Refunds</a>
+          <a href="/legal?p=disclaimer">Risk Disclaimer</a>
           <a href="/legal?p=affiliate">Affiliate Disclaimer</a>
           <a href="/legal?p=gdpr">GDPR Privacy Policy</a>
-          <a href="/legal?p=coaching">Coaching Terms of Service</a>
+          <a href="/legal?p=coaching">Coaching Terms</a>
+          <a href="mailto:calvin.hill@blockchainbullhorn.com">Compliance</a>
+        </div>
+      </div>
+      <div class="footer-follow">
+        <h5>Follow the herd</h5>
+        <a class="fb-page-card" href="https://www.facebook.com/profile.php?id=61595631804363&amp;mibextid=ZbWKwL" target="_blank" rel="noopener">
+          <span class="fbc-ic"><i class="fab fa-facebook-f"></i></span>
+          <span class="fbc-txt"><b>Blockchain Bullhorn</b><small>Follow our Facebook page</small></span>
+          <i class="fas fa-arrow-up-right-from-square fbc-go"></i>
+        </a>
+        <div class="footer-links footer-tools">
+          <a href="#" id="footInstall"><i class="fas fa-mobile-alt"></i> <span data-i18n="ftr.install">Install App</span></a>
+          <a href="#" id="footNotify"><i class="fas fa-bell"></i> <span data-i18n="ftr.notify">Notifications</span></a>
         </div>
       </div>
     </div>

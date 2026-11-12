@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="/assets/css/fonts.css?v=2">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
   <link rel="stylesheet" href="/assets/css/main.css?v=32">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=12">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=13">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="robots" content="noindex, nofollow"/>
   <link rel="canonical" href="__SITE_URL__/admin"/>
@@ -119,7 +119,8 @@
   </div>
 
   <div class="toast-wrap"></div>
-  <script src="/assets/js/common.js?v=34"></script>
+  <script src="/assets/js/countries.js?v=1"></script>
+  <script src="/assets/js/common.js?v=35"></script>
 <script src="/assets/js/tour.js?v=6"></script>
   <script>
     'use strict';
@@ -714,30 +715,247 @@ if (target) switchView(target);
       });
     }
 
+    /* ============================================================
+       KYC — a global, country-grouped review queue.
+       Every country on the platform is a collapsible section; the country
+       dropdown narrows the list, and a review drawer runs the standard
+       check-list before an approve/reject decision.
+       ============================================================ */
+    const KYC_CHECKS = [
+      ['legible', 'Document is legible', 'All four corners visible, no glare or blur'],
+      ['in_date', 'Document is in date', 'Not expired at the time of submission'],
+      ['name_match', 'Name matches the account', 'Account name and document name agree'],
+      ['photo_match', 'Photo matches the selfie', 'Face on the document matches the selfie'],
+      ['address_ok', 'Address is complete', 'Street, city and country are present'],
+      ['not_duplicate', 'No duplicate identity', 'No other approved account with the same document']
+    ];
+    let KYC_DATA = null;
+    let KYC_OPEN = new Set();
+    let KYC_COUNTRY = 'all';
+    let KYC_STATUS = 'pending';
+
     async function viewKyc() {
       const root = R('viewRoot');
-      root.innerHTML = '<div class="admin-card">Loading KYC queue…</div>';
-      // users list contains kyc status; fetch users then filter
-      const r = await api('/api/admin/users');
-      if (!r.ok) return;
-      const pending = r.users.filter(u => u.kycStatus === 'pending');
-      const done = r.users.filter(u => u.kycStatus === 'approved' || u.kycStatus === 'rejected');
+      root.innerHTML = '<div class="admin-card"><span class="skeleton" style="width:100%;height:120px"></span></div>';
+      const r = await api('/api/admin/kyc');
+      if (!r.ok) return root.innerHTML = '<div class="admin-card">Failed to load the KYC queue.</div>';
+      KYC_DATA = r;
+      renderKyc();
+    }
+
+    function kycFiltered() {
+      if (!KYC_DATA) return [];
+      let items = KYC_DATA.items.slice();
+      if (KYC_COUNTRY !== 'all') items = items.filter(k => (k.country || 'Unknown') === KYC_COUNTRY);
+      if (KYC_STATUS !== 'all') items = items.filter(k => k.status === KYC_STATUS);
+      return items.sort((a, b) => (b.submittedAt || b.joinedAt) - (a.submittedAt || a.joinedAt));
+    }
+
+    function renderKyc() {
+      const root = R('viewRoot');
+      const s = KYC_DATA.summary;
+      const byCountry = {};
+      kycFiltered().forEach(k => {
+        const c = k.country || 'Unknown';
+        (byCountry[c] = byCountry[c] || []).push(k);
+      });
+      const countryKeys = Object.keys(byCountry).sort((a, b) => byCountry[b].length - byCountry[a].length);
+      const totalShown = kycFiltered().length;
+
+      const statusFilters = [
+        ['pending', 'Pending', s.pending],
+        ['approved', 'Approved', s.approved],
+        ['rejected', 'Rejected', s.rejected],
+        ['not_submitted', 'Not submitted', s.notSubmitted],
+        ['all', 'All', s.pending + s.approved + s.rejected + s.notSubmitted]
+      ];
+
+      const countrySelect = ['all'].concat(countryKeys).map(c => {
+        const label = c === 'all' ? 'All countries' : BB.countryName(c);
+        const n = c === 'all' ? totalShown : byCountry[c].length;
+        return `<option value="${BB.esc(c)}"${KYC_COUNTRY === c ? ' selected' : ''}>${BB.esc(label)} — ${n}</option>`;
+      }).join('');
+
       root.innerHTML = `
-        <div class="admin-card"><h3><i class="fas fa-hourglass-half" style="color:var(--gold)"></i> Pending Review (${pending.length})</h3>
-          ${pending.length ? `<div class="grid grid-2">${pending.map(u => `
-            <div class="card" style="padding:16px">
-              <div class="flex-between"><div><b class="font-head">${BB.esc(u.name || '—')}</b><br><small class="muted">${BB.esc(u.email)}</small></div>
-              <button class="btn btn-outline btn-sm" data-open="${u.id}">Open Documents</button></div>
-            </div>`).join('')}</div>` : admEmpty('fa-id-card', 'No KYC waiting', 'Every submitted document has been reviewed. New submissions land here automatically.')}
+        <div class="kyc-kpis">
+          <div class="kyc-kpi hot"><b>${s.pending}</b><span>Awaiting review</span></div>
+          <div class="kyc-kpi ok"><b>${s.approved}</b><span>Verified</span></div>
+          <div class="kyc-kpi bad"><b>${s.rejected}</b><span>Rejected</span></div>
+          <div class="kyc-kpi"><b>${s.countries}</b><span>Countries</span></div>
         </div>
-        <div class="admin-card"><h3><i class="fas fa-clock-rotate-left"></i> Reviewed (${done.length})</h3>
-          <div class="table-wrap"><table class="dt"><thead><tr><th>User</th><th>Status</th><th>Live Eq</th><th></th></tr></thead><tbody>
-          ${done.map(u => `<tr><td><b class="font-head">${BB.esc(u.name || u.email)}</b><br><small class="muted">${BB.esc(u.email)}</small></td>
-            <td><span class="pill badge ${u.kycStatus === 'approved' ? 'badge-green' : 'badge-red'}">${u.kycStatus}</span></td>
-            <td class="num">$${u.liveEquity.toLocaleString()}</td>
-            <td><button class="btn btn-outline btn-sm" data-open="${u.id}">Details</button></td></tr>`).join('')}
-          </tbody></table></div></div>`;
-      $$('[data-open]').forEach(b => b.addEventListener('click', () => openUser(b.dataset.open)));
+
+        <div class="admin-card kyc-toolbar">
+          <div class="kyc-tool-row">
+            <label class="kyc-select">
+              <i class="fas fa-globe"></i>
+              <select id="kycCountrySel" aria-label="Filter by country">${countrySelect}</select>
+              <i class="fas fa-chevron-down"></i>
+            </label>
+            <div class="kyc-status-chips">
+              ${statusFilters.map(([k, label, n]) => `<button type="button" class="kyc-chip${KYC_STATUS === k ? ' active' : ''}" data-kstatus="${k}">${label} <b>${n}</b></button>`).join('')}
+            </div>
+            <div class="kyc-tool-right">
+              <button type="button" class="btn btn-outline btn-sm" id="kycExpandAll"><i class="fas fa-angles-down"></i> Expand all</button>
+            </div>
+          </div>
+        </div>
+
+        ${countryKeys.length ? countryKeys.map(c => kycCountrySection(c, byCountry[c])).join('')
+          : `<div class="admin-card">${admEmpty('fa-globe', 'Nothing in this filter', 'Try another country or switch back to Pending.')}</div>`}
+      `;
+
+      const sel = R('kycCountrySel');
+      sel.addEventListener('change', () => { KYC_COUNTRY = sel.value; KYC_OPEN.clear(); renderKyc(); });
+      $$('[data-kstatus]').forEach(b => b.addEventListener('click', () => { KYC_STATUS = b.dataset.kstatus; KYC_OPEN.clear(); renderKyc(); }));
+      $$('[data-kyc-country]').forEach(h => h.addEventListener('click', () => {
+        const c = h.dataset.kycCountry;
+        if (KYC_OPEN.has(c)) KYC_OPEN.delete(c); else KYC_OPEN.add(c);
+        renderKyc();
+      }));
+      const exp = R('kycExpandAll');
+      if (exp) exp.addEventListener('click', () => {
+        if (KYC_OPEN.size === countryKeys.length) KYC_OPEN.clear();
+        else countryKeys.forEach(c => KYC_OPEN.add(c));
+        renderKyc();
+      });
+      $$('[data-kycreview]').forEach(b => b.addEventListener('click', () => openKycReview(b.dataset.kycreview)));
+    }
+
+    function kycStatusBadge(status) {
+      const map = { pending: ['badge-gold', 'fa-hourglass-half', 'Pending'],
+        approved: ['badge-green', 'fa-circle-check', 'Verified'],
+        rejected: ['badge-red', 'fa-circle-xmark', 'Rejected'],
+        not_submitted: ['badge-gray', 'fa-minus', 'Not submitted'] };
+      const [cls, icon, label] = map[status] || map.not_submitted;
+      return `<span class="pill badge ${cls}"><i class="fas ${icon}"></i> ${label}</span>`;
+    }
+
+    function kycCountrySection(country, items) {
+      const open = KYC_OPEN.has(country);
+      const pending = items.filter(k => k.status === 'pending').length;
+      return `<div class="admin-card kyc-acc${open ? ' open' : ''}">
+        <button type="button" class="kyc-acc-head" data-kyc-country="${BB.esc(country)}" aria-expanded="${open}">
+          ${BB.countryBadge(country, 34)}
+          <span class="kyc-acc-name">
+            <b>${BB.esc(BB.countryName(country))}</b>
+            <small>${items.length} applicant${items.length === 1 ? '' : 's'}${pending ? ` · ${pending} waiting` : ''}</small>
+          </span>
+          ${pending ? `<span class="kyc-acc-dot">${pending}</span>` : ''}
+          <i class="fas fa-chevron-down kyc-acc-caret"></i>
+        </button>
+        ${open ? `<div class="kyc-acc-body">
+          <div class="table-wrap"><table class="dt"><thead><tr>
+            <th>Applicant</th><th>Submitted</th><th>Document</th><th>Status</th><th></th>
+          </tr></thead><tbody>
+          ${items.map(k => `<tr>
+            <td><b class="font-head">${BB.esc(k.fullName || k.name || '—')}</b><br><small class="muted">${BB.esc(k.email)}</small></td>
+            <td class="muted small">${k.submittedAt ? BB.timeAgo(k.submittedAt) : '—'}</td>
+            <td class="small">${k.idType ? BB.esc(k.idType.replace(/_/g, ' ')) : '<span class="muted">none</span>'}
+              ${k.docs.length ? `<br><small class="muted">${k.docs.length} file${k.docs.length === 1 ? '' : 's'}</small>` : ''}</td>
+            <td>${kycStatusBadge(k.status)}</td>
+            <td style="white-space:nowrap">
+              ${k.status === 'pending'
+                ? `<button class="btn btn-green btn-sm" data-kycreview="${k.userId}"><i class="fas fa-file-shield"></i> Review</button>`
+                : `<button class="btn btn-outline btn-sm" data-kycreview="${k.userId}">Open</button>`}
+            </td></tr>`).join('')}
+          </tbody></table></div>
+        </div>` : ''}
+      </div>`;
+    }
+
+    function openKycReview(userId) {
+      const k = (KYC_DATA.items || []).find(x => x.userId === userId);
+      if (!k) return;
+      const checks = Object.assign({}, k.checklist || {});
+      const doneCount = KYC_CHECKS.filter(([key]) => checks[key]).length;
+      const docCard = d => {
+        const isPdf = /pdf/i.test(d.mime || '');
+        const url = `/api/admin/kyc-file?id=${encodeURIComponent(d.id)}`;
+        return `<a class="kyc-doc" href="${url}" target="_blank" rel="noopener">
+          ${isPdf ? '<span class="kyc-doc-pdf"><i class="fas fa-file-pdf"></i></span>'
+                  : `<img src="${url}" alt="${BB.esc(d.kind)}" loading="lazy">`}
+          <span class="kyc-doc-kind">${BB.esc(d.kind)}</span>
+        </a>`;
+      };
+      const body = `
+        <div class="kyc-review">
+          <div class="kyc-review-id">
+            ${BB.countryBadge(k.country || 'Unknown', 44)}
+            <div>
+              <b>${BB.esc(k.fullName || k.name || 'Applicant')}</b>
+              <small>${BB.esc(k.email)} · ${BB.esc(BB.countryName(k.country))}</small>
+            </div>
+            ${kycStatusBadge(k.status)}
+          </div>
+
+          <div class="kyc-review-grid">
+            <div class="kyc-facts">
+              <h4>Declared details</h4>
+              <dl>
+                <dt>Legal name</dt><dd>${BB.esc(k.fullName || '—')}</dd>
+                <dt>Document</dt><dd>${k.idType ? BB.esc(k.idType.replace(/_/g, ' ')) : '—'}</dd>
+                <dt>Number</dt><dd>${BB.esc(k.idNumber || '—')}</dd>
+                <dt>Address</dt><dd>${BB.esc([k.address, k.city].filter(Boolean).join(', ') || '—')}</dd>
+                <dt>Country</dt><dd>${BB.esc(BB.countryName(k.country))}</dd>
+                <dt>Submitted</dt><dd>${k.submittedAt ? new Date(k.submittedAt).toLocaleString() : '—'}</dd>
+                ${k.reviewedAt ? `<dt>Reviewed</dt><dd>${new Date(k.reviewedAt).toLocaleString()}${k.reviewer ? ` · ${BB.esc(k.reviewer)}` : ''}</dd>` : ''}
+                ${k.reason ? `<dt>Reason</dt><dd class="kyc-reason">${BB.esc(k.reason)}</dd>` : ''}
+              </dl>
+            </div>
+            <div class="kyc-docs">
+              <h4>Documents <span class="muted">${k.docs.length}</span></h4>
+              ${k.docs.length ? `<div class="kyc-doc-grid">${k.docs.map(docCard).join('')}</div>`
+                : `<p class="muted small">No files were uploaded with this submission.</p>`}
+            </div>
+          </div>
+
+          ${k.status === 'pending' || k.status === 'rejected' ? `
+          <div class="kyc-checklist">
+            <h4>Verification checklist <span class="muted">${doneCount}/${KYC_CHECKS.length}</span></h4>
+            <div class="kyc-check-grid">
+              ${KYC_CHECKS.map(([key, label, hint]) => `
+                <label class="kyc-check${checks[key] ? ' on' : ''}">
+                  <input type="checkbox" data-check="${key}"${checks[key] ? ' checked' : ''}>
+                  <span class="kyc-check-box"><i class="fas fa-check"></i></span>
+                  <span class="kyc-check-txt"><b>${label}</b><small>${hint}</small></span>
+                </label>`).join('')}
+            </div>
+          </div>
+          <div class="kyc-decision">
+            <input class="input" id="kycReason" placeholder="Reason (shown to the member if rejected)" maxlength="500">
+            <div class="kyc-decision-btns">
+              <button class="btn btn-danger" id="kycReject"><i class="fas fa-xmark"></i> Reject</button>
+              <button class="btn btn-green" id="kycApprove"><i class="fas fa-check"></i> Approve &amp; verify</button>
+            </div>
+          </div>` : `<p class="muted small" style="margin-top:14px">This application was ${BB.esc(k.status)} ${k.reviewedAt ? BB.timeAgo(k.reviewedAt) : ''}. Reopening it is not needed — the member can resubmit from their KYC page.</p>`}
+        </div>`;
+
+      const bd = BB.modal('KYC review', body);
+      const close = () => bd.remove();
+      bd.querySelector('.modal').classList.add('modal-wide');
+      const el = bd;
+      const boxes = [...el.querySelectorAll('[data-check]')];
+      boxes.forEach(b => b.addEventListener('change', () => {
+        b.closest('.kyc-check').classList.toggle('on', b.checked);
+        const n = boxes.filter(x => x.checked).length;
+        const cnt = el.querySelector('.kyc-checklist h4 span');
+        if (cnt) cnt.textContent = `${n}/${KYC_CHECKS.length}`;
+      }));
+      const gather = () => { const o = {}; boxes.forEach(b => { o[b.dataset.check] = b.checked; }); return o; };
+      const decide = async (action) => {
+        const reason = (el.querySelector('#kycReason') || {}).value || '';
+        if (action === 'reject' && !reason.trim()) return BB.toast('Add a reason so the member knows what to fix.', 'error');
+        const btn = action === 'approve' ? el.querySelector('#kycApprove') : el.querySelector('#kycReject');
+        if (btn) btn.disabled = true;
+        const res = await api('/api/admin/kyc', { method: 'POST', body: { userId, action, reason, checklist: gather(), stage: 'manual_review' } });
+        if (!res.ok) { if (btn) btn.disabled = false; return; }
+        BB.toast(action === 'approve' ? 'Member verified' : 'Application rejected', 'success');
+        close();
+        viewKyc();
+      };
+      const a = el.querySelector('#kycApprove'), rj = el.querySelector('#kycReject');
+      if (a) a.addEventListener('click', () => decide('approve'));
+      if (rj) rj.addEventListener('click', () => decide('reject'));
     }
 
     async function viewTxs() {

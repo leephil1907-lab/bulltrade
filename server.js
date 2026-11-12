@@ -26,7 +26,7 @@ const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
 const PUBLIC_DIR = path.join(__dirname, 'public');
 // Public origin used for canonical / Open Graph / JSON-LD URLs.
-const SITE_URL = (process.env.SITE_URL || 'https://bulltrade-fmtf.onrender.com').replace(/\/+$/, '');
+const SITE_URL = (process.env.SITE_URL || 'https://blockchainbullhorn.onrender.com').replace(/\/+$/, '');
 
 // NOTE: no top-level D.load() here — the async boot below calls D.init(),
 // which restores the GitHub backup first when running on an ephemeral host.
@@ -1487,6 +1487,59 @@ api['GET /api/admin/user'] = async (req, res, body, cookies, query) => {
   });
 };
 
+api['GET /api/admin/kyc'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const db = D.db();
+  const byUser = {};
+  db.users.forEach(u => { byUser[u.id] = u; });
+  const all = db.kyc.map(k => {
+    const u = byUser[k.userId] || {};
+    const d = k.details || {};
+    return {
+      userId: k.userId, kycId: k.id,
+      name: u.name || d.fullName || '', email: u.email || '',
+      country: (d.country || u.country || '').trim(),
+      city: d.city || '', address: d.address || '',
+      fullName: d.fullName || u.name || '', idNumber: d.idNumber || '',
+      status: k.status, idType: k.idType,
+      submittedAt: k.submittedAt, reviewedAt: k.reviewedAt || 0,
+      reason: k.reason || '', checklist: k.checklist || {}, stage: k.stage || '',
+      reviewer: (byUser[k.reviewerId] || {}).email || '',
+      docs: (k.docs || []).map(x => ({ id: x.id, kind: x.kind, mime: x.mime, name: x.origName, size: x.size })),
+      liveEquity: 0, joinedAt: u.joinedAt || 0
+    };
+  });
+  // users without a submission are surfaced too so "not submitted" is visible per country
+  const kycIds = new Set(db.kyc.map(k => k.userId));
+  db.users.filter(u => u.role !== 'admin' && !kycIds.has(u.id)).forEach(u => {
+    all.push({
+      userId: u.id, kycId: '', name: u.name || '', email: u.email,
+      country: (u.country || '').trim(), city: '', address: '', fullName: u.name || '', idNumber: '',
+      status: 'not_submitted', idType: '', submittedAt: 0, reviewedAt: 0, reason: '',
+      checklist: {}, stage: '', reviewer: '', docs: [], liveEquity: 0, joinedAt: u.joinedAt || 0
+    });
+  });
+  const norm = c => (c || 'Unknown').trim() || 'Unknown';
+  const countries = {};
+  all.forEach(k => {
+    const c = norm(k.country);
+    const row = countries[c] || (countries[c] = { country: c, pending: 0, approved: 0, rejected: 0, notSubmitted: 0, total: 0 });
+    row.total++;
+    if (k.status === 'pending') row.pending++;
+    else if (k.status === 'approved') row.approved++;
+    else if (k.status === 'rejected') row.rejected++;
+    else row.notSubmitted++;
+  });
+  const summary = {
+    pending: all.filter(k => k.status === 'pending').length,
+    approved: all.filter(k => k.status === 'approved').length,
+    rejected: all.filter(k => k.status === 'rejected').length,
+    notSubmitted: all.filter(k => k.status === 'not_submitted').length,
+    countries: Object.keys(countries).length
+  };
+  ok(res, { summary, countries: Object.values(countries).sort((a, b) => b.total - a.total), items: all });
+};
+
 api['POST /api/admin/kyc'] = async (req, res, body, cookies) => {
   const admin = requireAdmin(req, res, cookies); if (!admin) return;
   const kyc = D.find('kyc', k => k.userId === body.userId);
@@ -1494,6 +1547,12 @@ api['POST /api/admin/kyc'] = async (req, res, body, cookies) => {
   const action = body.action === 'approve' ? 'approved' : 'rejected';
   kyc.status = action;
   kyc.reason = String(body.reason || '').slice(0, 500);
+  if (body.checklist && typeof body.checklist === 'object') {
+    const cl = {};
+    Object.keys(body.checklist).slice(0, 20).forEach(k => { cl[String(k).slice(0, 60)] = !!body.checklist[k]; });
+    kyc.checklist = cl;
+  }
+  if (body.stage) kyc.stage = String(body.stage).slice(0, 40);
   kyc.reviewedAt = Date.now();
   kyc.reviewerId = admin.id;
   const u = D.find('users', x => x.id === body.userId);

@@ -42,6 +42,20 @@
 </section>
 <section class="section-tight reveal">
 <div class="container-wide">
+<!-- session bar: clock, market hours and breadth -->
+<div class="session-bar">
+  <div class="sb-live"><span class="sb-dot"></span> LIVE</div>
+  <div class="sb-clock"><b id="sbClock">--:--:--</b><small id="sbDate">UTC</small></div>
+  <div class="sb-hours" id="sbHours">
+    <span class="sb-chip" id="sbCrypto"><i class="fas fa-circle"></i> Crypto <b>24/7</b></span>
+    <span class="sb-chip" id="sbStocks"><i class="fas fa-circle"></i> US equities <b>—</b></span>
+    <span class="sb-chip" id="sbIndices"><i class="fas fa-circle"></i> Indices <b>—</b></span>
+  </div>
+  <div class="sb-breadth">
+    <div class="sb-bar"><i id="sbAdvBar" style="width:50%"></i></div>
+    <small><b class="up" id="sbAdv">0</b> advancing · <b class="down" id="sbDec">0</b> declining</small>
+  </div>
+</div>
 <!-- market pulse -->
 <div class="pulse-strip" id="pulseStrip">
 <div class="pulse-stat"><span class="pulse-dot"></span><div><small>LIVE MARKETS</small><b id="psAssets">—</b></div></div>
@@ -54,7 +68,7 @@
 <div class="card"><h4 style="color:var(--green-bright);font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px"><i class="fas fa-rocket"></i><span data-i18n="mkt.s3">Top Gainers</span></h4><div id="gainersBox"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div></div></div></div>
 <div class="card"><h4 style="color:var(--red);font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px"><i class="fas fa-arrow-trend-down"></i><span data-i18n="mkt.s4">Top Losers</span></h4><div id="losersBox"><div style="display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div><div style="display:flex;gap:10px;align-items:center;padding:8px 0"><span class="skeleton" style="width:26px;height:26px;border-radius:50%"></span><span style="flex:1"><span class="skeleton" style="width:60%;height:12px"></span></span><span class="skeleton" style="width:56px;height:14px"></span></div></div></div></div>
 </div>
-<div class="flex-between mb-2" style="flex-wrap:wrap;gap:10px">
+<div class="mkt-toolbar flex-between mb-2" style="flex-wrap:wrap;gap:10px">
 <div class="tab-bar" id="mktTabs" style="margin-bottom:0">
 <button class="tab-btn active" data-cat="all"><i class="fas fa-globe"></i><span data-i18n="mkt.s5">All</span></button>
 <button class="tab-btn" data-cat="watch"><i class="fas fa-star" style="color:var(--gold-deep)"></i><span data-i18n="mkt.s6">My Watchlist</span></button>
@@ -127,7 +141,8 @@
 </section>
 <footer class="site-footer" id="site-footer"></footer>
 <script src="/assets/js/i18n-pages.js?v=23"></script>
-  <script src="/assets/js/common.js?v=34"></script>
+  <script src="/assets/js/countries.js?v=1"></script>
+  <script src="/assets/js/common.js?v=35"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <script src="/assets/js/chart.js?v=7"></script>
 <script>
@@ -145,6 +160,36 @@
         return list;
       }
 
+      // ---------- session clock + opening hours ----------
+      // Crypto trades around the clock; equities and index futures follow the
+      // cash session in their home timezone. All comparisons are in UTC.
+      function sessionState(nowUtc) {
+        const d = nowUtc.getUTCDay(), mins = nowUtc.getUTCHours() * 60 + nowUtc.getUTCMinutes();
+        const weekday = d >= 1 && d <= 5;
+        const us = weekday && mins >= 13 * 60 + 30 && mins < 20 * 60 ? 'open'
+          : weekday && mins >= 8 * 60 && mins < 13 * 60 + 30 ? 'pre' : 'closed';
+        const eu = weekday && mins >= 8 * 60 && mins < 16 * 60 + 30 ? 'open' : 'closed';
+        return { us, eu };
+      }
+      function paintSession() {
+        const now = new Date();
+        const clock = $('#sbClock'), date = $('#sbDate');
+        if (clock) clock.textContent = now.toISOString().slice(11, 19);
+        if (date) date.textContent = 'UTC · ' + now.toISOString().slice(0, 10);
+        const st = sessionState(now);
+        const set = (id, label, state) => {
+          const el = $(id); if (!el) return;
+          const txt = state === 'open' ? 'Open' : state === 'pre' ? 'Pre-market' : 'Closed';
+          el.className = 'sb-chip ' + (state === 'open' ? 'is-open' : state === 'pre' ? 'is-pre' : 'is-closed');
+          el.innerHTML = `<i class="fas fa-circle"></i> ${label} <b>${txt}</b>`;
+        };
+        set('#sbCrypto', 'Crypto', 'open');
+        set('#sbStocks', 'US equities', st.us);
+        set('#sbIndices', 'Europe', st.eu);
+      }
+      paintSession();
+      setInterval(paintSession, 1000);
+
       // ---------- market pulse ----------
       function pulse() {
         const withP = assets.filter(a => a.price != null && a.changePct != null);
@@ -153,6 +198,14 @@
         $('#psAssets').textContent = withP.length + ' assets streaming';
         $('#psCap').textContent = cap ? BB.fmtCompact(cap) : '—';
         $('#psSent').innerHTML = `<span style="color:var(--green-bright)">${gain} ▲</span> · <span style="color:var(--red)">${lose} ▼</span>`;
+        // session bar: breadth + clock + market hours
+        const adv = gain, dec = lose, tot = Math.max(1, adv + dec);
+        const advBar = $('#sbAdvBar');
+        if (advBar) {
+          advBar.style.width = (adv / tot * 100).toFixed(1) + '%';
+          $('#sbAdv').textContent = adv;
+          $('#sbDec').textContent = dec;
+        }
         const top = withP.slice().sort((a, b) => Math.abs(b.changePct) - Math.abs(a.changePct))[0];
         if (top) {
           $('#psMoverVal').innerHTML = `${BB.esc(top.symbol)} <span class="${BB.chgClass(top.changePct)}">${top.changePct >= 0 ? '+' : ''}${BB.fmtPct(top.changePct)}</span>`;
