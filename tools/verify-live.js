@@ -30,19 +30,25 @@ const premiumVer = () => {
   catch { return null; }
 };
 
+// Each check names the page or asset it has to read. The footer is rendered by
+// common.js, so it is verified against the served script, not the HTML — an
+// earlier version of this file looked for it in the homepage markup and
+// reported a false "STALE" on every run.
 const CHECKS = [
-  { name: 'common.js version', want: assetVer('public/index.html', 'common.js'),
+  { name: 'common.js version', page: '/', want: assetVer('public/index.html', 'common.js'),
     test: b => (b.match(/common\.js\?v=(\d+)/) || [])[1] },
-  { name: 'premium.css version', want: premiumVer(),
-    test: b => (b.match(/premium\.css\?v=(\d+)/) || [])[1] },
-  { name: 'liquid-glass stylesheet served', want: true,
-    test: b => /--glass-1/.test(b) || null, fetch: 'css' },
-  { name: 'session bar on markets', want: true,
-    test: b => /session-bar|sessionBar/.test(b) || null },
-  { name: 'KYC country dropdown in admin', want: true,
-    test: b => /kycCountry|kyc-country/.test(b) || null },
-  { name: 'footer has 6 columns', want: true,
-    test: b => /fb-page-card/.test(b) || null },
+  { name: 'premium.css served', page: 'css', want: true,
+    test: b => /--glass-1/.test(b) && /--ease-spring/.test(b) },
+  { name: 'motion layer served', page: 'css', want: true,
+    test: b => /\.footer-auth/.test(b) && /@media \(prefers-reduced-motion: no-preference\)/.test(b) },
+  { name: 'session bar on markets', page: '/markets', want: true,
+    test: b => /session-bar/.test(b) },
+  { name: 'KYC country dropdown in admin', page: '/admin', want: true,
+    test: b => /kycCountry|kyc-country/.test(b) },
+  { name: 'footer: Facebook via social icon only', page: 'js', want: true,
+    test: b => /footer-auth/.test(b) && /soc-fb/.test(b) && !/fb-page-card/.test(b) },
+  { name: 'footer: Log In beside Sign Up', page: 'js', want: true,
+    test: b => /fa-login/.test(b) && /fa-signup/.test(b) },
 ];
 
 const routes = ['/', '/markets', '/trade', '/dashboard', '/kyc', '/admin', '/faq', '/contact', '/robots.txt', '/sitemap.xml', '/healthz'];
@@ -62,14 +68,23 @@ async function main() {
 
   const home = await fetch(BASE + '/').then(r => r.text()).catch(() => '');
   const cssPath = (home.match(/\/assets\/css\/premium\.css\?v=\d+/) || [''])[0];
-  const css = cssPath ? await fetch(BASE + cssPath).then(r => r.text()).catch(() => '') : '';
+  const sources = {
+    '/': home,
+    css: cssPath ? await fetch(BASE + cssPath).then(r => r.text()).catch(() => '') : '',
+    js: await fetch(BASE + '/assets/js/common.js').then(r => r.text()).catch(() => ''),
+  };
+  const pageCache = {};
 
   for (const c of CHECKS) {
-    const got = c.test(c.fetch === 'css' ? css : home);
-    const ok = String(got) === String(c.want) && got;
+    if (!(c.page in sources)) {
+      sources[c.page] = await fetch(BASE + c.page).then(r => r.text()).catch(() => '');
+    }
+    const got = c.test(sources[c.page]);
+    const ok = c.want === true ? got === true : String(got) === String(c.want) && got;
     if (!ok) failures++;
     console.log(`${ok ? 'ok        ' : 'STALE     '} ${c.name}${c.want === true ? '' : ` · live ${got ?? 'missing'} / repo ${c.want ?? 'missing'}`}`);
   }
+  void pageCache;
 
   const sitemap = await fetch(BASE + '/sitemap.xml').then(r => r.text()).catch(() => '');
   const host = (sitemap.match(/<loc>https:\/\/([^\/]+)/) || [])[1];
