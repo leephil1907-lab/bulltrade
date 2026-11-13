@@ -892,3 +892,49 @@ html:not(.js) #site-footer .footer-grid > * { opacity: 1; transform: none; }
 .session-bar .sb-more:hover { background: rgba(255, 255, 255, .14); border-color: var(--gold); transform: translateX(2px); }
 .session-bar .sb-more i { font-size: 9px; }
 @media (max-width: 780px) { .session-bar .sb-more { margin-left: 0; } }
+
+/* ============================================================
+   27. CMF COMPOUNDING CURVE
+   Plain SVG, no chart library — the draw-in and the re-tween are
+   stroke-dashoffset and a rAF counter, which is all this needs.
+   ============================================================ */
+.cx-grid { align-items: stretch; }
+.cx-card { padding: 20px 22px; display: flex; flex-direction: column; justify-content: center; }
+.cx-controls { display: flex; flex-direction: column; gap: 16px; }
+.cx-field { display: block; font-family: var(--font-head); font-size: 12px; font-weight: 700; color: var(--ink-soft); }
+.cx-field span { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; letter-spacing: .3px; }
+.cx-field b { font-size: 14px; color: var(--green-deep); font-variant-numeric: tabular-nums; }
+.cx-field input[type=range] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 99px;
+  background: linear-gradient(90deg, var(--gold) 0%, var(--green) 100%); outline: none; cursor: pointer;
+}
+.cx-field input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--green); box-shadow: 0 2px 8px rgba(63,20,12,.22);
+  transition: transform .2s var(--ease-spring);
+}
+.cx-field input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.12); }
+.cx-field input[type=range]::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%; background: #fff; border: 3px solid var(--green);
+}
+.cx-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.cx-stat { background: var(--bg-soft); border-radius: 11px; padding: 10px 13px; }
+.cx-stat small { display: block; font-size: 9px; font-weight: 800; letter-spacing: 1.2px; color: var(--ink-dim); }
+.cx-stat b { font-family: var(--font-head); font-size: 19px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.cx-stat-hot { grid-column: 1 / -1; background: rgba(27, 169, 75, .1); border: 1px solid rgba(27, 169, 75, .28); }
+.cx-stat-hot b { color: var(--green-deep); }
+
+.cx-chart-card { padding: 16px 18px 14px; }
+.cx-chart { width: 100%; height: auto; display: block; overflow: visible; }
+.cx-grid-lines line { stroke: var(--line-soft); stroke-width: 1; }
+.cx-line { fill: none; stroke: var(--green); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.cx-flat { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 5 5; stroke-linecap: round; }
+.cx-area { fill: url(#cxFill); }
+.cx-dot { fill: var(--green); stroke: #fff; stroke-width: 2.5; filter: drop-shadow(0 2px 6px rgba(27,169,75,.45)); }
+.cx-legend { display: flex; gap: 16px; justify-content: center; margin-top: 10px; font-size: 11.5px; color: var(--ink-soft); }
+.cx-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cx-k { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.cx-k-c { background: var(--green); }
+.cx-k-f { background: repeating-linear-gradient(90deg, var(--gold) 0 5px, transparent 5px 9px); }
+.cx-note { font-size: 11px; color: var(--ink-dim); text-align: center; margin: 10px 0 0; line-height: 1.5; }
+@media (max-width: 900px) { .cx-grid { grid-template-columns: 1fr; } }
