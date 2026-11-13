@@ -25,8 +25,20 @@ const RateLimit = require('./lib/ratelimit');
 const PORT = Number(process.env.PORT || 3000);
 const HOST = '0.0.0.0';
 const PUBLIC_DIR = path.join(__dirname, 'public');
-// Public origin used for canonical / Open Graph / JSON-LD URLs.
-const SITE_URL = (process.env.SITE_URL || 'https://blockchainbullhorn.onrender.com').replace(/\/+$/, '');
+// Public origin used for canonical / Open Graph / JSON-LD / sitemap URLs.
+//
+// Resolution order, so the app cannot advertise the wrong host:
+//   1. SITE_URL, when it is a real domain (a custom domain must always win)
+//   2. RENDER_EXTERNAL_URL, which Render injects with the service's actual host
+//      — this heals the case where SITE_URL is still pointing at an old
+//      *.onrender.com service after the service was renamed
+//   3. the current production host
+const stripSlash = u => String(u || '').replace(/\/+$/, '');
+const ENV_SITE_URL = stripSlash(process.env.SITE_URL);
+const RENDER_URL = stripSlash(process.env.RENDER_EXTERNAL_URL);
+const SITE_URL = (RENDER_URL && (!ENV_SITE_URL || /\.onrender\.com$/i.test(ENV_SITE_URL))
+  ? RENDER_URL
+  : (ENV_SITE_URL || RENDER_URL || 'https://blockchainbullhorn.onrender.com'));
 
 // NOTE: no top-level D.load() here — the async boot below calls D.init(),
 // which restores the GitHub backup first when running on an ephemeral host.

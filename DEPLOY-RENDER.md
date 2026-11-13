@@ -3,6 +3,47 @@
 Live service: **https://blockchainbullhorn.onrender.com**
 Blueprint: `render.yaml` (already committed — no hand-setup needed)
 
+
+---
+
+## 0. IMPORTANT — the live service does not deploy on push yet
+
+`https://blockchainbullhorn.onrender.com` is currently running an **older build**
+(`common.js?v=31`). Pushing does not change that, for two reasons found in the repo:
+
+- the GitHub repository has **no webhook** and the Render GitHub App is not creating
+  deployment records, so a push never reaches Render;
+- the live service is a **Docker** deploy (`/healthz` reports `dataDir: /app/data`),
+  not the native Node runtime that `render.yaml` describes.
+
+Pick one of these to get the new code live:
+
+**A. Click Deploy (fastest).** Render dashboard → the service → **Manual Deploy →
+Deploy latest commit**.
+
+**B. Give the app a deploy hook (one-time).** Render → service → **Settings → Deploy
+Hook**, copy the URL, then GitHub → repo → **Settings → Secrets and variables →
+Actions → New repository secret** named `RENDER_DEPLOY_HOOK`. The workflow in
+`.github/workflows/deploy-render.yml` then deploys automatically on every push to
+`main` — no dashboard visit needed again.
+
+**C. Render API key.** Paste a key (`rnd_…`, Account Settings → API Keys) and the
+deploy can be triggered and verified from a shell.
+
+### If the service stays on the Docker runtime
+
+Keep these settings — they are what the running instance already uses:
+
+| Setting | Value |
+| --- | --- |
+| Runtime | Docker (uses the repo `Dockerfile`) |
+| Disk mount | `/app/data` |
+| `DATA_DIR` | `/app/data` |
+
+Do **not** point the existing service at `render.yaml` (native Node, `/var/data`)
+unless you also migrate the disk: the app would boot against an empty directory and
+look like all its users and uploads vanished. `render.yaml` is for a *new* service.
+
 ---
 
 ## 1. Push the branch to GitHub
