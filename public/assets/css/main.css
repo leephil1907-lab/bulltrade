@@ -1168,3 +1168,24 @@ body.bb-tour-open { overscroll-behavior: contain; }
 @media (prefers-reduced-motion: reduce) {
   .bb-tour::before, .bbt-card, .bbt-hole { animation: none !important; transition: none !important; }
 }
+
+
+/* Motion accessibility: preserve content visibility and honor reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+  .reveal, .reveal.visible, .stagger, .stagger.visible {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .floaty, .skeleton, .live-dot, .ticker-track, .hero-banner:after { animation: none !important; }
+  .card-hover:hover, .btn:hover, .dt tbody tr:hover, .hstat:hover, .brand:hover img { transform: none !important; }
+}
