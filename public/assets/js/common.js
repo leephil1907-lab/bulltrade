@@ -1190,6 +1190,20 @@ function initReveal() {
 
 // ---------- animated counters ----------
 function initCounters() {
+  const targets = $$('[data-count]');
+  const setFinalValue = el => {
+    const target = parseFloat(el.dataset.count);
+    if (!Number.isFinite(target)) return;
+    const suffix = el.dataset.suffix || '', prefix = el.dataset.prefix || '';
+    const isFloat = el.dataset.float === '1';
+    el.textContent = prefix + (isFloat ? target.toFixed(1) : Math.round(target).toLocaleString()) + suffix;
+  };
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion || !('IntersectionObserver' in window)) {
+    targets.forEach(setFinalValue);
+    return;
+  }
+
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (!e.isIntersecting) return;
@@ -1206,7 +1220,7 @@ function initCounters() {
       io.unobserve(el);
     });
   }, { threshold: 0.4 });
-  $$('[data-count]').forEach(el => io.observe(el));
+  targets.forEach(el => io.observe(el));
 }
 
 /* ============================================================
