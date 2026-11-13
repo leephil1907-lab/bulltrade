@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="SPX">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#6b2a1a"/><stop offset="1" stop-color="#3f140c"/>
+  </linearGradient></defs>
+  <g fill="url(#g)"><circle cx="24" cy="24" r="22"/></g>
+  <text x="24" y="24" text-anchor="middle" dominant-baseline="central"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
+        font-size="16" font-weight="800" letter-spacing="0" fill="#f7e6d2">SPX</text>
+</svg>

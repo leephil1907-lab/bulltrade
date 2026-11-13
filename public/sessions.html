@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<meta content="website" property="og:type"/>
+<meta content="Blockchain Bullhorn" property="og:site_name"/>
+<meta content="Trading Sessions — When Every Market Is Open — The Blockchain Bullhorn" property="og:title"/>
+<meta content="A live 24-hour map of the trading day: Sydney, Tokyo, London and New York session hours, overlap windows and liquidity peaks, countdowns to the next open and close, and how each session is trading right now." property="og:description"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" property="og:image"/>
+<meta content="__SITE_URL__/sessions" property="og:url"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="__SITE_URL__/assets/img/brand/og-image.jpg" name="twitter:image"/>
+<title>Trading Sessions — When Every Market Is Open — The Blockchain Bullhorn</title>
+<meta content="A live 24-hour map of the trading day: Sydney, Tokyo, London and New York session hours, overlap windows and liquidity peaks, countdowns to the next open and close, and how each session is trading right now." name="description"/>
+<link href="/assets/img/favicon-32.png" rel="icon" sizes="32x32" type="image/png"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<link href="/assets/css/fonts.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/fontawesome.css?v=2" rel="stylesheet"/>
+<link href="/assets/css/main.css?v=32" rel="stylesheet"/>
+<script>document.documentElement.classList.add('js')</script>
+<meta name="robots" content="index, follow, max-image-preview:large"/>
+<link rel="canonical" href="__SITE_URL__/sessions"/>
+<meta content="Trading Sessions — When Every Market Is Open" name="twitter:title"/>
+<meta content="Session hours, overlaps, countdowns and live liquidity for Sydney, Tokyo, London and New York." name="twitter:description"/>
+<meta content="@Blockchainbhorn" name="twitter:site"/>
+<meta content="en_US" property="og:locale"/>
+</head>
+<body>
+<header class="site-header" id="site-header"></header>
+<div class="ticker-bar"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<section class="page-hero">
+  <div class="container">
+    <div class="crumbs"><a href="/">Home</a> · <a href="/markets">Markets</a> · Sessions</div>
+    <h1>The Trading <span style="color:var(--green-bright)">Session</span></h1>
+    <p>Trading is not one continuous day — it is four markets handing the baton around the world. This page shows whose market is open right now, when the next window opens, and where the liquidity actually is.</p>
+    <div class="sx-hero-clock">
+      <div class="sx-clock-cell"><small>YOUR LOCAL TIME</small><b id="sxLocal">--:--:--</b><span id="sxTz">—</span></div>
+      <div class="sx-clock-cell"><small>UTC</small><b id="sxUtc">--:--:--</b><span id="sxDate">—</span></div>
+      <div class="sx-clock-cell"><small>OPEN RIGHT NOW</small><b id="sxOpenCount">—</b><span id="sxOpenNames">—</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 24-hour map ============ -->
+<section class="section-tight reveal">
+  <div class="container-wide">
+    <div class="card sx-map-card">
+      <div class="sx-card-head">
+        <h3><i class="fas fa-clock"></i> The 24-hour map</h3>
+        <div class="sx-head-actions">
+          <span class="sx-legend"><i class="sx-k sx-k-open"></i> open <i class="sx-k sx-k-peak"></i> overlap</span>
+          <button class="sx-tz-btn" id="sxTzBtn" type="button" title="Switch between your local time and UTC">Local time</button>
+        </div>
+      </div>
+      <div class="sx-map" id="sxMap" aria-label="Session timeline"></div>
+      <div class="sx-axis" id="sxAxis"></div>
+      <p class="sx-note" id="sxNote">Standard session hours shown in your timezone. Daylight saving shifts these by one hour twice a year — countdowns are always exact.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ session cards ============ -->
+<section class="section-tight">
+  <div class="container-wide">
+    <div class="sx-cards" id="sxCards"></div>
+  </div>
+</section>
+
+<!-- ============ next events + overlaps ============ -->
+<section class="section-tight">
+  <div class="container-wide">
+    <div class="grid grid-2 sx-two">
+      <div class="card">
+        <h4 class="sx-h4"><i class="fas fa-bell"></i> Next events</h4>
+        <div id="sxNext" class="sx-next"><div class="sx-skeleton-line"></div><div class="sx-skeleton-line"></div><div class="sx-skeleton-line"></div></div>
+      </div>
+      <div class="card">
+        <h4 class="sx-h4"><i class="fas fa-layer-group"></i> Overlap windows</h4>
+        <p class="sx-sub">When two sessions run at once, volume and volatility rise. These are the windows professionals plan around.</p>
+        <div id="sxOverlaps" class="sx-overlaps"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ how each session is trading ============ -->
+<section class="section-tight">
+  <div class="container-wide">
+    <div class="card">
+      <div class="sx-card-head">
+        <h3><i class="fas fa-wave-square"></i> How each session is trading today</h3>
+        <span class="sx-live-tag"><span class="pulse-dot"></span> live</span>
+      </div>
+      <p class="sx-sub">Average absolute move of the assets that belong to each market, from the same live feed that powers the Markets page.</p>
+      <div id="sxPerf" class="sx-perf"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ liquidity by hour ============ -->
+<section class="section-tight">
+  <div class="container-wide">
+    <div class="card">
+      <h3 class="sx-h4"><i class="fas fa-fire"></i> Liquidity by hour</h3>
+      <p class="sx-sub">How many sessions overlap in each hour of your day. Four is rare; two is where most volume trades.</p>
+      <div class="sx-heat" id="sxHeat"></div>
+      <div class="sx-heat-legend"><span>quiet</span><i></i><i></i><i></i><i></i><span>all four open</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section-tight">
+  <div class="container-wide">
+    <div class="card sx-cta">
+      <div>
+        <h3 style="margin:0 0 6px">Know when to trade — then trade it</h3>
+        <p style="margin:0;color:var(--muted)">Crypto never closes. Stocks, indices and commodities follow the sessions above. Every asset on the platform is live during its market hours.</p>
+      </div>
+      <div class="sx-cta-actions">
+        <a class="btn btn-outline" href="/markets">Browse markets</a>
+        <a class="btn btn-green" href="/trade">Open the terminal <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="/assets/js/i18n-pages.js?v=23"></script>
+<script src="/assets/js/common.js?v=38"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+
+  // ---------------------------------------------------------------------------
+  // Session definitions. Hours are UTC, as decimals, on a 0-24 clock. A session
+  // whose start is later than its end wraps past midnight (Sydney does).
+  // These are the standard cash-market hours; daylight saving moves the real
+  // opens by an hour twice a year, which is why the countdowns below are
+  // computed from the clock rather than from a hard-coded list of times.
+  // ---------------------------------------------------------------------------
+  const SESSIONS = [
+    { key: 'sydney', name: 'Sydney',   city: 'Sydney',     open: 21, close: 6,  region: 'oceania',
+      blurb: 'Opens the trading day. Thin volume — good for range-watching, poor for breakouts.',
+      groups: ['ASX'] },
+    { key: 'tokyo',  name: 'Tokyo',    city: 'Tokyo',      open: 0,  close: 9,  region: 'asia',
+      blurb: 'Asia-Pacific cash markets. Yen, Nikkei and the region\'s indices set the tone.',
+      groups: ['NIKKEI', 'HSI', 'NIFTY'] },
+    { key: 'london', name: 'London',   city: 'London',     open: 7,  close: 16, region: 'europe',
+      blurb: 'Europe\'s largest centre. The biggest single-session liquidity after New York.',
+      groups: ['FTSE', 'DAX', 'CAC'] },
+    { key: 'newyork', name: 'New York', city: 'New York', open: 12, close: 21, region: 'americas',
+      blurb: 'The deepest session of the day. US equities and the global risk tone are set here.',
+      groups: ['US'] }
+  ];
+  const OVERLAPS = [
+    { a: 'Tokyo', b: 'London',   from: 7,  to: 9,  label: 'Tokyo × London', note: 'European desks arrive while Asia closes out.' },
+    { a: 'London', b: 'New York', from: 12, to: 16, label: 'London × New York', note: 'The deepest window of the day — most FX and index volume trades here.' }
+  ];
+
+  let useLocal = true;
+  let assets = [];
+
+  // ---- time helpers -------------------------------------------------------
+  const nowUtc = () => new Date();
+  const utcHours = d => d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
+
+  function inWindow(h, open, close) {
+    if (open === close) return false;
+    return open < close ? (h >= open && h < close) : (h >= open || h < close);
+  }
+  function sessionOpen(s, d = nowUtc()) { return inWindow(utcHours(d), s.open, s.close); }
+
+  // minutes until the next open/close boundary of a session
+  function minutesUntil(s, wantOpen) {
+    const d = nowUtc();
+    const h = utcHours(d);
+    const target = wantOpen ? s.open : s.close;
+    let delta = target - h;
+    if (delta <= 0) delta += 24;
+    return delta * 60;
+  }
+  const fmtDur = mins => {
+    mins = Math.max(0, Math.round(mins));
+    const h = Math.floor(mins / 60), m = mins % 60;
+    if (h >= 24) return `${Math.round(h / 24)}d`;
+    return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`;
+  };
+  const tzName = (() => {
+    try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'local'; } catch (e) { return 'local'; }
+  })();
+
+  // Format a UTC hour-of-day into the viewer's clock (or UTC when toggled).
+  function labelHour(utcHour) {
+    const d = new Date(Date.UTC(2020, 0, 1, Math.floor(utcHour), 0, 0));
+    if (useLocal) {
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    return String(Math.floor(utcHour)).padStart(2, '0') + ':00';
+  }
+
+  // ---- map + axis ---------------------------------------------------------
+  // The map is built from 96 quarter-hour slots covering the *viewer's* day, so
+  // it is correct for every timezone and every daylight-saving change without
+  // any special-casing: each slot is an absolute instant, and we ask which
+  // sessions are open at that instant.
+  const SLOTS = 96;
+
+  function buildMap() {
+    const map = $('#sxMap'), axis = $('#sxAxis');
+    if (!map) return;
+    const base = new Date();
+    base.setSeconds(0, 0);
+    base.setMinutes(0);
+    // start of the current local day
+    const start = new Date(base.getTime());
+    start.setHours(0, 0, 0, 0);
+
+    const rows = SESSIONS.map(s => `<div class="sx-row" data-s="${s.key}">
+        <div class="sx-row-label"><b>${s.name}</b><small>${String(s.open).padStart(2, '0')}:00–${String(s.close).padStart(2, '0')}:00 UTC</small></div>
+        <div class="sx-cells">${Array.from({ length: SLOTS }, (_, i) => {
+          const t = new Date(start.getTime() + i * 15 * 60000);
+          const open = inWindow(utcHours(t), s.open, s.close);
+          const overlapping = open && SESSIONS.filter(o => inWindow(utcHours(t), o.open, o.close)).length > 1;
+          return `<i class="sx-cell${open ? ' on' : ''}${overlapping ? ' peak' : ''}" data-i="${i}"></i>`;
+        }).join('')}</div>
+      </div>`).join('');
+
+    const nowCell = Math.floor((nowUtc().getTime() - start.getTime()) / (15 * 60000));
+    map.innerHTML = rows + `<div class="sx-now" id="sxNow" style="left:calc(var(--label-w) + (100% - var(--label-w)) * ${(nowCell + 0.5) / SLOTS})"></div>`;
+
+    // hour ticks every 3 hours, labelled in the viewer's clock
+    axis.innerHTML = Array.from({ length: SLOTS / 12 + 1 }, (_, i) => {
+      const t = new Date(start.getTime() + i * 3 * 3600000);
+      return `<span>${useLocal
+        ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+        : String(t.getUTCHours()).padStart(2, '0') + ':00'}</span>`;
+    }).join('');
+  }
+
+  // ---- cards --------------------------------------------------------------
+  function buildCards() {
+    const el = $('#sxCards'); if (!el) return;
+    el.innerHTML = SESSIONS.map(s => {
+      const open = sessionOpen(s);
+      const mins = open ? minutesUntil(s, false) : minutesUntil(s, true);
+      const perf = perfFor(s);
+      return `<div class="card sx-card ${open ? 'is-open' : 'is-closed'}" data-s="${s.key}">
+        <div class="sx-card-top">
+          <span class="sx-status"><i class="fas fa-circle"></i> ${open ? 'Open' : 'Closed'}</span>
+          <span class="sx-countdown" data-count="${s.key}">${open ? 'closes in' : 'opens in'} ${fmtDur(mins)}</span>
+        </div>
+        <h4>${s.name}</h4>
+        <div class="sx-hours">${String(s.open).padStart(2, '0')}:00 – ${String(s.close).padStart(2, '0')}:00 UTC</div>
+        <div class="sx-local" data-local="${s.key}">—</div>
+        <p class="sx-blurb">${s.blurb}</p>
+        <div class="sx-foot">
+          <span class="sx-badge">${s.groups.join(' · ')}</span>
+          <span class="sx-perf-mini">${perf.count ? `avg move ${perf.avg.toFixed(2)}%` : 'awaiting feed'}</span>
+        </div>
+      </div>`;
+    }).join('');
+    paintLocalTimes();
+  }
+
+  // each session's local-time equivalents, from the clock rather than a table
+  function paintLocalTimes() {
+    const today = new Date();
+    SESSIONS.forEach(s => {
+      const elz = document.querySelector(`[data-local="${s.key}"]`);
+      if (!elz) return;
+      const mk = h => {
+        const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), h % 24, 0, 0));
+        return useLocal ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+                        : String(h % 24).padStart(2, '0') + ':00';
+      };
+      elz.textContent = `${mk(s.open)} – ${mk(s.close)} ${useLocal ? 'your time' : 'UTC'}`;
+    });
+  }
+
+  // ---- next events --------------------------------------------------------
+  function buildNext() {
+    const el = $('#sxNext'); if (!el) return;
+    const events = [];
+    SESSIONS.forEach(s => {
+      const open = sessionOpen(s);
+      events.push({ when: minutesUntil(s, !open), label: `${s.name} ${open ? 'closes' : 'opens'}`, key: s.key, open });
+    });
+    OVERLAPS.forEach(o => {
+      const h = utcHours(nowUtc());
+      let delta = o.from - h; if (delta <= 0) delta += 24;
+      events.push({ when: delta * 60, label: `${o.label} overlap begins`, key: 'overlap' });
+    });
+    events.sort((a, b) => a.when - b.when);
+    el.innerHTML = events.slice(0, 5).map(e => `<div class="sx-event">
+        <span class="sx-event-ic ${e.open === false ? 'is-open' : ''}"><i class="fas ${e.key === 'overlap' ? 'fa-layer-group' : 'fa-clock'}"></i></span>
+        <span class="sx-event-txt"><b>${e.label}</b><small>${MINUTES_TEXT(e.when)}</small></span>
+        <span class="sx-event-in">in ${fmtDur(e.when)}</span>
+      </div>`).join('');
+  }
+  function MINUTES_TEXT(mins) {
+    const d = new Date(nowUtc().getTime() + mins * 60000);
+    // always say which clock the time is on — an unlabelled "06:00" beside
+    // countdowns is the one thing on this page people misread
+    return useLocal
+      ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) + ' your time'
+      : d.toISOString().slice(11, 16) + ' UTC';
+  }
+
+  // ---- overlaps -----------------------------------------------------------
+  function buildOverlaps() {
+    const el = $('#sxOverlaps'); if (!el) return;
+    el.innerHTML = OVERLAPS.map(o => {
+      const h = utcHours(nowUtc());
+      const live = h >= o.from && h < o.to;
+      let delta = o.from - h; if (delta <= 0) delta += 24;
+      return `<div class="sx-overlap ${live ? 'is-live' : ''}">
+        <div class="sx-ov-top"><b>${o.label}</b><span class="sx-ov-state">${live ? 'live now' : 'in ' + fmtDur(delta * 60)}</span></div>
+        <div class="sx-ov-hours">${String(o.from).padStart(2, '0')}:00 – ${String(o.to).padStart(2, '0')}:00 UTC</div>
+        <p>${o.note}</p>
+      </div>`;
+    }).join('');
+  }
+
+  // ---- performance by session --------------------------------------------
+  function perfFor(s) {
+    let pool = [];
+    if (s.groups.includes('US')) pool = assets.filter(a => a.category === 'stocks');
+    else {
+      const set = new Set(s.groups);
+      pool = assets.filter(a => a.category === 'indices' && set.has(a.symbol));
+    }
+    const moves = pool.map(a => Math.abs(a.changePct || 0)).filter(v => v > 0);
+    const avg = moves.length ? moves.reduce((a, b) => a + b, 0) / moves.length : 0;
+    return { count: moves.length, avg };
+  }
+
+  function buildPerf() {
+    const el = $('#sxPerf'); if (!el) return;
+    const rows = SESSIONS.map(s => ({ s, ...perfFor(s) }));
+    const max = Math.max(0.0001, ...rows.map(r => r.avg));
+    el.innerHTML = rows.map(r => `<div class="sx-perf-row">
+        <span class="sx-perf-name">${r.s.name}<small>${r.count} assets${sessionOpen(r.s) ? ' · open' : ''}</small></span>
+        <span class="sx-perf-bar"><i style="width:${Math.max(3, (r.avg / max) * 100).toFixed(1)}%"></i></span>
+        <span class="sx-perf-val">${r.count ? r.avg.toFixed(2) + '%' : '—'}</span>
+      </div>`).join('');
+  }
+
+  // ---- liquidity heat -----------------------------------------------------
+  function buildHeat() {
+    const el = $('#sxHeat'); if (!el) return;
+    const start = new Date(); start.setHours(0, 0, 0, 0);
+    const cells = Array.from({ length: 24 }, (_, i) => {
+      const t = new Date(start.getTime() + i * 3600000 + 1800000); // mid-hour sample
+      const n = SESSIONS.filter(s => inWindow(utcHours(t), s.open, s.close)).length;
+      const label = useLocal
+        ? new Date(start.getTime() + i * 3600000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
+        : String(i).padStart(2, '0') + ':00';
+      return `<div class="sx-hcell lv${n}" title="${label} — ${n} session${n === 1 ? '' : 's'} open">
+          <span>${n}</span><small>${label.slice(0, 2)}</small></div>`;
+    }).join('');
+    el.innerHTML = cells;
+  }
+
+  // ---- clock + counts -----------------------------------------------------
+  function tick() {
+    const d = nowUtc();
+    const local = d.toLocaleTimeString([], { hour12: false });
+    const utc = d.toISOString().slice(11, 19);
+    if ($('#sxLocal')) $('#sxLocal').textContent = local;
+    if ($('#sxUtc')) $('#sxUtc').textContent = utc;
+    if ($('#sxTz')) $('#sxTz').textContent = useLocal ? tzName : 'UTC';
+    if ($('#sxDate')) $('#sxDate').textContent = d.toISOString().slice(0, 10);
+
+    const open = SESSIONS.filter(s => sessionOpen(s));
+    if ($('#sxOpenCount')) $('#sxOpenCount').textContent = open.length ? String(open.length) : '0';
+    if ($('#sxOpenNames')) $('#sxOpenNames').textContent = open.length ? open.map(s => s.name).join(' · ') : 'Crypto only';
+
+    // live countdowns, updated every second without rebuilding the DOM
+    SESSIONS.forEach(s => {
+      const el = document.querySelector(`[data-count="${s.key}"]`);
+      if (!el) return;
+      const isOpen = sessionOpen(s);
+      el.textContent = `${isOpen ? 'closes in' : 'opens in'} ${fmtDur(minutesUntil(s, !isOpen))}`;
+      const card = el.closest('.sx-card');
+      if (card) { card.classList.toggle('is-open', isOpen); card.classList.toggle('is-closed', !isOpen); }
+      const status = card && card.querySelector('.sx-status');
+      if (status) status.innerHTML = `<i class="fas fa-circle"></i> ${isOpen ? 'Open' : 'Closed'}`;
+    });
+
+    const nowEl = $('#sxNow');
+    if (nowEl) {
+      const start = new Date(); start.setHours(0, 0, 0, 0);
+      const cell = Math.floor((d.getTime() - start.getTime()) / (15 * 60000));
+      nowEl.style.left = `calc(var(--label-w) + (100% - var(--label-w)) * ${Math.min(1, (cell + 0.5) / SLOTS)})`;
+    }
+  }
+
+  // ---- boot ---------------------------------------------------------------
+  function renderAll() {
+    buildMap(); buildCards(); buildNext(); buildOverlaps(); buildPerf(); buildHeat(); tick();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderAll();
+    setInterval(tick, 1000);
+    setInterval(() => { buildNext(); buildOverlaps(); }, 30000);
+
+    const btn = $('#sxTzBtn');
+    if (btn) btn.addEventListener('click', () => {
+      useLocal = !useLocal;
+      btn.textContent = useLocal ? 'Local time' : 'UTC';
+      renderAll();
+    });
+
+    // live data for the per-session performance bars
+    const load = async () => {
+      try {
+        const r = await BB.api('/api/markets', { silent: true });
+        if (r && r.assets) { assets = r.assets; buildPerf(); buildCards(); }
+      } catch (e) { /* keep the last good render */ }
+    };
+    load();
+    setInterval(load, 30000);
+  });
+
+  // BB boots its own shell on DOMContentLoaded; make sure the page still paints
+  // if the markets feed is slow, by rendering once immediately after common.js.
+  if (document.readyState !== 'loading') renderAll();
+})();
+</script>
+</body>
+</html>

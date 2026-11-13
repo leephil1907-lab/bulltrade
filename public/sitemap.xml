@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>__SITE_URL__/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
-  <url><loc>__SITE_URL__/markets</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
+  <url><loc>__SITE_URL__/markets</loc><changefreq>daily</changefreq><priority>0.8</priority></url><url><loc>__SITE_URL__/sessions</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>__SITE_URL__/trade</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
   <url><loc>__SITE_URL__/trading-bots</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>__SITE_URL__/community</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>

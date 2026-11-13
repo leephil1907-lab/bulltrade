@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="COFFEE">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#3fa366"/><stop offset="1" stop-color="#1d6b3a"/>
+  </linearGradient></defs>
+  <g fill="url(#g)"><rect x="2" y="2" width="44" height="44" rx="13"/></g>
+  <text x="24" y="24" text-anchor="middle" dominant-baseline="central"
+        font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
+        font-size="13" font-weight="800" letter-spacing="-0.5" fill="#eafff1">COFFEE</text>
+</svg>

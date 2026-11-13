@@ -16,8 +16,29 @@ const totp = require('./lib/totp');
 const mailer = require('./lib/mailer');
 const gamify = require('./lib/gamify');
 const markets = require('./lib/markets');
+
+// Transactional email and the market digest both quote live prices, so the
+// mailer is handed the feed rather than importing it — keeps lib/mailer.js free
+// of a circular dependency and lets its templates render in tests with no feed.
+mailer.setMarketSource(() => markets.snapshot());
+
+// ---- market-update email: recipient list, unsubscribe tokens ----
+// Unsubscribing must work from an email client, with no session, so it is a
+// signed link rather than an authenticated route: HMAC of the user id with the
+// app's JWT secret. It proves the link came from us without storing tokens.
+function unsubToken(userId) {
+  const secret = require('./lib/jwt').getSecret();
+  return U.crypto.createHmac('sha256', secret).update('unsub:' + userId).digest('base64url').slice(0, 24);
+}
+const unsubUrl = user => `${SITE_URL}/unsubscribe?u=${encodeURIComponent(user.id)}&t=${unsubToken(user.id)}`;
+function digestRecipients() {
+  return D.db().users.filter(u =>
+    u && u.email && !u.banned && !u.isBot && !u.unsubscribedAt && u.role !== 'admin'
+  );
+}
 const trading = require('./lib/trading');
 const Backup = require('./lib/backup');
+const Sessions = require('./lib/sessions');
 const bots = require('./lib/bots');
 const HubSpot = require('./lib/hubspot');
 const RateLimit = require('./lib/ratelimit');
@@ -222,12 +243,58 @@ const ROUTES = {
   '/mentorship': 'mentorship.html', '/cmf-engine': 'cmf-engine.html', '/faq': 'faq.html',
   '/contact': 'contact.html', '/avoid-scams': 'avoid-scams.html', '/legal': 'legal.html',
   '/trading-bots': 'trading-bots.html',
+  '/sessions': 'sessions.html',
   '/relay-setup': 'relay-setup.html', // public helper: copy the email-relay Apps Script code
   '/admin': 'admin.html', '/admin/': 'admin.html'
 };
 
 // ---------------- API handlers ----------------
 const api = {};
+
+// ---- market update: preview + send (admin only) ----
+// Preview renders the exact message a member will receive, against live prices,
+// so the copy is reviewed as it will appear rather than as source.
+api['GET /api/admin/broadcast/preview'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const recipients = digestRecipients();
+  const sample = recipients[0] || { id: 'preview', name: 'Trader', email: 'preview@example.com' };
+  const html = mailer.digestHTML(sample, {
+    message: String(body.message || '').slice(0, 500),
+    unsubscribeUrl: unsubUrl(sample)
+  });
+  const subject = 'Market update — ' + new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+  return ok(res, { subject, html, recipients: recipients.length, mailConfigured: !!mailer.configured() });
+};
+
+api['POST /api/admin/broadcast'] = async (req, res, body, cookies) => {
+  const admin = requireAdmin(req, res, cookies); if (!admin) return;
+  const message = String(body.message || '').slice(0, 500);
+  const recipients = digestRecipients();
+  if (!recipients.length) return ok(res, { sent: 0, failed: 0, total: 0, note: 'No active recipients.' });
+
+  // Small batches with a pause: hundreds of sequential SMTP sends in one tight
+  // loop is how a mail provider starts rate-limiting the whole domain.
+  const subject = 'Market update — ' + new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+  if (!mailer.configured()) {
+    return fail(res, 400, 'Email is not configured. Set SMTP or a SendGrid key in Settings before sending.');
+  }
+  let sent = 0, failed = 0, skipped = 0;
+  for (let i = 0; i < recipients.length; i++) {
+    const u = recipients[i];
+    try {
+      const r = await mailer.sendMail({
+        to: u.email, subject,
+        html: mailer.digestHTML(u, { message, unsubscribeUrl: unsubUrl(u) })
+      });
+      if (r && r.sent === true) sent++;
+      else if (r && r.skipped) skipped++;
+      else failed++;
+    } catch (e) { failed++; }
+    if (i && i % 20 === 0) await new Promise(r => setTimeout(r, 1500));
+  }
+  D.logAudit(admin.id, 'Broadcast.MarketUpdate', `${sent} sent, ${skipped} skipped, ${failed} failed of ${recipients.length}`);
+  return ok(res, { sent, failed, skipped, total: recipients.length });
+};
 
 function healthSnapshot() {
   const db = D.db();
@@ -2159,6 +2226,34 @@ const server = http.createServer(async (req, res) => {
       return res.end(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api\nSitemap: ${SITE_URL}/sitemap.xml\n`);
     }
     if (pathname === '/sitemap.xml') return serveFile(req, res, page('sitemap.xml'));
+
+    // ---- unsubscribe (public: it is clicked from an email client) ----
+    // Signed with the user id, so no login is needed and no token table exists.
+    // Security and account emails keep flowing — this only stops market updates.
+    if (pathname === '/unsubscribe') {
+      const u = String(url.searchParams.get('u') || '');
+      const t = String(url.searchParams.get('t') || '');
+      const user = D.db().users.find(x => x.id === u);
+      const good = user && t && t === unsubToken(user.id);
+      let title, copy, cta = null;
+      if (!good) {
+        title = 'That link is not valid';
+        copy = 'This unsubscribe link is incomplete or has expired. If you keep receiving market updates you do not want, reply to any of our emails and we will remove you by hand.';
+        cta = { href: '/contact', text: 'Contact support' };
+      } else if (user.unsubscribedAt) {
+        title = 'You are already unsubscribed';
+        copy = 'You will not receive any further market updates from Blockchain Bullhorn. Security and account emails will still reach you — those are not marketing.';
+        cta = { href: '/markets', text: 'Back to markets' };
+      } else {
+        D.update('users', x => x.id === user.id, { unsubscribedAt: Date.now() });
+        title = 'You have been unsubscribed';
+        copy = 'You will no longer receive market updates. Your account is untouched, and you will still get the emails you actually need: sign-in alerts, KYC decisions, deposits and withdrawals.';
+        cta = { href: '/dashboard', text: 'Open dashboard' };
+      }
+      const html = mailer.wrap(title, copy, cta && cta.href, cta && cta.text);
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+      return res.end(html);
+    }
 
     // ---- pages ----
     if (pathname === '/copy-trading') { // legacy URL → Trading Bots
