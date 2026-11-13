@@ -575,7 +575,7 @@ const COUNTRY_CUR = {
 
 const I18N = {
   en: {
-    'nav.markets': 'Markets', 'nav.trading': 'Trading', 'nav.bots': 'Trading Bots', 'nav.community': 'Community', 'nav.guide': 'Guide',
+    'nav.markets': 'Markets', 'nav.sessions': 'Sessions', 'nav.trading': 'Trading', 'nav.bots': 'Trading Bots', 'nav.community': 'Community', 'nav.guide': 'Guide',
     'nav.products': 'Products', 'nav.mentorship': 'Mentorship', 'nav.faq': 'FAQ', 'nav.contact': 'Contact', 'nav.cmf': 'CMF Engine', 'nav.scams': 'Fraud Alert',
     'hdr.login': 'Log In', 'hdr.signup': 'Sign Up Free', 'hdr.logout': 'Log Out', 'hdr.dashboard': 'Dashboard',
     'hdr.funding': 'Funding', 'hdr.kyc': 'KYC Verification', 'hdr.tradenow': 'Trade Now', 'hdr.notify': 'Notifications',
@@ -595,7 +595,7 @@ const I18N = {
     'globe.note': 'Prices display in the currency you select — accounts and trading are held in USD.'
   },
   es: {
-    'nav.markets': 'Mercados', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidad',
+    'nav.markets': 'Mercados', 'nav.sessions': 'Sesiones', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidad',
     'nav.products': 'Productos', 'nav.mentorship': 'Mentoría', 'nav.faq': 'Preguntas frecuentes', 'nav.contact': 'Contacto', 'nav.cmf': 'Motor CMF', 'nav.scams': 'Alerta de fraude',
     'hdr.login': 'Iniciar sesión', 'hdr.signup': 'Regístrate gratis', 'hdr.logout': 'Cerrar sesión', 'hdr.dashboard': 'Panel',
     'hdr.funding': 'Fondos', 'hdr.kyc': 'Verificación KYC', 'hdr.tradenow': 'Operar ahora', 'hdr.notify': 'Notificaciones',
@@ -615,7 +615,7 @@ const I18N = {
     'globe.note': 'Los precios se muestran en la moneda que selecciones — las cuentas y el trading se mantienen en USD.'
   },
   fr: {
-    'nav.markets': 'Marchés', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Communauté',
+    'nav.markets': 'Marchés', 'nav.sessions': 'Sessions', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Communauté',
     'nav.products': 'Produits', 'nav.mentorship': 'Mentorat', 'nav.faq': 'FAQ', 'nav.contact': 'Contact', 'nav.cmf': 'Moteur CMF', 'nav.scams': 'Alerte fraude',
     'hdr.login': 'Se connecter', 'hdr.signup': 'Créer un compte gratuit', 'hdr.logout': 'Se déconnecter', 'hdr.dashboard': 'Tableau de bord',
     'hdr.funding': 'Financement', 'hdr.kyc': 'Vérification KYC', 'hdr.tradenow': 'Trader maintenant', 'hdr.notify': 'Notifications',
@@ -635,7 +635,7 @@ const I18N = {
     'globe.note': 'Les prix s\'affichent dans la devise de votre choix — les comptes et le trading restent en USD.',
   },
   pt: {
-    'nav.markets': 'Mercados', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidade',
+    'nav.markets': 'Mercados', 'nav.sessions': 'Sessões', 'nav.trading': 'Trading', 'nav.bots': 'Bots de Trading', 'nav.community': 'Comunidade',
     'nav.products': 'Produtos', 'nav.mentorship': 'Mentoria', 'nav.faq': 'Perguntas frequentes', 'nav.contact': 'Contato', 'nav.cmf': 'Motor CMF', 'nav.scams': 'Alerta de fraude',
     'hdr.login': 'Entrar', 'hdr.signup': 'Cadastre-se grátis', 'hdr.logout': 'Sair', 'hdr.dashboard': 'Painel',
     'hdr.funding': 'Fundos', 'hdr.kyc': 'Verificação KYC', 'hdr.tradenow': 'Operar agora', 'hdr.notify': 'Notificações',
@@ -655,7 +655,7 @@ const I18N = {
     'globe.note': 'Os preços são exibidos na moeda que você selecionar — as contas e o trading permanecem em USD.'
   },
   de: {
-    'nav.markets': 'Märkte', 'nav.trading': 'Trading', 'nav.bots': 'Trading-Bots', 'nav.community': 'Community',
+    'nav.markets': 'Märkte', 'nav.sessions': 'Sitzungen', 'nav.trading': 'Trading', 'nav.bots': 'Trading-Bots', 'nav.community': 'Community',
     'nav.products': 'Produkte', 'nav.mentorship': 'Mentoring', 'nav.faq': 'FAQ', 'nav.contact': 'Kontakt', 'nav.cmf': 'CMF-Engine', 'nav.scams': 'Betrugswarnung',
     'hdr.login': 'Anmelden', 'hdr.signup': 'Kostenlos registrieren', 'hdr.logout': 'Abmelden', 'hdr.dashboard': 'Dashboard',
     'hdr.funding': 'Finanzierung', 'hdr.kyc': 'KYC-Verifizierung', 'hdr.tradenow': 'Jetzt traden', 'hdr.notify': 'Benachrichtigungen',
@@ -675,7 +675,7 @@ const I18N = {
     'globe.note': 'Preise werden in der von dir gewählten Währung angezeigt — Konten und Trading bleiben in USD.'
   },
   zh: {
-    'nav.markets': '市场', 'nav.trading': '交易', 'nav.bots': '交易机器人', 'nav.community': '社区',
+    'nav.markets': '市场', 'nav.sessions': '交易时段', 'nav.trading': '交易', 'nav.bots': '交易机器人', 'nav.community': '社区',
     'nav.products': '产品', 'nav.mentorship': '精英辅导', 'nav.faq': '常见问题', 'nav.contact': '联系我们', 'nav.cmf': 'CMF 引擎', 'nav.scams': '诈骗警告',
     'hdr.login': '登录', 'hdr.signup': '免费注册', 'hdr.logout': '退出登录', 'hdr.dashboard': '仪表盘',
     'hdr.funding': '资金', 'hdr.kyc': 'KYC 认证', 'hdr.tradenow': '立即交易', 'hdr.notify': '通知',
@@ -695,7 +695,7 @@ const I18N = {
     'globe.note': '价格以您选择的货币显示 — 账户与交易以美元（USD）结算。'
   },
   hi: {
-    'nav.markets': 'बाज़ार', 'nav.trading': 'ट्रेडिंग', 'nav.bots': 'ट्रेडिंग बॉट्स', 'nav.community': 'कम्युनिटी',
+    'nav.markets': 'बाज़ार', 'nav.sessions': 'सत्र', 'nav.trading': 'ट्रेडिंग', 'nav.bots': 'ट्रेडिंग बॉट्स', 'nav.community': 'कम्युनिटी',
     'nav.products': 'उत्पाद', 'nav.mentorship': 'मेंटरशिप', 'nav.faq': 'सामान्य प्रश्न', 'nav.contact': 'संपर्क', 'nav.cmf': 'CMF इंजन', 'nav.scams': 'धोखाधड़ी चेतावनी',
     'hdr.login': 'लॉग इन', 'hdr.signup': 'मुफ़्त रजिस्टर करें', 'hdr.logout': 'लॉग आउट', 'hdr.dashboard': 'डैशबोर्ड',
     'hdr.funding': 'फंडिंग', 'hdr.kyc': 'KYC सत्यापन', 'hdr.tradenow': 'अभी ट्रेड करें', 'hdr.notify': 'सूचनाएँ',
@@ -724,6 +724,7 @@ const NAV_PRIMARY = [
   ['/trading-bots', 'bots', 'fa-robot']
 ];
 const NAV_MORE = [
+  ['/sessions', 'sessions', 'fa-clock', 'When every market is open · liquidity windows'],
   ['#tour', 'guide', 'fa-compass', '60-second walkthrough of the site'],
   ['/community', 'community', 'fa-users', 'Members only · apply to join'],
   ['/store', 'products', 'fa-shopping-bag', 'Courses, guides & bundles'],
@@ -1017,6 +1018,7 @@ function renderFooter() {
         <h5 data-i18n="ftr.platform">Platform</h5>
         <div class="footer-links">
           <a href="/markets" data-i18n="ftr.liveMarkets">Live Markets</a>
+          <a href="/sessions">Trading Sessions</a>
           <a href="/trade" data-i18n="ftr.terminal">Trading Terminal</a>
           <a href="/trading-bots" data-i18n="ftr.bots">Trading Bots</a>
           <a href="/dashboard" data-i18n="ftr.dashboard">Dashboard</a>
@@ -1077,6 +1079,38 @@ function renderFooter() {
 }
 
 // ---------- live ticker ----------
+/**
+ * Which assets ride the strip.
+ *
+ * It used to be "top 26 by market cap", and since only crypto carries a market
+ * cap, the strip was crypto-only — 16% of the catalogue, and stocks, indices and
+ * commodities never appeared even though they are all tradable here. This picks
+ * a ranked slice of every category and interleaves them, so the strip is a
+ * picture of the whole platform rather than of one tab.
+ */
+function pickTickerAssets(assets) {
+  const live = assets.filter(a => a.price != null);
+  const cap = a => a.marketCap || 0;
+  const take = (cat, n) => live.filter(a => a.category === cat).sort((a, b) => cap(b) - cap(a)).slice(0, n);
+  // rwa splits into tokenised gold and actual commodities. Commodities get the
+  // slots — tokenised gold already looks like another crypto on the strip, and
+  // three kinds of gold in a 26-item ticker is just noise.
+  const rwa = live.filter(a => a.category === 'rwa');
+  const comm = rwa.filter(a => a.tag === 'Real World').sort((a, b) => cap(b) - cap(a));
+  const groups = [
+    take('crypto', 12),
+    take('stocks', 6),
+    take('indices', 4),
+    (comm.length ? comm : rwa).slice(0, 4)
+  ];
+  // round-robin so no two neighbours are usually from the same market
+  const out = [];
+  for (let i = 0; out.length < groups.reduce((s, g) => s + g.length, 0); i++) {
+    for (const g of groups) if (g[i]) out.push(g[i]);
+  }
+  return out;
+}
+
 let tickerAssets = [];
 async function loadTicker() {
   const el = $('#tickerTrack'); if (!el) return;
@@ -1099,8 +1133,7 @@ async function loadTicker() {
   if (!tickerAssets.length) {
     const r = await BB.api('/api/markets');
     if (r.assets) {
-      tickerAssets = r.assets.filter(a => a.price != null)
-        .sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0)).slice(0, 26);
+      tickerAssets = pickTickerAssets(r.assets);
       render();
     }
   } else render();

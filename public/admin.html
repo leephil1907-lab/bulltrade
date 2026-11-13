@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="/assets/css/fonts.css?v=2">
   <link rel="stylesheet" href="/assets/css/fontawesome.css?v=2">
   <link rel="stylesheet" href="/assets/css/main.css?v=32">
-  <link rel="stylesheet" href="/assets/css/admin.css?v=13">
+  <link rel="stylesheet" href="/assets/css/admin.css?v=14">
   <script>document.documentElement.classList.add('js')</script>
   <meta name="robots" content="noindex, nofollow"/>
   <link rel="canonical" href="__SITE_URL__/admin"/>
@@ -69,6 +69,7 @@
         <a data-view="community"><i class="fas fa-people-group"></i> Community <span class="cnt" id="cntCommunity" style="display:none"></span></a>
         <a data-view="copy"><i class="fas fa-robot"></i> Trading Bots <span class="cnt" id="cntCopy" style="display:none"></span></a>
         <a data-view="chats"><i class="fas fa-comments"></i> Live Chat <span class="cnt" id="cntChats" style="display:none"></span></a>
+        <a data-view="broadcast"><i class="fas fa-paper-plane"></i> Market Update</a>
         <div class="nav-group-label">System</div>
         <a data-view="settings"><i class="fas fa-gear"></i> Settings</a>
         <a data-view="audit"><i class="fas fa-clipboard-list"></i> Audit Log</a>
@@ -120,7 +121,7 @@
 
   <div class="toast-wrap"></div>
   <script src="/assets/js/countries.js?v=1"></script>
-  <script src="/assets/js/common.js?v=37"></script>
+  <script src="/assets/js/common.js?v=38"></script>
 <script src="/assets/js/tour.js?v=6"></script>
   <script>
     'use strict';
@@ -362,13 +363,14 @@ ${action || ''}
         community: ['Community Applications', 'Approve or reject membership requests'],
         copy: ['Trading Bots', 'Connection key requests, active bots and allocations'],
         chats: ['Live Chat', 'Reply to website visitors in real time'],
+        broadcast: ['Market Update', 'Send the branded market brief to every active member'],
         settings: ['Settings', 'Smartsupp, announcements, deposit addresses and limits'],
         audit: ['Audit Log', 'Every admin action, recorded']
       };
       R('viewTitle').textContent = titles[v][0];
       R('viewSub').textContent = titles[v][1];
       const crumb = R('crumbView'); if (crumb) crumb.textContent = titles[v][0];
-      ({ overview: viewOverview, users: viewUsers, kyc: viewKyc, txs: viewTxs, positions: viewPositions, community: viewCommunity, copy: viewCopy, chats: viewChats, settings: viewSettings, audit: viewAudit })[v]();
+      ({ overview: viewOverview, users: viewUsers, kyc: viewKyc, txs: viewTxs, positions: viewPositions, community: viewCommunity, copy: viewCopy, chats: viewChats, broadcast: viewBroadcast, settings: viewSettings, audit: viewAudit })[v]();
       // views paint asynchronously — re-check the wrappers as their HTML lands
       markScrollableTables(R('viewRoot'));
       setTimeout(() => markScrollableTables(R('viewRoot')), 350);
@@ -1161,6 +1163,75 @@ if (target) switchView(target);
       };
       R('admChatSend').addEventListener('click', send);
       R('admChatInput').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+    }
+
+    // Market update: compose → preview → send. The preview renders the exact
+    // email a member receives, against live prices, so what is approved is what
+    // is posted — not a description of it.
+    async function viewBroadcast() {
+      const root = R('viewRoot');
+      root.innerHTML = `
+        <div class="admin-card">
+          <div class="card-head-row">
+            <div><h3><i class="fas fa-paper-plane"></i> Market update</h3>
+            <p class="muted sm">A branded market brief: live snapshot, biggest movers, session state and your own note. Sent to every active member who has not unsubscribed.</p></div>
+          </div>
+          <label class="adm-label" for="bcMsg">Your note (optional — appears at the top of the email)</label>
+          <textarea id="bcMsg" class="adm-input" rows="3" maxlength="500"
+            placeholder="e.g. The CMF Engine module 3 is live — walkthrough inside."></textarea>
+          <div class="bc-actions">
+            <button class="btn btn-outline" id="bcPreview"><i class="fas fa-eye"></i> Refresh preview</button>
+            <button class="btn btn-green" id="bcSend"><i class="fas fa-paper-plane"></i> Send to members</button>
+            <span class="bc-meta" id="bcMeta">—</span>
+          </div>
+          <div class="bc-warn" id="bcWarn" style="display:none"></div>
+        </div>
+        <div class="admin-card mt-2">
+          <div class="card-head-row"><h3><i class="fas fa-envelope-open-text"></i> Preview</h3>
+            <span class="muted sm" id="bcSubject"></span></div>
+          <iframe id="bcFrame" class="bc-frame" title="Email preview" sandbox></iframe>
+        </div>`;
+
+      const msgEl = R('bcMsg');
+      let last = null;
+      const load = async () => {
+        R('bcMeta').textContent = 'Building preview…';
+        const r = await api('/api/admin/broadcast/preview?message=' + encodeURIComponent(msgEl ? msgEl.value : ''));
+        if (!r.ok) { R('bcMeta').textContent = 'Preview failed'; return; }
+        last = r;
+        R('bcFrame').srcdoc = r.html;
+        R('bcSubject').textContent = r.subject;
+        R('bcMeta').textContent = r.recipients + ' eligible member' + (r.recipients === 1 ? '' : 's');
+        const warn = R('bcWarn');
+        if (!r.mailConfigured) {
+          warn.style.display = 'block';
+          warn.innerHTML = '<b><i class="fas fa-triangle-exclamation"></i> Email is not configured.</b> No SMTP host or SendGrid key is set, so nothing can actually be delivered yet. Add one in Settings first.';
+        } else { warn.style.display = 'none'; }
+      };
+
+      R('bcPreview').addEventListener('click', load);
+      R('bcSend').addEventListener('click', async () => {
+        if (!last) return;
+        if (!last.mailConfigured) return BB.toast('Email is not configured — add SMTP or SendGrid in Settings.', 'error');
+        if (!last.recipients) return BB.toast('No eligible recipients.', 'error');
+        const okGo = await new Promise(res => {
+          const bd = BB.modal('Send this to ' + last.recipients + ' members?',
+            '<p>This posts the market update to every active member who has not unsubscribed. It cannot be unsent.</p>',
+            '<div class="row gap-1" style="justify-content:flex-end"><button class="btn btn-outline" id="bcNo">Cancel</button><button class="btn btn-green" id="bcYes">Send now</button></div>');
+          bd.querySelector('#bcNo').onclick = () => { bd.remove(); res(false); };
+          bd.querySelector('#bcYes').onclick = () => { bd.remove(); res(true); };
+        });
+        if (!okGo) return;
+        R('bcSend').disabled = true;
+        R('bcSend').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending…';
+        const r = await api('/api/admin/broadcast', { method: 'POST', body: { message: msgEl ? msgEl.value : '' } });
+        R('bcSend').disabled = false;
+        R('bcSend').innerHTML = '<i class="fas fa-paper-plane"></i> Send to members';
+        if (!r.ok) return BB.toast(r.error || 'Send failed', 'error');
+        BB.toast(`Sent ${r.sent} · skipped ${r.skipped || 0} · failed ${r.failed}`, r.failed ? 'error' : 'success');
+      });
+
+      load();
     }
 
     async function viewSettings() {
