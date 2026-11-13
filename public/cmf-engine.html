@@ -76,6 +76,60 @@
 </div>
 </div>
 </section>
+<section class="section" id="compound">
+<div class="container">
+<div class="section-head reveal">
+<span class="eyebrow">The Math, Made Visible</span>
+<h2>Why Compounding Is The Whole Edge</h2>
+<p class="muted" style="max-width:70ch;margin:8px auto 0">The same return applied to a growing balance earns more each cycle. Drag the two controls and watch the gap open — this is the mechanic the engine is built around.</p>
+</div>
+<div class="grid grid-2 cx-grid">
+  <div class="card cx-card">
+    <div class="cx-controls">
+      <label class="cx-field">
+        <span>Return per cycle <b id="cxRateVal">5%</b></span>
+        <input id="cxRate" type="range" min="1" max="15" step="0.5" value="5" aria-label="Return per cycle">
+      </label>
+      <label class="cx-field">
+        <span>Cycles <b id="cxCyclesVal">24</b></span>
+        <input id="cxCycles" type="range" min="6" max="48" step="1" value="24" aria-label="Number of cycles">
+      </label>
+      <label class="cx-field">
+        <span>Starting capital <b id="cxStartVal">$1,000</b></span>
+        <input id="cxStart" type="range" min="100" max="10000" step="100" value="1000" aria-label="Starting capital">
+      </label>
+    </div>
+    <div class="cx-stats">
+      <div class="cx-stat"><small>COMPOUNDED</small><b id="cxFinal">—</b></div>
+      <div class="cx-stat"><small>NO COMPOUNDING</small><b id="cxFlat">—</b></div>
+      <div class="cx-stat cx-stat-hot"><small>THE DIFFERENCE</small><b id="cxDiff">—</b></div>
+    </div>
+  </div>
+  <div class="card cx-card cx-chart-card">
+    <svg id="cxChart" class="cx-chart" viewBox="0 0 520 300" preserveAspectRatio="none" role="img"
+         aria-label="Compounded growth compared with simple growth">
+      <defs>
+        <linearGradient id="cxFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#1ba94b" stop-opacity=".28"/>
+          <stop offset="1" stop-color="#1ba94b" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g class="cx-grid-lines" id="cxGrid"></g>
+      <path id="cxArea" class="cx-area" d=""/>
+      <path id="cxFlatPath" class="cx-flat" d=""/>
+      <path id="cxLine" class="cx-line" d=""/>
+      <circle id="cxDot" class="cx-dot" r="5" cx="0" cy="0"/>
+    </svg>
+    <div class="cx-legend">
+      <span><i class="cx-k cx-k-c"></i> Compounded</span>
+      <span><i class="cx-k cx-k-f"></i> Same gain, no compounding</span>
+    </div>
+    <p class="cx-note">An illustration of the arithmetic, not a forecast. Returns are not guaranteed and trading can lose money.</p>
+  </div>
+</div>
+</div>
+</section>
+
 <section class="section section-alt" id="how">
 <div class="container">
 <div class="section-head reveal">
@@ -103,5 +157,125 @@
   <script src="/assets/js/common.js?v=38"></script>
 <script src="/assets/js/tour.js?v=6"></script>
 <style>@media(max-width:1000px){#cmfSteps{grid-template-columns:1fr 1fr !important}}</style>
+
+<script>
+/* ---------------------------------------------------------------------------
+   Compounding curve — plain SVG + rAF, no chart library.
+   Demonstrates the point the page is making: identical percentage returns on a
+   growing balance diverge from a linear sum, and the gap is the whole edge.
+   The line draws itself the first time it scrolls into view, then re-tweens in
+   place as the sliders move (no re-animation from zero, which would look like a
+   page reload every time someone nudges a control).
+--------------------------------------------------------------------------- */
+(function () {
+  const $ = s => document.querySelector(s);
+  const chart = $('#cxChart'); if (!chart) return;
+
+  const W = 520, H = 300, PADL = 8, PADR = 8, PADT = 14, PADB = 22;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let rate = 5, cycles = 24, start = 1000;
+  let drawn = false;
+
+  const fmt = v => '$' + Math.round(v).toLocaleString('en-US');
+  const points = () => {
+    const cp = [], fl = [];
+    let v = start;
+    for (let i = 0; i <= cycles; i++) {
+      cp.push(v);
+      fl.push(start + start * (rate / 100) * i);
+      v *= 1 + rate / 100;
+    }
+    return { cp, fl };
+  };
+
+  const x = i => PADL + (W - PADL - PADR) * (i / cycles);
+  const yOf = (v, max) => PADT + (H - PADT - PADB) * (1 - v / max);
+
+  function pathFor(values, max) {
+    return values.map((v, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ',' + yOf(v, max).toFixed(1)).join(' ');
+  }
+
+  function gridLines() {
+    const g = $('#cxGrid'); if (!g) return;
+    g.innerHTML = [0, 0.25, 0.5, 0.75, 1].map(f =>
+      `<line x1="${PADL}" y1="${(PADT + (H - PADT - PADB) * f).toFixed(1)}" x2="${W - PADR}" y2="${(PADT + (H - PADT - PADB) * f).toFixed(1)}"/>`
+    ).join('');
+  }
+
+  function render(animateIn) {
+    const { cp, fl } = points();
+    const max = Math.max(...cp, ...fl) * 1.06;
+    const line = $('#cxLine'), area = $('#cxArea'), flat = $('#cxFlatPath'), dot = $('#cxDot');
+
+    const d = pathFor(cp, max);
+    line.setAttribute('d', d);
+    flat.setAttribute('d', pathFor(fl, max));
+    area.setAttribute('d', d + ` L${x(cycles).toFixed(1)},${H - PADB} L${PADL},${H - PADB} Z`);
+    dot.setAttribute('cx', x(cycles).toFixed(1));
+    dot.setAttribute('cy', yOf(cp[cp.length - 1], max).toFixed(1));
+
+    // numbers count up rather than snapping — 700ms, and skipped entirely for
+    // users who asked for reduced motion
+    const finalV = cp[cp.length - 1], flatV = fl[fl.length - 1];
+    countTo($('#cxFinal'), finalV);
+    countTo($('#cxFlat'), flatV);
+    countTo($('#cxDiff'), finalV - flatV);
+
+    if (animateIn && !reduce && !drawn) {
+      drawn = true;
+      [line, flat].forEach(el => {
+        const len = el.getTotalLength();
+        el.style.strokeDasharray = len;
+        el.style.strokeDashoffset = len;
+        el.getBoundingClientRect();
+        el.style.transition = 'stroke-dashoffset 1.5s cubic-bezier(.22,1,.36,1)';
+        el.style.strokeDashoffset = '0';
+      });
+      area.style.opacity = '0';
+      area.style.transition = 'opacity .9s ease .5s';
+      requestAnimationFrame(() => { area.style.opacity = '1'; });
+    }
+  }
+
+  const counting = new WeakMap();
+  function countTo(el, target) {
+    if (!el) return;
+    const from = counting.get(el) || 0;
+    counting.set(el, target);
+    if (reduce) { el.textContent = fmt(target); return; }
+    const t0 = performance.now(), dur = 700;
+    (function step(t) {
+      const p = Math.min(1, (t - t0) / dur);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(from + (target - from) * eased);
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+
+  const bind = (id, labelId, onSet, label) => {
+    const el = $(id); if (!el) return;
+    el.addEventListener('input', () => {
+      onSet(parseFloat(el.value));
+      const lab = $(labelId); if (lab) lab.textContent = label(parseFloat(el.value));
+      render(false);
+    });
+  };
+  bind('#cxRate', '#cxRateVal', v => rate = v, v => v + '%');
+  bind('#cxCycles', '#cxCyclesVal', v => cycles = v, v => String(v));
+  bind('#cxStart', '#cxStartVal', v => start = v, v => fmt(v));
+
+  gridLines();
+  render(false);
+
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => { if (e.isIntersecting) { render(true); io.disconnect(); } });
+    }, { threshold: 0.35 });
+    io.observe(chart);
+    setTimeout(() => render(true), 2500); // never leave it undrawn
+  } else render(true);
+})();
+</script>
 </body>
 </html>
