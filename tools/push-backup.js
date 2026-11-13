@@ -28,6 +28,12 @@
  *   # check what would happen, without touching GitHub
  *   BACKUP_TOKEN=<pat> node tools/push-backup.js --dry
  *
+ *   # push the uploaded files too (deposit proofs, KYC documents)
+ *   BACKUP_TOKEN=<pat> node tools/push-backup.js --uploads
+ *
+ *   # both in one go — what you want before a redeploy wipes the container
+ *   BACKUP_TOKEN=<pat> node tools/push-backup.js --all
+ *
  *   # pull the backup back down (restores data/db.json locally)
  *   BACKUP_TOKEN=<pat> node tools/push-backup.js --pull
  *
@@ -50,6 +56,8 @@ const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : pat
 
 const args = process.argv.slice(2);
 const DRY = args.includes('--dry');
+const WITH_UPLOADS = args.includes('--uploads') || args.includes('--all');
+const ONLY_UPLOADS = args.includes('--uploads');
 const PULL = args.includes('--pull');
 const PLAIN = args.includes('--plain');
 const fileArg = args.find(a => !a.startsWith('--'));
@@ -120,6 +128,57 @@ async function push() {
   console.log('✓ verified readable back from GitHub');
 }
 
+/**
+ * Push every file under DATA_DIR/uploads individually.
+ *
+ * These are member documents — deposit proofs, KYC scans — and they are the one
+ * class of data that cannot be regenerated or re-derived. They live on the same
+ * container as db.json, so a redeploy that wipes the container takes them too.
+ * They are pushed one file per path (not a tarball) because the app's own
+ * restore() already walks the tree and writes each file back — including .gz,
+ * which it gunzips — so this needs no companion change on the restore side.
+ */
+async function pushUploads() {
+  const root = path.join(DATA_DIR, 'uploads');
+  if (!fs.existsSync(root)) { console.log('\nno uploads directory at', root); return; }
+
+  const files = [];
+  (function walk(dir) {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else files.push(full);
+    }
+  })(root);
+
+  if (!files.length) { console.log('\nuploads directory is empty — nothing to push'); return; }
+
+  let total = 0, pushed = 0, skipped = 0;
+  console.log(`\nuploads    ${root} — ${files.length} file(s)`);
+  for (const full of files) {
+    const rel = path.relative(root, full).split(path.sep).join('/');
+    let repoPath = `${DIR}/uploads/${rel}`;
+    let buf = fs.readFileSync(full);
+    total += buf.length;
+    if (DRY) { console.log(`  would push ${rel} (${kb(buf.length)})`); continue; }
+
+    if (buf.length > 8 * 1024 * 1024) {
+      buf = zlib.gzipSync(buf, { level: 9 });
+      repoPath += '.gz';
+    }
+    const sha = await currentSha(repoPath);
+    const body = { message: `rescue upload ${rel}`, content: buf.toString('base64'), branch: BRANCH };
+    if (sha) body.sha = sha;
+    const r = await api(`/repos/${REPO}/contents/${encodeURI(repoPath)}`, { method: 'PUT', body: JSON.stringify(body) });
+    if (r.ok) { pushed++; process.stdout.write('.'); }
+    else { skipped++; console.error(`\n  ✖ ${rel} (HTTP ${r.status})`); }
+  }
+  if (!DRY) {
+    if (pushed) process.stdout.write('\n');
+    console.log(`  pushed ${pushed}, failed ${skipped}, ${kb(total)} total`);
+  }
+}
+
 async function pull() {
   const r = await api(`/repos/${REPO}/contents/${encodeURI(REPO_PATH)}?ref=${BRANCH}`,
     { accept: 'application/vnd.github.raw', headers: { accept: 'application/vnd.github.raw' } });
@@ -141,7 +200,11 @@ async function pull() {
   if (!TOKEN) die('BACKUP_TOKEN is not set');
   console.log(`repo       ${REPO}`);
   try {
-    if (PULL) await pull(); else await push();
+    if (PULL) await pull();
+    else {
+      if (!ONLY_UPLOADS) await push();
+      if (WITH_UPLOADS) await pushUploads();
+    }
   } catch (e) {
     die(e.message);
   }
