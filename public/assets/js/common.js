@@ -582,7 +582,7 @@ const I18N = {
     'hdr.tagline': 'Grab the Bull by the Horns',
     'ftr.platform': 'Platform', 'ftr.products': 'Products', 'ftr.liveMarkets': 'Live Markets', 'ftr.terminal': 'Trading Terminal',
     'ftr.bots': 'Trading Bots', 'ftr.dashboard': 'Dashboard', 'ftr.funding': 'Funding', 'ftr.community': 'Community',
-    'ftr.createAccount': 'Create Account', 'ftr.login': 'Log In', 'ftr.install': 'Install App', 'ftr.notify': 'Notifications',
+    'ftr.join': 'Get started', 'ftr.signup': 'Sign Up Free', 'ftr.followUs': 'Follow us', 'ftr.createAccount': 'Create Account', 'ftr.login': 'Log In', 'ftr.install': 'Install App', 'ftr.notify': 'Notifications',
     'ftr.store': 'Store', 'ftr.mentorship': 'Elite Mentorship', 'ftr.cmf': 'CMF Engine', 'ftr.faq': 'FAQ',
     'ftr.contact': 'Contact', 'ftr.fraudAlert': 'Fraud Alert', 'ftr.fraudText': 'We NEVER DM first or ask for crypto. Verify official accounts on our',
     'ftr.fraudLink': 'Fraud Alert page', 'ftr.blurb': 'Premier crypto education & trading platform. Structure over hype — build disciplined investing skills for every market cycle.',
@@ -602,7 +602,7 @@ const I18N = {
     'hdr.tagline': 'Agarra al toro por los cuernos',
     'ftr.platform': 'Plataforma', 'ftr.products': 'Productos', 'ftr.liveMarkets': 'Mercados en vivo', 'ftr.terminal': 'Terminal de Trading',
     'ftr.bots': 'Bots de Trading', 'ftr.dashboard': 'Panel', 'ftr.funding': 'Fondos', 'ftr.community': 'Comunidad',
-    'ftr.createAccount': 'Crear cuenta', 'ftr.login': 'Iniciar sesión', 'ftr.install': 'Instalar app', 'ftr.notify': 'Notificaciones',
+    'ftr.join': 'Empezar', 'ftr.signup': 'Crear cuenta gratis', 'ftr.followUs': 'Síguenos', 'ftr.createAccount': 'Crear cuenta', 'ftr.login': 'Iniciar sesión', 'ftr.install': 'Instalar app', 'ftr.notify': 'Notificaciones',
     'ftr.store': 'Tienda', 'ftr.mentorship': 'Mentoría Elite', 'ftr.cmf': 'Motor CMF', 'ftr.faq': 'Preguntas frecuentes',
     'ftr.contact': 'Contacto', 'ftr.fraudAlert': 'Alerta de fraude', 'ftr.fraudText': 'NUNCA enviamos mensajes primero ni pedimos cripto. Verifica las cuentas oficiales en nuestra',
     'ftr.fraudLink': 'página de Alerta de Fraude', 'ftr.blurb': 'Plataforma premier de educación cripto y trading. Estructura sobre hype: desarrolla habilidades de inversión disciplinadas para cada ciclo del mercado.',
@@ -622,7 +622,7 @@ const I18N = {
     'hdr.tagline': 'Prends le taureau par les cornes',
     'ftr.platform': 'Plateforme', 'ftr.products': 'Produits', 'ftr.liveMarkets': 'Marchés en direct', 'ftr.terminal': 'Terminal de Trading',
     'ftr.bots': 'Bots de Trading', 'ftr.dashboard': 'Tableau de bord', 'ftr.funding': 'Financement', 'ftr.community': 'Communauté',
-    'ftr.createAccount': 'Créer un compte', 'ftr.login': 'Se connecter', 'ftr.install': "Installer l'app", 'ftr.notify': 'Notifications',
+    'ftr.join': 'Commencer', 'ftr.signup': 'Créer un compte gratuit', 'ftr.followUs': 'Suivez-nous', 'ftr.createAccount': 'Créer un compte', 'ftr.login': 'Se connecter', 'ftr.install': "Installer l'app", 'ftr.notify': 'Notifications',
     'ftr.store': 'Boutique', 'ftr.mentorship': 'Mentorat Elite', 'ftr.cmf': 'Moteur CMF', 'ftr.faq': 'FAQ',
     'ftr.contact': 'Contact', 'ftr.fraudAlert': 'Alerte fraude', 'ftr.fraudText': "Nous n'envoyons JAMAIS de message en premier et ne demandons pas de crypto. Vérifiez les comptes officiels sur notre",
     'ftr.fraudLink': "page Alerte Fraude", 'ftr.blurb': "Plateforme premium d'éducation crypto et de trading. La structure plutôt que le hype — développez des compétences d'investissement disciplinées pour chaque cycle de marché.",
@@ -642,7 +642,7 @@ const I18N = {
     'hdr.tagline': 'Pegue o touro pelos chifres',
     'ftr.platform': 'Plataforma', 'ftr.products': 'Produtos', 'ftr.liveMarkets': 'Mercados ao vivo', 'ftr.terminal': 'Terminal de Trading',
     'ftr.bots': 'Bots de Trading', 'ftr.dashboard': 'Painel', 'ftr.funding': 'Fundos', 'ftr.community': 'Comunidade',
-    'ftr.createAccount': 'Criar conta', 'ftr.login': 'Entrar', 'ftr.install': 'Instalar app', 'ftr.notify': 'Notificações',
+    'ftr.join': 'Começar', 'ftr.signup': 'Criar conta grátis', 'ftr.followUs': 'Siga-nos', 'ftr.createAccount': 'Criar conta', 'ftr.login': 'Entrar', 'ftr.install': 'Instalar app', 'ftr.notify': 'Notificações',
     'ftr.store': 'Loja', 'ftr.mentorship': 'Mentoria Elite', 'ftr.cmf': 'Motor CMF', 'ftr.faq': 'Perguntas frequentes',
     'ftr.contact': 'Contato', 'ftr.fraudAlert': 'Alerta de fraude', 'ftr.fraudText': 'NUNCA enviamos mensagem primeiro nem pedimos cripto. Verifique as contas oficiais na nossa',
     'ftr.fraudLink': 'página de Alerta de Fraude', 'ftr.blurb': 'Plataforma premier de educação cripto e trading. Estrutura em vez de hype — desenvolva habilidades de investimento disciplinadas para cada ciclo de mercado.',
@@ -662,7 +662,7 @@ const I18N = {
     'hdr.tagline': 'Pack den Stier bei den Hörnern',
     'ftr.platform': 'Plattform', 'ftr.products': 'Produkte', 'ftr.liveMarkets': 'Live-Märkte', 'ftr.terminal': 'Trading-Terminal',
     'ftr.bots': 'Trading-Bots', 'ftr.dashboard': 'Dashboard', 'ftr.funding': 'Finanzierung', 'ftr.community': 'Community',
-    'ftr.createAccount': 'Konto erstellen', 'ftr.login': 'Anmelden', 'ftr.install': 'App installieren', 'ftr.notify': 'Benachrichtigungen',
+    'ftr.join': 'Loslegen', 'ftr.signup': 'Kostenlos registrieren', 'ftr.followUs': 'Folgen Sie uns', 'ftr.createAccount': 'Konto erstellen', 'ftr.login': 'Anmelden', 'ftr.install': 'App installieren', 'ftr.notify': 'Benachrichtigungen',
     'ftr.store': 'Shop', 'ftr.mentorship': 'Elite-Mentoring', 'ftr.cmf': 'CMF-Engine', 'ftr.faq': 'FAQ',
     'ftr.contact': 'Kontakt', 'ftr.fraudAlert': 'Betrugswarnung', 'ftr.fraudText': 'Wir schreiben NIEMALS zuerst und fragen nie nach Krypto. Prüfe offizielle Konten auf unserer',
     'ftr.fraudLink': 'Betrugswarnungs-Seite', 'ftr.blurb': 'Premier-Krypto-Bildungs- und Trading-Plattform. Struktur statt Hype — baue disziplinierte Anlagefähigkeiten für jeden Marktzyklus auf.',
@@ -682,7 +682,7 @@ const I18N = {
     'hdr.tagline': '擒牛执角',
     'ftr.platform': '平台', 'ftr.products': '产品', 'ftr.liveMarkets': '实时行情', 'ftr.terminal': '交易终端',
     'ftr.bots': '交易机器人', 'ftr.dashboard': '仪表盘', 'ftr.funding': '资金', 'ftr.community': '社区',
-    'ftr.createAccount': '创建账户', 'ftr.login': '登录', 'ftr.install': '安装应用', 'ftr.notify': '通知',
+    'ftr.join': '开始使用', 'ftr.signup': '免费注册', 'ftr.followUs': '关注我们', 'ftr.createAccount': '创建账户', 'ftr.login': '登录', 'ftr.install': '安装应用', 'ftr.notify': '通知',
     'ftr.store': '商店', 'ftr.mentorship': '精英辅导', 'ftr.cmf': 'CMF 引擎', 'ftr.faq': '常见问题',
     'ftr.contact': '联系我们', 'ftr.fraudAlert': '防诈警报', 'ftr.fraudText': '我们绝不会主动私信或索要加密货币。请在我们的人工智能上核实官方账号',
     'ftr.fraudLink': '防诈警报页面', 'ftr.blurb': '顶级加密教育与交易平台。结构胜于炒作 — 培养纪律性投资技能，从容应对每个市场周期。',
@@ -702,7 +702,7 @@ const I18N = {
     'hdr.tagline': 'बैल के सींग पकड़ो',
     'ftr.platform': 'प्लेटफ़ॉर्म', 'ftr.products': 'उत्पाद', 'ftr.liveMarkets': 'लाइव मार्केट', 'ftr.terminal': 'ट्रेडिंग टर्मिनल',
     'ftr.bots': 'ट्रेडिंग बॉट्स', 'ftr.dashboard': 'डैशबोर्ड', 'ftr.funding': 'फंडिंग', 'ftr.community': 'कम्युनिटी',
-    'ftr.createAccount': 'खाता बनाएं', 'ftr.login': 'लॉग इन', 'ftr.install': 'ऐप इंस्टॉल करें', 'ftr.notify': 'सूचनाएँ',
+    'ftr.join': 'शुरू करें', 'ftr.signup': 'मुफ़्त साइन अप', 'ftr.followUs': 'हमें फॉलो करें', 'ftr.createAccount': 'खाता बनाएं', 'ftr.login': 'लॉग इन', 'ftr.install': 'ऐप इंस्टॉल करें', 'ftr.notify': 'सूचनाएँ',
     'ftr.store': 'स्टोर', 'ftr.mentorship': 'एलीट मेंटरशिप', 'ftr.cmf': 'CMF इंजन', 'ftr.faq': 'सामान्य प्रश्न',
     'ftr.contact': 'संपर्क', 'ftr.fraudAlert': 'फ्रॉड अलर्ट', 'ftr.fraudText': 'हम कभी पहले DM नहीं करते और क्रिप्टो नहीं मांगते। हमारे',
     'ftr.fraudLink': 'फ्रॉड अलर्ट पेज', 'ftr.blurb': 'प्रीमियर क्रिप्टो शिक्षा और ट्रेडिंग प्लेटफ़ॉर्म। हाइप नहीं, अनुशासन — हर मार्केट चक्र के लिए अनुशासित निवेश कौशल बनाएं।',
@@ -1003,8 +1003,9 @@ function renderFooter() {
       <div class="footer-brand">
         <img src="/assets/img/brand/logo.png" alt="Blockchain Bullhorn">
         <p data-i18n="ftr.blurb">Premier crypto education &amp; trading platform. Structure over hype — build disciplined investing skills for every market cycle.</p>
+        <div class="footer-social-label" data-i18n="ftr.followUs">Follow us</div>
         <div class="socials">
-          <a href="https://www.facebook.com/profile.php?id=61595631804363&amp;mibextid=ZbWKwL" target="_blank" rel="noopener" class="soc-fb" title="Facebook" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+          <a href="https://www.facebook.com/profile.php?id=61595631804363&amp;mibextid=ZbWKwL" target="_blank" rel="noopener" class="soc-fb" title="Blockchain Bullhorn on Facebook" aria-label="Follow Blockchain Bullhorn on Facebook"><i class="fab fa-facebook-f"></i></a>
           <a href="https://www.tiktok.com/@blockchainbullhorn" target="_blank" rel="noopener" title="TikTok (Official)"><i class="fab fa-tiktok"></i></a>
           <a href="https://www.instagram.com/blockchainbullhorn" target="_blank" rel="noopener" title="Instagram"><i class="fab fa-instagram"></i></a>
           <a href="https://x.com/Blockchainbhorn" target="_blank" rel="noopener" title="X / Twitter"><i class="fab fa-x-twitter"></i></a>
@@ -1038,9 +1039,7 @@ function renderFooter() {
         <h5>Company</h5>
         <div class="footer-links">
           <a href="/contact" data-i18n="ftr.contact">Contact</a>
-          <a href="/signup" data-i18n="ftr.createAccount">Create Account</a>
-          <a href="/login" data-i18n="ftr.login">Log In</a>
-          <a href="https://www.facebook.com/profile.php?id=61595631804363&amp;mibextid=ZbWKwL" target="_blank" rel="noopener">Facebook Page <i class="fab fa-facebook" style="font-size:10px"></i></a>
+          <a href="mailto:blockchainbullhornfaqs@gmail.com">Support</a>
           <a href="/legal?p=terms">Terms &amp; Conditions</a>
           <a href="/sitemap.xml">Sitemap</a>
         </div>
@@ -1057,12 +1056,13 @@ function renderFooter() {
         </div>
       </div>
       <div class="footer-follow">
-        <h5>Follow the herd</h5>
-        <a class="fb-page-card" href="https://www.facebook.com/profile.php?id=61595631804363&amp;mibextid=ZbWKwL" target="_blank" rel="noopener">
-          <span class="fbc-ic"><i class="fab fa-facebook-f"></i></span>
-          <span class="fbc-txt"><b>Blockchain Bullhorn</b><small>Follow our Facebook page</small></span>
-          <i class="fas fa-arrow-up-right-from-square fbc-go"></i>
-        </a>
+        <h5 data-i18n="ftr.join">Get started</h5>
+        <!-- Log In and Sign Up sit side by side: they are the same decision, so
+             they should never be a scroll apart in a link list. -->
+        <div class="footer-auth">
+          <a href="/login" class="fa-login"><i class="fas fa-arrow-right-to-bracket"></i> <span data-i18n="ftr.login">Log In</span></a>
+          <a href="/signup" class="fa-signup"><i class="fas fa-bolt"></i> <span data-i18n="ftr.signup">Sign Up Free</span></a>
+        </div>
         <div class="footer-links footer-tools">
           <a href="#" id="footInstall"><i class="fas fa-mobile-alt"></i> <span data-i18n="ftr.install">Install App</span></a>
           <a href="#" id="footNotify"><i class="fas fa-bell"></i> <span data-i18n="ftr.notify">Notifications</span></a>
@@ -1116,6 +1116,21 @@ async function loadTicker() {
 
 // ---------- announcement ----------
 // ---------- reveal on scroll ----------
+// ---------- footer entrance ----------
+// The footer rises into place as one block. Same fail-safes as initReveal: if the
+// observer never fires (old browser, hidden tab, print) the footer is revealed anyway.
+function initFooterMotion() {
+  const foot = $('#site-footer'); if (!foot) return;
+  const show = () => foot.classList.add('in-view');
+  if (!('IntersectionObserver' in window)) { show(); return; }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { show(); io.disconnect(); } });
+  }, { threshold: 0.06 });
+  io.observe(foot);
+  setTimeout(show, 3000);
+  addEventListener('beforeprint', show);
+}
+
 function initReveal() {
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
@@ -1579,6 +1594,7 @@ async function bootCommon() {
   BB.applyLang();
   BB.applyUsd();
   initReveal();
+  initFooterMotion();
   initCounters();
   loadTicker();
   Chat.init();
