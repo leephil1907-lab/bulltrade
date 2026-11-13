@@ -146,3 +146,19 @@ npm install
 PORT=3000 node server.js      # http://localhost:3000  ·  /admin
 npm test && npm run test:links
 ```
+
+---
+
+## Verifying a deploy landed
+
+```bash
+node tools/verify-live.js                                  # production
+node tools/verify-live.js http://localhost:3000            # local sanity check
+```
+
+It compares build markers **taken from the working copy** (asset versions, the
+glass stylesheet, the session bar, the KYC country dropdown, the six-column
+footer) against what the host is actually serving, checks the sitemap host, and
+probes the main routes. Exit code 0 means the live site is this build; a `STALE`
+line tells you exactly which build is still live. It also warns when the
+container's uptime is older than the deploy should be.
